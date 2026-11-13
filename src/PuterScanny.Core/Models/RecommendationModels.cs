@@ -6,7 +6,7 @@ public enum Verdict
     /// <summary>Windows needs it. Never deleted.</summary>
     Required = 0,
 
-    /// <summary>Keep: in use, part of an installed program, or simply nothing suggests it can go.</summary>
+    /// <summary>Keep: in use, part of a program, or simply nothing suggests it can go (then <see cref="FactFlags.NoEvidence"/> is set).</summary>
     Keep = 1,
 
     /// <summary>Your own file (documents, photos, music…). Only you decide.</summary>
@@ -54,6 +54,12 @@ public enum FactFlags
     MatchesInstalledProgram = 1 << 5,
     Duplicate = 1 << 6,
     DuplicateKeeper = 1 << 7,
+
+    /// <summary>Named the way Nexus Mods names downloads (mod name-id-version-timestamp).</summary>
+    ModDownload = 1 << 8,
+
+    /// <summary>Kept only because nothing pointed either way (shown as "No reason to remove", not as a real keep).</summary>
+    NoEvidence = 1 << 9,
 }
 
 /// <summary>One piece of evidence. Positive weight points toward deleting, negative toward keeping.</summary>
@@ -66,6 +72,9 @@ public sealed record Recommendation(
     string Headline,
     IReadOnlyList<Evidence> Evidence)
 {
+    /// <summary>"Keep" only because nothing was found either way (no reason to keep it, no reason to remove it).</summary>
+    public bool NoEvidence { get; init; }
+
     public bool IsDeletable => Verdict is Verdict.SafeToDelete or Verdict.RecommendDelete;
 }
 

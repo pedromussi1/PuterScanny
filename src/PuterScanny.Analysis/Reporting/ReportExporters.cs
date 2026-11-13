@@ -62,7 +62,7 @@ public static class ReportExporters
                 a?.OwnerAppName ?? rule?.Owner ?? "",
                 rule?.Name ?? "",
                 a is null ? "" : ReportData.ProtectionName(a.Protection),
-                a?.Verdict is { } v ? ReportData.VerdictName(v) : "",
+                a?.Verdict is { } v ? ReportData.VerdictName(v, a.Facts) : "",
                 a?.Verdict is null ? "" : a.Confidence.ToString(CultureInfo.InvariantCulture),
                 a is null ? "" : ActionName(a.Action),
                 a?.Headline ?? "",
@@ -271,6 +271,7 @@ public static class ReportExporters
     {
         "Required by Windows" => "var(--required)",
         "Keep" => "var(--keep)",
+        "No reason to remove" => "#c4cbd6",
         "Keep (your file)" => "var(--personal)",
         "Review" => "var(--review)",
         "Safe to delete" => "var(--safe)",

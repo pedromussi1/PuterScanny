@@ -93,6 +93,9 @@ public sealed record AnalysisOptions
 
     /// <summary>Upper limit on files opened per second in gentle mode.</summary>
     public int GentleFilesPerSecond { get; init; } = 600;
+
+    /// <summary>For tests only: where installed programs live, replacing the real Program Files/AppData check for portable-program detection.</summary>
+    public Func<string, bool>? PortableAppAreaOverride { get; init; }
 }
 
 public sealed record ScanProgress(

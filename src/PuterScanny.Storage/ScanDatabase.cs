@@ -547,6 +547,19 @@ public sealed class ScanDatabase : IDisposable
         return list;
     }
 
+    /// <summary>Files kept only because nothing pointed either way (part of the "Keep" total).</summary>
+    public (long Files, long Bytes) GetNoEvidenceStats()
+    {
+        using var cmd = _connection.CreateCommand();
+        cmd.CommandText = $"""
+            SELECT COUNT(*), COALESCE(SUM(e.size), 0) FROM analysis a JOIN entry e ON e.id = a.entry_id
+            WHERE e.is_dir = 0 AND a.verdict = {(int)Verdict.Keep} AND (a.fact_flags & {(int)FactFlags.NoEvidence}) <> 0
+            """;
+        using var r = cmd.ExecuteReader();
+        r.Read();
+        return (r.GetInt64(0), r.GetInt64(1));
+    }
+
     /// <summary>
     /// The highest-level items with one of these verdicts (a deletable folder is listed once, not file by file), biggest first.
     /// </summary>

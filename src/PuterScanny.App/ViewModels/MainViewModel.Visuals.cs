@@ -60,6 +60,8 @@ public sealed partial class MainViewModel
             else if (verdict == Verdict.KeepPersonal) personal += bytes;
             else keep += bytes;
         }
+        long noReason = Math.Min(keep, db.GetNoEvidenceStats().Bytes);
+        keep -= noReason;
 
         Cards.Clear();
         Cards.Add(new StatCard(Display.Size(summary.TotalSize), $"scanned in {Display.Count(summary.FileCount, "file", "files")}"));
@@ -74,6 +76,7 @@ public sealed partial class MainViewModel
         {
             (required, Palette.Required, "Required by Windows"),
             (keep, Palette.Keep, "Keep"),
+            (noReason, Palette.NoReason, "No reason to remove"),
             (personal, Palette.Personal, "Your files"),
             (review, Palette.Review, "Review"),
             (tool, Palette.Tool, "Windows tools"),
@@ -200,7 +203,7 @@ public sealed partial class MainViewModel
             foreach (var (fill, label) in new[]
             {
                 (Palette.Recommend, "Recommended to delete"), (Palette.Safe, "Safe to delete"), (Palette.Review, "Review"),
-                (Palette.Tool, "Windows tools"), (Palette.Personal, "Your files"), (Palette.Keep, "Keep"), (Palette.Required, "Required by Windows"),
+                (Palette.Tool, "Windows tools"), (Palette.Personal, "Your files"), (Palette.NoReason, "No reason to remove"), (Palette.Keep, "Keep"), (Palette.Required, "Required by Windows"),
             }) TreemapLegend.Add(new LegendItem(fill, label));
         }
     }
@@ -215,9 +218,9 @@ public sealed partial class MainViewModel
         else if (e.IsDirectory && a is not null && a.Verdict is not (Verdict.SafeToDelete or Verdict.RecommendDelete)
                  && e.TotalSize > 0 && a.ReclaimBytes * 2 >= e.TotalSize)
             fill = Palette.Safe; // mostly cleanable inside
-        else fill = Palette.ForVerdict(a?.Verdict, a?.Action ?? CleanupAction.None);
+        else fill = Palette.ForVerdict(a?.Verdict, a?.Action ?? CleanupAction.None, a?.Facts ?? FactFlags.None);
 
-        string verdict = a?.Verdict is { } v ? Display.VerdictTitle(v) : "";
+        string verdict = a?.Verdict is { } v ? Display.VerdictTitle(v, a.Facts) : "";
         string reclaim = e.IsDirectory && a is { ReclaimBytes: > 0 } ? $"\n{Display.Size(a.ReclaimBytes)} inside can go" : "";
         return new TreemapNode
         {

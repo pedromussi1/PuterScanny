@@ -10,6 +10,9 @@ public enum AppSource
     Gog = 4,
     Chocolatey = 5,
     Scoop = 6,
+
+    /// <summary>A program that runs straight from its folder without being installed (found by the scan, not by Windows).</summary>
+    Portable = 7,
 }
 
 /// <summary>A program found on this PC, plus how much of the scanned area it was found to occupy.</summary>

@@ -528,6 +528,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         { IsSystemComponent: true } => "Component",
         { Source: AppSource.StoreApp } => "Store app",
         { Source: AppSource.Chocolatey or AppSource.Scoop } => "Package",
+        { Source: AppSource.Portable } => "Portable program",
         _ => "Program",
     };
 

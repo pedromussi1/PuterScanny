@@ -15,12 +15,12 @@ Free to download and use, with no account, no ads and no subscription. It never 
 Pick a drive or folder and press **Scan**. For every file and folder, PuterScanny tells you:
 
 - **What it is**, by its real content and not just its name. It reads file signatures, program details, publishers and digital signatures, and knows 861 file types.
-- **Who it belongs to**: which installed program, game, store app or package manager put it there.
+- **Who it belongs to**: which installed program, game, store app or package manager put it there. Portable programs (unzipped tools, emulators, game builds that run without being installed) are recognised too, and their folders are kept whole, so the files they need, such as a game's disc image, are never offered for deletion on their own.
 - **Whether Windows needs it**: system files protected by Windows, drivers, services, scheduled tasks, startup entries, fonts, and files that running programs are using right now.
 - **When you last used it**, from Windows' own records: program launches, recent files, apps' recent lists, Office, Steam and, as administrator, Prefetch run counts.
-- **A recommendation, with its reasons and how sure it is**: *Required by Windows*, *Keep*, *Keep (your file)*, *Review*, *Safe to delete* or *Recommended to delete*.
+- **A recommendation, with its reasons and how sure it is**: *Required by Windows*, *Keep*, *Keep (your file)*, *Review*, *Safe to delete* or *Recommended to delete*. Items where nothing points either way are shown as *No reason to remove*, so they aren't mistaken for things that must stay.
 
-It also finds duplicate files (compared byte for byte), leftovers from uninstalled programs, caches, old installers, crash dumps, empty folders and broken shortcuts. Programs you no longer use get an "uninstall it properly" suggestion instead of having their files deleted.
+It also finds duplicate files (compared byte for byte), leftovers from uninstalled programs, caches, old installers, game-mod downloads from Nexus Mods, crash dumps, empty folders and broken shortcuts. Programs you no longer use get an "uninstall it properly" suggestion instead of having their files deleted.
 
 ### Views
 
@@ -63,7 +63,7 @@ For the few items its own rules can't identify, PuterScanny can use a **free AI 
 1. Download `PuterScanny-<version>-setup.exe` from [Releases](https://github.com/pedromussi1/PuterScanny/releases/latest) and run it. It installs for your account only and doesn't need administrator rights. Prefer no installer? Use the portable `.zip`: unzip it anywhere and run `PuterScanny.exe`.
 2. **"Windows protected your PC"?** The app isn't code-signed yet (signing certificates cost money; free signing for open-source projects may come later). Click **More info**, then **Run anyway**. You can check your download against `SHA256SUMS.txt` on the release page:
    ```powershell
-   Get-FileHash .\PuterScanny-1.0.0-setup.exe -Algorithm SHA256
+   Get-FileHash .\PuterScanny-*-setup.exe -Algorithm SHA256
    ```
 
 Uninstall from **Settings > Apps**. The uninstaller asks whether to remove saved scans and AI models. Files in quarantine are always kept.

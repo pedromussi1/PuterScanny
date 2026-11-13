@@ -61,6 +61,7 @@ internal static class Display
         AppSource.Gog => "GOG",
         AppSource.Chocolatey => "Chocolatey",
         AppSource.Scoop => "Scoop",
+        AppSource.Portable => "Found by the scan (a portable program: it runs without being installed)",
         _ => source.ToString(),
     };
 
@@ -98,6 +99,10 @@ internal static class Display
         UsageSource.Amcache => "Program inventory (Amcache)",
         _ => s.ToString(),
     };
+
+    /// <summary>"No reason to remove" for items kept only because nothing pointed either way.</summary>
+    public static string VerdictTitle(Verdict v, FactFlags facts) =>
+        v == Verdict.Keep && facts.HasFlag(FactFlags.NoEvidence) ? "No reason to remove" : VerdictTitle(v);
 
     public static string VerdictTitle(Verdict v) => v switch
     {

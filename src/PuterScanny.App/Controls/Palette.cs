@@ -8,6 +8,7 @@ public static class Palette
 {
     public static readonly Brush Required = Make(0x6B, 0x72, 0x80);
     public static readonly Brush Keep = Make(0x8C, 0x9B, 0xB0);
+    public static readonly Brush NoReason = Make(0xC4, 0xCB, 0xD6);
     public static readonly Brush Personal = Make(0x7C, 0x6F, 0xD9);
     public static readonly Brush Review = Make(0xC7, 0x8A, 0x00);
     public static readonly Brush Safe = Make(0x2E, 0x9E, 0x4A);
@@ -16,9 +17,10 @@ public static class Palette
     public static readonly Brush Other = Make(0xA8, 0xA8, 0xB0);
     public static readonly Brush Unknown = Make(0xB8, 0xBC, 0xC6);
 
-    public static Brush ForVerdict(Verdict? v, CleanupAction action = CleanupAction.None) => (v, action) switch
+    public static Brush ForVerdict(Verdict? v, CleanupAction action = CleanupAction.None, FactFlags facts = FactFlags.None) => (v, action) switch
     {
         (_, CleanupAction.UseWindowsTool) => Tool,
+        (Verdict.Keep, _) when facts.HasFlag(FactFlags.NoEvidence) => NoReason,
         (Verdict.Required, _) => Required,
         (Verdict.Keep, _) => Keep,
         (Verdict.KeepPersonal, _) => Personal,

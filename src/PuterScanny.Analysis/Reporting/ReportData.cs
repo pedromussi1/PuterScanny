@@ -57,6 +57,10 @@ public sealed record ReportData
     public long SkippedItems { get; init; }
     public IReadOnlyList<ReportNote> Skipped { get; init; } = [];
 
+    /// <summary>"No reason to remove" for items kept only because nothing pointed either way.</summary>
+    public static string VerdictName(Verdict v, FactFlags facts) =>
+        v == Core.Models.Verdict.Keep && facts.HasFlag(FactFlags.NoEvidence) ? "No reason to remove" : VerdictName(v);
+
     public static string VerdictName(Verdict v) => v switch
     {
         Core.Models.Verdict.Required => "Required by Windows",
@@ -98,7 +102,7 @@ public sealed record ReportData
 
         ReportItem Item(FileSystemEntry e) => new(
             e.Path, e.Depth == 0 ? e.Path : e.Name, e.IsDirectory, e.TotalSize,
-            e.Analysis?.Verdict is { } v ? VerdictName(v) : "",
+            e.Analysis?.Verdict is { } v ? VerdictName(v, e.Analysis.Facts) : "",
             e.Analysis?.Confidence ?? 0,
             e.Analysis?.Headline ?? "",
             e.IsDirectory ? (kb.GetRule(e.Analysis?.LocationRuleId)?.Name ?? "Folder") : e.Analysis?.TypeLabel ?? "File",
@@ -138,7 +142,7 @@ public sealed record ReportData
             Review = review,
             WithWindowsTools = tool,
             DuplicatesWasted = dupes.Sum(d => d.WastedBytes),
-            Verdicts = verdicts.OrderBy(kv => kv.Key).Select(kv => new ReportVerdict(VerdictName(kv.Key), kv.Value.Files, kv.Value.Bytes)).ToList(),
+            Verdicts = SplitNoReason(verdicts.OrderBy(kv => kv.Key).Select(kv => new ReportVerdict(VerdictName(kv.Key), kv.Value.Files, kv.Value.Bytes)), db.GetNoEvidenceStats()),
             Categories = db.GetCategoryStats().Select(c => new ReportCategory(kb.CategoryName(c.Category), c.Files, c.Bytes)).ToList(),
             ToDelete = db.GetTopItems([Core.Models.Verdict.RecommendDelete, Core.Models.Verdict.SafeToDelete], listLimit).Select(Item).ToList(),
             ToReview = db.GetTopItems([Core.Models.Verdict.Review], listLimit)
@@ -155,6 +159,23 @@ public sealed record ReportData
             SkippedItems = s.IssueCount,
             Skipped = db.GetIssues(listLimit).Select(i => new ReportNote(i.Kind.ToString(), i.Path, i.Message)).ToList(),
         };
+    }
+
+    /// <summary>Shows "Keep" and "No reason to remove" (kept only because nothing pointed either way) as separate rows.</summary>
+    private static List<ReportVerdict> SplitNoReason(IEnumerable<ReportVerdict> rows, (long Files, long Bytes) noReason)
+    {
+        var list = new List<ReportVerdict>();
+        foreach (var row in rows)
+        {
+            if (row.Verdict == VerdictName(Core.Models.Verdict.Keep) && noReason.Files > 0)
+            {
+                long files = Math.Min(row.Files, noReason.Files), bytes = Math.Min(row.Bytes, noReason.Bytes);
+                if (row.Files - files > 0) list.Add(row with { Files = row.Files - files, Bytes = row.Bytes - bytes });
+                list.Add(new ReportVerdict("No reason to remove", files, bytes));
+            }
+            else list.Add(row);
+        }
+        return list;
     }
 
     private static string UsageName(UsageSource s) => s switch

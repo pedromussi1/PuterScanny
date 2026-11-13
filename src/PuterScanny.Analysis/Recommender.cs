@@ -74,6 +74,8 @@ public static class Recommender
             case Protection.InUse:
                 return new(Verdict.Keep, 95, CleanupAction.None, "In use by a running program",
                     [new(-100, "A running program was using it during the scan.")]);
+            case Protection.UninstallOnly when f.Owner?.Source == AppSource.Portable:
+                return Portable(f, e, a);
             case Protection.UninstallOnly:
             {
                 string app = f.Owner?.Name ?? a.OwnerAppName ?? "an installed program";
@@ -131,6 +133,14 @@ public static class Recommender
                 : new(Verdict.Review, 55, CleanupAction.Delete, "Possibly left over from a removed program",
                     [new(40, "No installed program matches this folder's name."),
                      new(-25, $"But something inside changed {Days(quiet)} ago, so it may still be in use (for example by a portable program).")]);
+        }
+        else if (f.Flags.HasFlag(FactFlags.ModDownload) && ModDownloads.TryParse(e.Name, e.IsDirectory, out var mod))
+        {
+            decided = new(Verdict.Review, 65, CleanupAction.Delete, "Mod download (Nexus Mods)",
+                [new(40, $"Named the way Nexus Mods names its downloads: \"{mod.Name}\", mod #{mod.ModId}, version {mod.Version}, uploaded {mod.UploadedUtc:d MMM yyyy}. " +
+                         (e.IsDirectory ? "This looks like the downloaded mod, unpacked. " : "") +
+                         "Once a mod is installed into its game, the downloaded copy is only a spare, and it can be downloaded again from Nexus Mods."),
+                 new(-20, "Keep it if you haven't installed the mod yet, or if a mod manager (Vortex, Mod Organizer) uses it to reinstall the mod.")]);
         }
         else if (f.Flags.HasFlag(FactFlags.EmptyFolder))
         {
@@ -204,10 +214,31 @@ public static class Recommender
         decided ??= personalContent || (personalArea && e.IsDirectory)
             ? new(Verdict.KeepPersonal, 90, CleanupAction.None, "Your own " + (e.IsDirectory ? "folder" : "file"),
                 [new(-70, "It looks like your own " + (e.IsDirectory ? "folder" : "file") + ". PuterScanny never suggests deleting your files on its own.")])
-            : new(Verdict.Keep, 60, CleanupAction.None, "Nothing suggests it can go",
-                [new(-20, "Nothing found says it's safe to remove, so the safe choice is to keep it.")]);
+            : new(Verdict.Keep, 60, CleanupAction.None, "No reason found to remove it",
+                [new(-20, "Nothing found says what it is for or that it's safe to remove, so it's left alone. This isn't a sign it's needed, only that PuterScanny can't tell.")])
+              { NoEvidence = true };
 
         return Adjust(decided, f, a, personalContent, usedDaysAgo);
+    }
+
+    /// <summary>A program that runs from its own folder without being installed: the folder is kept or deleted as a whole.</summary>
+    private static Recommendation Portable(EntryFacts f, FileSystemEntry e, AnalysisInfo a)
+    {
+        string app = f.Owner!.Name;
+        string lastRun = f.Owner.LastUsedUtc is { } used ? $"{app} last ran {Days((int)(f.NowUtc - used).TotalDays)} ago." : "";
+        if (e.IsDirectory && a.OwnerIsExact)
+        {
+            var ev = new List<Evidence>
+            {
+                new(-70, $"{app} runs straight from this folder without being installed, so it isn't listed in Settings > Apps. " +
+                         "Everything in here belongs together: keep the folder whole, or delete all of it if you no longer use the program."),
+            };
+            if (lastRun.Length > 0) ev.Add(new(-10, lastRun));
+            return new(Verdict.Keep, 90, CleanupAction.None, $"Portable program: {app}", ev);
+        }
+        return new(Verdict.Keep, 90, CleanupAction.None, $"Part of {app} (portable program)",
+            [new(-80, $"It belongs to {app}, a program that runs from its own folder. Programs like this need their files (data, disc images, libraries) " +
+                      "right where they are, so removing pieces would break it. Keep the folder whole, or delete all of it.")]);
     }
 
     private static Recommendation FromAdvice(EntryFacts f, LocationAdvice advice, int age, int usedDaysAgo)

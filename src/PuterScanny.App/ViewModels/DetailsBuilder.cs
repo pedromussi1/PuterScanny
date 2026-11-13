@@ -96,9 +96,12 @@ internal static class DetailsBuilder
             Add("Version", owner.Version);
             Add("Installed", owner.InstallDate is { } d ? Display.Date(d) : null);
             Add("Found via", Display.SourceName(owner.Source));
-            Add("How we know", a.OwnerIsExact
-                ? (e.IsDirectory ? $"This is where {owner.Name} is installed (or keeps its data)." : $"{owner.Name}'s installer registered this exact file.")
-                : $"It is inside {owner.Name}'s folder.");
+            Add("How we know", owner.Source == AppSource.Portable
+                ? (a.OwnerIsExact ? $"This folder holds {owner.Name}.exe, a program that isn't an installer, so the folder is that program."
+                                  : $"It is inside the folder of {owner.Name}, a program that runs without being installed.")
+                : a.OwnerIsExact
+                    ? (e.IsDirectory ? $"This is where {owner.Name} is installed (or keeps its data)." : $"{owner.Name}'s installer registered this exact file.")
+                    : $"It is inside {owner.Name}'s folder.");
             if (owner.MeasuredFiles > 0) Add("Program's total here", $"{Display.Size(owner.MeasuredBytes)} in {Display.Count(owner.MeasuredFiles, "file", "files")}");
         }
         else if (rule?.Owner is { } ruleOwner)
@@ -160,7 +163,7 @@ internal static class DetailsBuilder
         var rec = PuterScanny.Analysis.RecommendationExplainer.Explain(ctx.Db, ctx.Kb, e);
         if (rec is null) return;
         header("Recommendation");
-        string title = $"{Display.VerdictTitle(rec.Verdict)} ({rec.Confidence}% sure)";
+        string title = $"{Display.VerdictTitle(rec.Verdict, a.Facts)} ({rec.Confidence}% sure)";
         if (rec.Verdict is Verdict.RecommendDelete or Verdict.SafeToDelete) warn(title, rec.Headline);
         else add(title, rec.Headline);
 
@@ -192,6 +195,11 @@ internal static class DetailsBuilder
                 break;
             case Protection.InUse:
                 warn("In use", "A program was using it during the scan. It can't be removed while that program runs, and removing it would break that program.");
+                break;
+            case Protection.UninstallOnly when a.OwnerAppId is long pid && ctx.Db.GetApp(pid) is { Source: AppSource.Portable } portable:
+                add("Part of a portable program",
+                    $"It belongs to {portable.Name}, which runs from its own folder without being installed. Its files must stay together where they are: " +
+                    "keep the whole folder, or delete all of it in File Explorer if you no longer want the program.");
                 break;
             case Protection.UninstallOnly:
                 add("Part of an installed program",

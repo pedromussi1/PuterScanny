@@ -61,7 +61,7 @@ public sealed class RecommendPass(KnowledgeBase kb, PathTokens tokens, AnalysisO
         // 2. A verdict for every file and folder.
         var summary = db.GetSummary()!;
         long total = summary.FileCount + summary.DirectoryCount + 1, done = 0;
-        var dirs = new Dictionary<long, (string? Rule, string Path, long Files)>();
+        var dirs = new Dictionary<long, (string? Rule, string Path, long Files, bool RuleHere)>();
         var clock = Stopwatch.StartNew();
         TimeSpan last = TimeSpan.Zero;
         var now = DateTime.UtcNow;
@@ -84,7 +84,8 @@ public sealed class RecommendPass(KnowledgeBase kb, PathTokens tokens, AnalysisO
 
                     if (entry.IsDirectory)
                     {
-                        dirs[entry.Id] = (a.LocationRuleId, entry.Path, entry.FileCount);
+                        dirs[entry.Id] = (a.LocationRuleId, entry.Path, entry.FileCount, matchedHere);
+                        if (a.OwnerAppId is null && ModDownloads.TryParse(entry.Name, isFolder: true, out _)) flags |= FactFlags.ModDownload;
                         bool parentHasFiles = entry.ParentId is long pp && dirs.TryGetValue(pp, out var pd) && pd.Files > 0;
                         if (entry.FileCount == 0 && entry.Depth > 0 && parentHasFiles && !entry.Flags.HasFlag(EntryFlags.EnumerationFailed)) flags |= FactFlags.EmptyFolder;
                         if (a.OwnerAppId is null && !matchedHere && entry.Path.LastIndexOf('\\') is int cut and > 0
@@ -96,11 +97,17 @@ public sealed class RecommendPass(KnowledgeBase kb, PathTokens tokens, AnalysisO
                         string ext = entry.Extension ?? "";
                         if (ext == ".lnk" && a.Protection < Protection.UninstallOnly && IsBroken(entry.Path, out shortcutTarget)) flags |= FactFlags.BrokenShortcut;
                         if (PartialDownloadExtensions.Contains(ext)) flags |= FactFlags.PartialDownload;
-                        if (a.LocationRuleId == "user.downloads" && (a.Category == "installer" || ext is ".exe" or ".msi" && a.FormatId is null or "pe-exe" or "msi"))
+                        // An installer sitting in Downloads: directly in it, or clearly named as one in a subfolder. A program
+                        // inside an unpacked folder (a portable program, a game build) is that program's own part, not an installer.
+                        bool directlyInDownloads = entry.ParentId is long dp && dirs.TryGetValue(dp, out var dl) && dl.RuleHere && dl.Rule == "user.downloads";
+                        if (a.LocationRuleId == "user.downloads" && a.OwnerAppId is null
+                            && (a.Category == "installer" || ext is ".exe" or ".msi" && a.FormatId is null or "pe-exe" or "msi")
+                            && (directlyInDownloads || ext == ".msi" || PortablePrograms.LooksLikeInstaller(entry.Name)))
                         {
                             flags |= FactFlags.InstallerInDownloads;
                             if (MatchesInstalled(entry.Name, appTokens)) flags |= FactFlags.MatchesInstalledProgram;
                         }
+                        if (a.OwnerAppId is null && ModDownloads.TryParse(entry.Name, isFolder: false, out _)) flags |= FactFlags.ModDownload;
                         if (duplicates.TryGetValue(entry.Id, out var dup))
                         {
                             flags |= FactFlags.Duplicate;
@@ -125,7 +132,8 @@ public sealed class RecommendPass(KnowledgeBase kb, PathTokens tokens, AnalysisO
                         OwnerUninstall = owner is not null && uninstall.TryGetValue(owner.Id, out var u) ? u : null,
                         NowUtc = now,
                     };
-                    writer.SetRecommendation(entry.Id, Recommender.Evaluate(facts), flags);
+                    var verdict = Recommender.Evaluate(facts);
+                    writer.SetRecommendation(entry.Id, verdict, verdict.NoEvidence ? flags | FactFlags.NoEvidence : flags);
 
                     if (++done % 2048 == 0) ct.ThrowIfCancellationRequested();
                     if (done % 2048 == 0 && clock.Elapsed - last > TimeSpan.FromMilliseconds(250))
@@ -212,7 +220,11 @@ public sealed class RecommendPass(KnowledgeBase kb, PathTokens tokens, AnalysisO
             var final = Recommender.ForFolderContents(own, f.Weakest, f.NotDeletableFiles == 0, f.Reclaim, f.Total, f.Contained, top);
 
             if (final.Verdict != own.Verdict || final.Headline != own.Headline)
-                writer.SetRecommendation(id, final, FactFlags.None | DbFlags(db, id));
+            {
+                var keptFlags = DbFlags(db, id);
+                if (final.Verdict != Verdict.Keep) keptFlags &= ~FactFlags.NoEvidence; // the contents decided after all
+                writer.SetRecommendation(id, final, keptFlags);
+            }
 
             string? reasons = f.Reasons.Count == 0 ? null : string.Join("; ", f.Reasons.OrderByDescending(kv => kv.Value).Take(4)
                 .Select(kv => $"{kv.Key}: {ByteSize.Format(kv.Value)}"));
@@ -255,6 +267,7 @@ public sealed class RecommendPass(KnowledgeBase kb, PathTokens tokens, AnalysisO
         foreach (var app in apps.Values)
         {
             if (app.IsSystemComponent || app.IsFramework || active.Contains(app.Id)) continue;
+            if (app.Source == AppSource.Portable) continue; // nothing to uninstall: shown as "keep or delete the folder as a whole"
             if (app.MeasuredBytes < 50L * 1024 * 1024) continue; // not worth suggesting
             if (app.InstallDate is { } installed && (now - installed).TotalDays < 90) continue;
 

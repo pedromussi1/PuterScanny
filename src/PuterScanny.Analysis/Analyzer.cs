@@ -92,6 +92,10 @@ public sealed class Analyzer
                 progress?.Report(new PipelineProgress(ScanPhase.CollectingInventory, "Finding installed programs and games…", null, null, null));
                 var inventory = AppInventory.Collect(_tokens, _options.IncludeMsiComponents,
                     new SyncProgress<string>(s => progress?.Report(new PipelineProgress(ScanPhase.CollectingInventory, "Finding installed programs and games…", s, null, null))), ct);
+                // Programs that run from their own folder without being installed (Windows has no record of them).
+                progress?.Report(new PipelineProgress(ScanPhase.CollectingInventory, "Finding portable programs…", null, null, null));
+                var portable = PortablePrograms.Find(db, _kb, _tokens, inventory.Apps, _options.PortableAppAreaOverride);
+                if (portable.Count > 0) inventory = inventory.WithExtraApps(portable);
                 writer.WriteApps(inventory.Apps);
                 writer.WriteInventoryProblems(inventory.Problems);
                 writer.Flush();

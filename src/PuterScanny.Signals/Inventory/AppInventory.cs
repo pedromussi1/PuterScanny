@@ -14,6 +14,15 @@ public sealed class AppInventory
 
     public IReadOnlyList<InstalledApp> Apps { get; }
 
+    /// <summary>The same inventory plus programs found another way (portable programs in the scanned area), with new ids.</summary>
+    public AppInventory WithExtraApps(IEnumerable<InstalledApp> extra)
+    {
+        long next = Apps.Count == 0 ? 1 : Apps.Max(a => a.Id) + 1;
+        var all = Apps.ToList();
+        foreach (var a in extra) all.Add(a with { Id = next++ });
+        return new AppInventory(all, [.. Problems]);
+    }
+
     /// <summary>Sources that could not be read (shown in the report so gaps are visible).</summary>
     public IReadOnlyList<string> Problems { get; }
 
