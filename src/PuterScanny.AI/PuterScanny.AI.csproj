@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\PuterScanny.Core\PuterScanny.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- MIT-licensed wrapper around llama.cpp: runs GGUF models on the CPU, fully offline. -->
+    <PackageReference Include="LLamaSharp" Version="0.30.0" />
+    <PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.30.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="11.0.0" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\PuterScanny.Core\PuterScanny.Core.csproj" />
+  </ItemGroup>
+
+  <!-- The curated knowledge files ship next to the app in a "knowledge" folder. -->
+  <ItemGroup>
+    <None Include="..\..\data\knowledge\*.json" Link="knowledge\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

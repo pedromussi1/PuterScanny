@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>PuterScanny</AssemblyName>
+    <RootNamespace>PuterScanny.App</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\PuterScanny.ico</ApplicationIcon>
+    <!-- WPF0001: the built-in Fluent theme (ThemeMode) is still marked experimental. -->
+    <NoWarn>$(NoWarn);WPF0001</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PuterScanny.Core\PuterScanny.Core.csproj" />
+    <ProjectReference Include="..\PuterScanny.Scanning\PuterScanny.Scanning.csproj" />
+    <ProjectReference Include="..\PuterScanny.Storage\PuterScanny.Storage.csproj" />
+    <ProjectReference Include="..\PuterScanny.Analysis\PuterScanny.Analysis.csproj" />
+    <ProjectReference Include="..\PuterScanny.Knowledge\PuterScanny.Knowledge.csproj" />
+    <ProjectReference Include="..\PuterScanny.Signals\PuterScanny.Signals.csproj" />
+    <ProjectReference Include="..\PuterScanny.Cleanup\PuterScanny.Cleanup.csproj" />
+    <ProjectReference Include="..\PuterScanny.AI\PuterScanny.AI.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\PuterScanny.ico" />
+    <None Remove="Assets\PuterScanny.png" />
+  </ItemGroup>
+
+  <!--
+    The local AI library ships native files for every operating system. A Windows release only needs its own
+    (runtimes\win-x64, with the processor-specific variants inside), which saves about 120 MB.
+  -->
+  <Target Name="KeepOnlyThisPlatformsNativeFiles" AfterTargets="ComputeResolvedFilesToPublishList" Condition="'$(RuntimeIdentifier)' != ''">
+    <ItemGroup>
+      <!-- Paths look like "runtimes\\win-x64\native\avx2\llama.dll" (the doubled backslash comes from the package). -->
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+                             Condition="$([System.String]::Copy('%(ResolvedFileToPublish.RelativePath)').StartsWith('runtimes')) and !$([System.String]::Copy('%(ResolvedFileToPublish.RelativePath)').Contains('\$(RuntimeIdentifier)\'))" />
+    </ItemGroup>
+  </Target>
+
+</Project>

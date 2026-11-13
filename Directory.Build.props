@@ -1,0 +1,17 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Company>PuterScanny</Company>
+    <Product>PuterScanny</Product>
+    <Version>1.0.0</Version>
+    <Authors>pedromussi1</Authors>
+    <Copyright>Copyright (c) 2026 pedromussi1. MIT licence.</Copyright>
+    <Description>PuterScanny: a free Windows disk scanner that explains every file and recommends what to keep or delete.</Description>
+    <RepositoryUrl>https://github.com/pedromussi1/PuterScanny</RepositoryUrl>
+    <!-- SYSLIB1054: classic DllImport is used deliberately for ByValTStr struct marshalling. -->
+    <NoWarn>$(NoWarn);SYSLIB1054</NoWarn>
+  </PropertyGroup>
+</Project>

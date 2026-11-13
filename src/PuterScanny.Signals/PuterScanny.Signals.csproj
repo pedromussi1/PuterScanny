@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\PuterScanny.Core\PuterScanny.Core.csproj" />
+    <ProjectReference Include="..\PuterScanny.Knowledge\PuterScanny.Knowledge.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="PuterScanny.Tests" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,2223 @@
+{
+  "$comment": "Known folders and files. Paths use tokens: {windir} {programfiles} {programfilesx86} {programdata} {systemdrive} {users} (the folder holding all user profiles) and {anydrive} (any drive letter). '*' matches one folder name (or a name pattern), '**' matches any number of folders. A rule applies to the matched item and, unless something more specific matches, everything inside it. 'owner' is shown as 'Belongs to' when no installed program claims the item. 'protect' marks what must be kept: system = Windows needs it (never delete), program = installed software (uninstall instead), caution = deleting has side effects (cloud sync, browser profiles, saves, VM disks). Rules without it give no protection of their own. 'advice' says what to do with the contents: recommend/safe/review = can be deleted once older than minAgeDays (deleteFolder: the folder itself can go too), keep = leave it, tool = use the named Windows tool, inapp = remove it from the app that manages it.",
+  "categories": [
+    {
+      "id": "windows",
+      "name": "Windows"
+    },
+    {
+      "id": "drivers",
+      "name": "Drivers"
+    },
+    {
+      "id": "updates",
+      "name": "Windows updates"
+    },
+    {
+      "id": "program",
+      "name": "Installed programs"
+    },
+    {
+      "id": "program-data",
+      "name": "Program data"
+    },
+    {
+      "id": "installer-cache",
+      "name": "Installer caches"
+    },
+    {
+      "id": "user-files",
+      "name": "Personal files"
+    },
+    {
+      "id": "user-settings",
+      "name": "App settings & data"
+    },
+    {
+      "id": "browser-data",
+      "name": "Browser data"
+    },
+    {
+      "id": "cache",
+      "name": "Caches"
+    },
+    {
+      "id": "temp",
+      "name": "Temporary files"
+    },
+    {
+      "id": "logs",
+      "name": "Logs & diagnostics"
+    },
+    {
+      "id": "crash-dumps",
+      "name": "Crash reports"
+    },
+    {
+      "id": "dev-cache",
+      "name": "Developer caches & builds"
+    },
+    {
+      "id": "game",
+      "name": "Games"
+    },
+    {
+      "id": "cloud",
+      "name": "Cloud sync"
+    },
+    {
+      "id": "backup",
+      "name": "Backups"
+    },
+    {
+      "id": "recycle-bin",
+      "name": "Recycle Bin"
+    },
+    {
+      "id": "virtual-machine",
+      "name": "Virtual machines & containers"
+    },
+    {
+      "id": "system-memory",
+      "name": "Memory & hibernation files"
+    }
+  ],
+  "rules": [
+    {
+      "id": "win.root",
+      "name": "Windows",
+      "category": "windows",
+      "owner": "Windows",
+      "paths": [
+        "{windir}"
+      ],
+      "description": "The Windows operating system. Windows needs these files to start and run.",
+      "protect": "system"
+    },
+    {
+      "id": "win.system32",
+      "name": "Windows system files",
+      "category": "windows",
+      "owner": "Windows",
+      "paths": [
+        "{windir}\\System32",
+        "{windir}\\SysWOW64",
+        "{windir}\\SysArm32"
+      ],
+      "description": "Core Windows programs and components (SysWOW64 holds the 32-bit versions). Never delete files here by hand.",
+      "protect": "system"
+    },
+    {
+      "id": "win.drivers",
+      "name": "Windows drivers",
+      "category": "drivers",
+      "owner": "Windows",
+      "paths": [
+        "{windir}\\System32\\drivers"
+      ],
+      "description": "Drivers that let Windows use your hardware. Removing them can stop devices or Windows from working.",
+      "protect": "system"
+    },
+    {
+      "id": "win.driverstore",
+      "name": "Driver store",
+      "category": "drivers",
+      "owner": "Windows",
+      "paths": [
+        "{windir}\\System32\\DriverStore"
+      ],
+      "description": "Windows' library of installed driver packages. Old driver versions can be removed safely only through Windows tools (for example Disk Cleanup or pnputil), never by deleting files.",
+      "protect": "system"
+    },
+    {
+      "id": "win.winsxs",
+      "name": "Windows component store (WinSxS)",
+      "category": "windows",
+      "owner": "Windows",
+      "paths": [
+        "{windir}\\WinSxS"
+      ],
+      "description": "Windows keeps every system component and its versions here. Much of its apparent size is shared with System32 (the same files counted twice). Clean it only with Disk Cleanup or 'DISM /Cleanup-Image'.",
+      "protect": "system"
+    },
+    {
+      "id": "win.installer",
+      "name": "Windows Installer cache",
+      "category": "installer-cache",
+      "owner": "Windows Installer",
+      "paths": [
+        "{windir}\\Installer"
+      ],
+      "description": "Copies of installer packages that programs need for repair, update and uninstall. Deleting them by hand can make programs impossible to update or remove.",
+      "protect": "system"
+    },
+    {
+      "id": "win.installer.patchcache",
+      "name": "Windows Installer patch cache",
+      "category": "installer-cache",
+      "owner": "Windows Installer",
+      "paths": [
+        "{windir}\\Installer\\$PatchCache$"
+      ],
+      "description": "Baseline files used when patching installed programs. Can be large; only remove with official tools.",
+      "protect": "system"
+    },
+    {
+      "id": "win.softwaredistribution",
+      "name": "Windows Update working folder",
+      "category": "updates",
+      "owner": "Windows Update",
+      "paths": [
+        "{windir}\\SoftwareDistribution"
+      ],
+      "description": "Where Windows Update keeps its database and downloads.",
+      "protect": "system"
+    },
+    {
+      "id": "win.softwaredistribution.download",
+      "name": "Windows Update downloads",
+      "category": "updates",
+      "owner": "Windows Update",
+      "paths": [
+        "{windir}\\SoftwareDistribution\\Download"
+      ],
+      "description": "Update files already downloaded. Once updates are installed these are not needed; Disk Cleanup removes them safely.",
+      "advice": {
+        "verdict": "tool",
+        "why": "Update files Windows already installed.",
+        "tool": "Disk Cleanup > Clean up system files > Windows Update Cleanup"
+      }
+    },
+    {
+      "id": "win.deliveryoptimization",
+      "name": "Delivery Optimization cache",
+      "category": "updates",
+      "owner": "Windows Update",
+      "paths": [
+        "{windir}\\ServiceProfiles\\NetworkService\\AppData\\Local\\Microsoft\\Windows\\DeliveryOptimization",
+        "{windir}\\SoftwareDistribution\\DeliveryOptimization"
+      ],
+      "description": "Update pieces Windows keeps to share with other PCs. Safe to clear with Disk Cleanup.",
+      "advice": {
+        "verdict": "tool",
+        "why": "Update pieces kept to share with other PCs.",
+        "tool": "Disk Cleanup > Delivery Optimization Files"
+      }
+    },
+    {
+      "id": "win.temp",
+      "name": "Windows temporary files",
+      "category": "temp",
+      "owner": "Windows",
+      "paths": [
+        "{windir}\\Temp"
+      ],
+      "description": "Temporary files created by Windows and installers. Old files here are normally safe to remove.",
+      "advice": {
+        "verdict": "recommend",
+        "why": "Temporary files programs and installers left behind. Windows and programs don't need them once they're a few days old.",
+        "minAgeDays": 7
+      }
+    },
+    {
+      "id": "win.logs",
+      "name": "Windows logs",
+      "category": "logs",
+      "owner": "Windows",
+      "paths": [
+        "{windir}\\Logs",
+        "{windir}\\Panther",
+        "{windir}\\debug",
+        "{windir}\\System32\\LogFiles",
+        "{windir}\\System32\\winevt\\Logs"
+      ],
+      "description": "Diagnostic logs Windows writes. Useful for troubleshooting; old logs are usually not needed.",
+      "advice": {
+        "verdict": "safe",
+        "why": "Diagnostic logs. Old ones are only useful for troubleshooting past problems.",
+        "minAgeDays": 30
+      }
+    },
+    {
+      "id": "win.minidump",
+      "name": "Windows crash dumps",
+      "category": "crash-dumps",
+      "owner": "Windows",
+      "paths": [
+        "{windir}\\Minidump",
+        "{windir}\\LiveKernelReports"
+      ],
+      "description": "Snapshots saved when Windows crashed (blue screens) or a driver hung. Only useful to diagnose those crashes.",
+      "advice": {
+        "verdict": "recommend",
+        "why": "Crash reports only help diagnose crashes that already happened.",
+        "minAgeDays": 14
+      }
+    },
+    {
+      "id": "win.memorydmp",
+      "name": "Full Windows crash dump",
+      "category": "crash-dumps",
+      "owner": "Windows",
+      "paths": [
+        "{windir}\\MEMORY.DMP"
+      ],
+      "description": "Full memory snapshot from the last Windows crash. Often very large; only useful for diagnosing that crash.",
+      "advice": {
+        "verdict": "recommend",
+        "why": "Crash reports only help diagnose crashes that already happened.",
+        "minAgeDays": 14
+      }
+    },
+    {
+      "id": "win.prefetch",
+      "name": "Prefetch",
+      "category": "cache",
+      "owner": "Windows",
+      "paths": [
+        "{windir}\\Prefetch"
+      ],
+      "description": "Windows' record of how programs start, used to launch them faster. Small; deleting it slows startup temporarily and loses usage history.",
+      "advice": {
+        "verdict": "keep",
+        "why": "Small files Windows uses to start programs faster; Windows manages them itself."
+      }
+    },
+    {
+      "id": "win.fonts",
+      "name": "Installed fonts",
+      "category": "windows",
+      "owner": "Windows",
+      "paths": [
+        "{windir}\\Fonts"
+      ],
+      "description": "Fonts available to all programs.",
+      "protect": "system"
+    },
+    {
+      "id": "win.assembly",
+      "name": ".NET Framework global assembly cache",
+      "category": "windows",
+      "owner": "Windows (.NET Framework)",
+      "paths": [
+        "{windir}\\assembly",
+        "{windir}\\Microsoft.NET"
+      ],
+      "description": "Shared .NET Framework components used by many programs.",
+      "protect": "system"
+    },
+    {
+      "id": "win.servicing",
+      "name": "Windows servicing",
+      "category": "updates",
+      "owner": "Windows",
+      "paths": [
+        "{windir}\\servicing",
+        "{windir}\\WinSxS\\Backup",
+        "{windir}\\WinSxS\\Temp"
+      ],
+      "description": "Files Windows uses to install updates and features.",
+      "protect": "system"
+    },
+    {
+      "id": "win.systemapps",
+      "name": "Built-in Windows apps",
+      "category": "windows",
+      "owner": "Windows",
+      "paths": [
+        "{windir}\\SystemApps",
+        "{windir}\\ImmersiveControlPanel",
+        "{windir}\\ShellExperiences",
+        "{windir}\\UUS"
+      ],
+      "description": "Apps that are part of Windows (Start menu, Settings, …).",
+      "protect": "system"
+    },
+    {
+      "id": "win.inf",
+      "name": "Driver setup information",
+      "category": "drivers",
+      "owner": "Windows",
+      "paths": [
+        "{windir}\\INF"
+      ],
+      "description": "Descriptions Windows uses to install drivers.",
+      "protect": "system"
+    },
+    {
+      "id": "win.csc",
+      "name": "Offline files cache",
+      "category": "cache",
+      "owner": "Windows",
+      "paths": [
+        "{windir}\\CSC"
+      ],
+      "description": "Offline copies of network files. Managed by the Sync Center."
+    },
+    {
+      "id": "win.old",
+      "name": "Previous Windows installation",
+      "category": "backup",
+      "owner": "Windows",
+      "paths": [
+        "{systemdrive}\\Windows.old"
+      ],
+      "description": "Your previous version of Windows, kept after an upgrade so you can go back. Windows removes it automatically after about 10 days; Disk Cleanup ('Previous Windows installations') removes it safely.",
+      "advice": {
+        "verdict": "tool",
+        "why": "Your previous Windows, kept only so you can go back after an upgrade.",
+        "tool": "Disk Cleanup > Clean up system files > Previous Windows installation(s)"
+      }
+    },
+    {
+      "id": "win.bt",
+      "name": "Windows upgrade files",
+      "category": "updates",
+      "owner": "Windows",
+      "paths": [
+        "{systemdrive}\\$WINDOWS.~BT",
+        "{systemdrive}\\$WINDOWS.~WS",
+        "{systemdrive}\\$Windows.~Q",
+        "{systemdrive}\\ESD",
+        "{systemdrive}\\$GetCurrent",
+        "{systemdrive}\\$SysReset"
+      ],
+      "description": "Temporary files from a Windows upgrade or reset. Not needed once the upgrade is finished; Disk Cleanup removes them.",
+      "advice": {
+        "verdict": "tool",
+        "why": "Leftovers from a finished Windows upgrade.",
+        "tool": "Disk Cleanup > Clean up system files > Temporary Windows installation files"
+      }
+    },
+    {
+      "id": "win.pagefile",
+      "name": "Page file (virtual memory)",
+      "category": "system-memory",
+      "owner": "Windows",
+      "paths": [
+        "{anydrive}\\pagefile.sys"
+      ],
+      "description": "Windows uses this as extra memory. It cannot be deleted while Windows runs; its size is set in System settings.",
+      "protect": "system"
+    },
+    {
+      "id": "win.swapfile",
+      "name": "Swap file",
+      "category": "system-memory",
+      "owner": "Windows",
+      "paths": [
+        "{anydrive}\\swapfile.sys"
+      ],
+      "description": "Used by Windows to manage memory for apps. Managed by Windows.",
+      "protect": "system"
+    },
+    {
+      "id": "win.hiberfil",
+      "name": "Hibernation file",
+      "category": "system-memory",
+      "owner": "Windows",
+      "paths": [
+        "{systemdrive}\\hiberfil.sys"
+      ],
+      "description": "Stores memory contents when the PC hibernates or uses Fast Startup. It disappears if hibernation is turned off ('powercfg /hibernate off').",
+      "protect": "system"
+    },
+    {
+      "id": "win.dumpstack",
+      "name": "Crash dump logs",
+      "category": "crash-dumps",
+      "owner": "Windows",
+      "paths": [
+        "{systemdrive}\\DumpStack.log",
+        "{systemdrive}\\DumpStack.log.tmp"
+      ],
+      "description": "Small logs Windows keeps for crash dumps.",
+      "advice": {
+        "verdict": "recommend",
+        "why": "Crash reports only help diagnose crashes that already happened.",
+        "minAgeDays": 14
+      }
+    },
+    {
+      "id": "win.boot",
+      "name": "Boot files",
+      "category": "windows",
+      "owner": "Windows",
+      "paths": [
+        "{systemdrive}\\bootmgr",
+        "{systemdrive}\\BOOTNXT",
+        "{systemdrive}\\Boot",
+        "{systemdrive}\\EFI",
+        "{systemdrive}\\BOOTSECT.BAK"
+      ],
+      "description": "Files needed to start the computer. Deleting them can make the PC unable to boot.",
+      "protect": "system"
+    },
+    {
+      "id": "win.recovery",
+      "name": "Windows recovery",
+      "category": "windows",
+      "owner": "Windows",
+      "paths": [
+        "{systemdrive}\\Recovery",
+        "{windir}\\System32\\Recovery"
+      ],
+      "description": "Files used to repair or reset Windows.",
+      "protect": "system"
+    },
+    {
+      "id": "win.svi",
+      "name": "System Volume Information",
+      "category": "backup",
+      "owner": "Windows",
+      "paths": [
+        "{anydrive}\\System Volume Information"
+      ],
+      "description": "System Restore points, shadow copies and indexing data. Manage it through System Protection settings, never by hand.",
+      "protect": "system"
+    },
+    {
+      "id": "win.recyclebin",
+      "name": "Recycle Bin",
+      "category": "recycle-bin",
+      "owner": "Windows",
+      "paths": [
+        "{anydrive}\\$Recycle.Bin",
+        "{anydrive}\\RECYCLER"
+      ],
+      "description": "Files you deleted. They stay here until you empty the Recycle Bin.",
+      "advice": {
+        "verdict": "tool",
+        "why": "Files you already deleted.",
+        "tool": "Empty the Recycle Bin"
+      }
+    },
+    {
+      "id": "win.programdata.microsoft",
+      "name": "Microsoft shared program data",
+      "category": "program-data",
+      "owner": "Windows",
+      "paths": [
+        "{programdata}\\Microsoft"
+      ],
+      "description": "Data Windows features and Microsoft programs share between users.",
+      "protect": "system"
+    },
+    {
+      "id": "win.wer",
+      "name": "Windows Error Reporting",
+      "category": "crash-dumps",
+      "owner": "Windows",
+      "paths": [
+        "{programdata}\\Microsoft\\Windows\\WER",
+        "{users}\\*\\AppData\\Local\\Microsoft\\Windows\\WER"
+      ],
+      "description": "Crash and problem reports waiting to be sent or already sent to Microsoft. Safe to clear with Disk Cleanup.",
+      "advice": {
+        "verdict": "recommend",
+        "why": "Crash reports only help diagnose crashes that already happened.",
+        "minAgeDays": 14
+      }
+    },
+    {
+      "id": "win.defender",
+      "name": "Microsoft Defender data",
+      "category": "program-data",
+      "owner": "Microsoft Defender",
+      "paths": [
+        "{programdata}\\Microsoft\\Windows Defender"
+      ],
+      "description": "Antivirus definitions, scan history and quarantine. Managed by Windows Security.",
+      "protect": "system"
+    },
+    {
+      "id": "win.search",
+      "name": "Windows Search index",
+      "category": "cache",
+      "owner": "Windows Search",
+      "paths": [
+        "{programdata}\\Microsoft\\Search"
+      ],
+      "description": "Index that makes searching your files fast. It can be rebuilt from Indexing Options if it gets too big.",
+      "protect": "system",
+      "advice": {
+        "verdict": "keep",
+        "why": "The search index. If it's huge, rebuild it from Indexing Options instead of deleting it."
+      }
+    },
+    {
+      "id": "win.startmenu",
+      "name": "Start menu shortcuts",
+      "category": "windows",
+      "owner": "Windows",
+      "paths": [
+        "{programdata}\\Microsoft\\Windows\\Start Menu",
+        "{users}\\*\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu"
+      ],
+      "description": "Shortcuts shown in the Start menu.",
+      "protect": "caution"
+    },
+    {
+      "id": "win.packagecache",
+      "name": "Installer package cache",
+      "category": "installer-cache",
+      "owner": "Installers (Visual Studio, .NET, VC++ runtimes…)",
+      "paths": [
+        "{programdata}\\Package Cache"
+      ],
+      "description": "Installers that programs keep so they can repair, modify or uninstall themselves. Deleting these can break uninstalling or updating those programs.",
+      "protect": "system"
+    },
+    {
+      "id": "win.windowsapps",
+      "name": "Microsoft Store apps",
+      "category": "program",
+      "owner": "Microsoft Store apps",
+      "paths": [
+        "{programfiles}\\WindowsApps"
+      ],
+      "description": "Apps installed from the Microsoft Store or as app packages. Remove them from Settings > Apps, never by deleting files.",
+      "protect": "program"
+    },
+    {
+      "id": "win.modifiablewindowsapps",
+      "name": "Microsoft Store game files",
+      "category": "game",
+      "owner": "Microsoft Store / Xbox apps",
+      "paths": [
+        "{programfiles}\\ModifiableWindowsApps",
+        "{anydrive}\\XboxGames"
+      ],
+      "description": "Games installed through the Xbox app or Microsoft Store.",
+      "protect": "program"
+    },
+    {
+      "id": "win.programfiles",
+      "name": "Program Files",
+      "category": "program",
+      "paths": [
+        "{programfiles}",
+        "{programfilesx86}"
+      ],
+      "description": "Where installed programs live. Uninstall programs from Settings > Apps rather than deleting their folders.",
+      "protect": "program"
+    },
+    {
+      "id": "win.commonfiles",
+      "name": "Shared program components",
+      "category": "program",
+      "owner": "Shared by several programs",
+      "paths": [
+        "{programfiles}\\Common Files",
+        "{programfilesx86}\\Common Files"
+      ],
+      "description": "Components shared between several programs.",
+      "protect": "program"
+    },
+    {
+      "id": "win.programdata",
+      "name": "Program data (all users)",
+      "category": "program-data",
+      "paths": [
+        "{programdata}"
+      ],
+      "description": "Settings and data programs share between all users of this PC."
+    },
+    {
+      "id": "win.users",
+      "name": "User profiles",
+      "category": "user-files",
+      "paths": [
+        "{users}"
+      ],
+      "description": "Everyone's personal folders on this PC."
+    },
+    {
+      "id": "win.users.public",
+      "name": "Public folder",
+      "category": "user-files",
+      "paths": [
+        "{users}\\Public"
+      ],
+      "description": "Files shared between all users of this PC."
+    },
+    {
+      "id": "win.users.default",
+      "name": "Default profile template",
+      "category": "windows",
+      "owner": "Windows",
+      "paths": [
+        "{users}\\Default",
+        "{users}\\Default User",
+        "{users}\\All Users"
+      ],
+      "description": "Template copied when a new user signs in for the first time.",
+      "protect": "system"
+    },
+    {
+      "id": "user.profile",
+      "name": "User profile",
+      "category": "user-files",
+      "paths": [
+        "{users}\\*"
+      ],
+      "description": "A person's personal folder: documents, pictures, settings and app data."
+    },
+    {
+      "id": "user.documents",
+      "name": "Documents",
+      "category": "user-files",
+      "paths": [
+        "{users}\\*\\Documents",
+        "{users}\\*\\OneDrive\\Documents",
+        "{users}\\*\\OneDrive - *\\Documents"
+      ],
+      "description": "Your documents. Personal files are never suggested for deletion automatically."
+    },
+    {
+      "id": "user.pictures",
+      "name": "Pictures",
+      "category": "user-files",
+      "paths": [
+        "{users}\\*\\Pictures",
+        "{users}\\*\\OneDrive\\Pictures"
+      ],
+      "description": "Your photos and pictures."
+    },
+    {
+      "id": "user.videos",
+      "name": "Videos",
+      "category": "user-files",
+      "paths": [
+        "{users}\\*\\Videos"
+      ],
+      "description": "Your videos, including screen and game recordings."
+    },
+    {
+      "id": "user.captures",
+      "name": "Game & screen captures",
+      "category": "user-files",
+      "owner": "Xbox Game Bar",
+      "paths": [
+        "{users}\\*\\Videos\\Captures"
+      ],
+      "description": "Clips and screenshots recorded with the Xbox Game Bar (Win+G)."
+    },
+    {
+      "id": "user.music",
+      "name": "Music",
+      "category": "user-files",
+      "paths": [
+        "{users}\\*\\Music"
+      ],
+      "description": "Your music and audio."
+    },
+    {
+      "id": "user.desktop",
+      "name": "Desktop",
+      "category": "user-files",
+      "paths": [
+        "{users}\\*\\Desktop",
+        "{users}\\*\\OneDrive\\Desktop"
+      ],
+      "description": "Files on your desktop."
+    },
+    {
+      "id": "user.downloads",
+      "name": "Downloads",
+      "category": "user-files",
+      "paths": [
+        "{users}\\*\\Downloads"
+      ],
+      "description": "Files you downloaded. Old installers and archives here are common clean-up candidates once you have used them."
+    },
+    {
+      "id": "user.savedgames",
+      "name": "Saved games",
+      "category": "game",
+      "paths": [
+        "{users}\\*\\Saved Games",
+        "{users}\\*\\Documents\\My Games"
+      ],
+      "description": "Game saves and settings. Deleting them loses your game progress.",
+      "protect": "caution"
+    },
+    {
+      "id": "user.onedrive",
+      "name": "OneDrive",
+      "category": "cloud",
+      "owner": "Microsoft OneDrive",
+      "paths": [
+        "{users}\\*\\OneDrive",
+        "{users}\\*\\OneDrive - *"
+      ],
+      "description": "Files synced with OneDrive. Deleting a file here also deletes it from OneDrive on all your devices. Online-only files use no space on this PC.",
+      "protect": "caution"
+    },
+    {
+      "id": "user.dropbox",
+      "name": "Dropbox",
+      "category": "cloud",
+      "owner": "Dropbox",
+      "paths": [
+        "{users}\\*\\Dropbox",
+        "{users}\\*\\Dropbox (*)"
+      ],
+      "description": "Files synced with Dropbox. Deleting here deletes them from Dropbox too.",
+      "protect": "caution"
+    },
+    {
+      "id": "user.googledrive",
+      "name": "Google Drive",
+      "category": "cloud",
+      "owner": "Google Drive",
+      "paths": [
+        "{users}\\*\\Google Drive",
+        "{users}\\*\\My Drive"
+      ],
+      "description": "Files synced with Google Drive.",
+      "protect": "caution"
+    },
+    {
+      "id": "user.icloud",
+      "name": "iCloud Drive",
+      "category": "cloud",
+      "owner": "iCloud",
+      "paths": [
+        "{users}\\*\\iCloudDrive",
+        "{users}\\*\\iCloud Drive",
+        "{users}\\*\\Pictures\\iCloud Photos"
+      ],
+      "description": "Files synced with Apple iCloud.",
+      "protect": "caution"
+    },
+    {
+      "id": "user.appdata",
+      "name": "App data",
+      "category": "user-settings",
+      "paths": [
+        "{users}\\*\\AppData"
+      ],
+      "description": "Hidden folder where apps keep your settings, caches and data."
+    },
+    {
+      "id": "user.appdata.roaming",
+      "name": "App settings (roaming)",
+      "category": "user-settings",
+      "paths": [
+        "{users}\\*\\AppData\\Roaming"
+      ],
+      "description": "App settings and data that belong to your account."
+    },
+    {
+      "id": "user.appdata.local",
+      "name": "App data (this PC)",
+      "category": "user-settings",
+      "paths": [
+        "{users}\\*\\AppData\\Local"
+      ],
+      "description": "App data and caches kept only on this PC."
+    },
+    {
+      "id": "user.appdata.locallow",
+      "name": "App data (low integrity)",
+      "category": "user-settings",
+      "paths": [
+        "{users}\\*\\AppData\\LocalLow"
+      ],
+      "description": "Data from sandboxed apps, browsers plugins and many games."
+    },
+    {
+      "id": "user.programs",
+      "name": "Per-user programs",
+      "category": "program",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\Programs"
+      ],
+      "description": "Programs installed only for this user (for example VS Code, Discord-style apps).",
+      "protect": "program"
+    },
+    {
+      "id": "user.temp",
+      "name": "Your temporary files",
+      "category": "temp",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\Temp"
+      ],
+      "description": "Temporary files programs created while working. Files here that are more than a few days old are almost always safe to delete.",
+      "advice": {
+        "verdict": "recommend",
+        "why": "Temporary files programs and installers left behind. Windows and programs don't need them once they're a few days old.",
+        "minAgeDays": 7
+      }
+    },
+    {
+      "id": "user.packages",
+      "name": "Store app data",
+      "category": "user-settings",
+      "owner": "Microsoft Store apps",
+      "resolver": "appx-data",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\Packages\\*"
+      ],
+      "description": "Data and settings of a Microsoft Store app. Removed automatically when the app is uninstalled.",
+      "protect": "caution"
+    },
+    {
+      "id": "user.packages.cache",
+      "name": "Store app cache",
+      "category": "cache",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\Packages\\*\\LocalCache",
+        "{users}\\*\\AppData\\Local\\Packages\\*\\TempState",
+        "{users}\\*\\AppData\\Local\\Packages\\*\\AC\\INetCache"
+      ],
+      "description": "Cache and temporary data of a Microsoft Store app. The app can recreate it.",
+      "advice": {
+        "verdict": "safe",
+        "why": "A cache Windows or a program rebuilds automatically when needed.",
+        "minAgeDays": 1
+      }
+    },
+    {
+      "id": "user.inetcache",
+      "name": "Internet cache",
+      "category": "cache",
+      "owner": "Windows",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\Microsoft\\Windows\\INetCache",
+        "{users}\\*\\AppData\\Local\\Microsoft\\Windows\\Temporary Internet Files"
+      ],
+      "description": "Web content cached by Windows components. Safe to clear.",
+      "advice": {
+        "verdict": "safe",
+        "why": "A cache Windows or a program rebuilds automatically when needed.",
+        "minAgeDays": 1
+      }
+    },
+    {
+      "id": "user.explorer.thumbcache",
+      "name": "Thumbnail cache",
+      "category": "cache",
+      "owner": "Windows (File Explorer)",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\Microsoft\\Windows\\Explorer"
+      ],
+      "description": "Picture previews File Explorer keeps. Safe to clear; thumbnails are rebuilt when needed.",
+      "advice": {
+        "verdict": "safe",
+        "why": "A cache Windows or a program rebuilds automatically when needed.",
+        "minAgeDays": 1
+      }
+    },
+    {
+      "id": "user.recent",
+      "name": "Recent items",
+      "category": "user-settings",
+      "owner": "Windows (File Explorer)",
+      "paths": [
+        "{users}\\*\\AppData\\Roaming\\Microsoft\\Windows\\Recent"
+      ],
+      "description": "Shortcuts to files you opened recently. Tiny; used for usage history.",
+      "protect": "caution"
+    },
+    {
+      "id": "user.crashdumps",
+      "name": "App crash dumps",
+      "category": "crash-dumps",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\CrashDumps"
+      ],
+      "description": "Memory snapshots saved when apps crashed. Only useful for diagnosing those crashes.",
+      "advice": {
+        "verdict": "recommend",
+        "why": "Crash reports only help diagnose crashes that already happened.",
+        "minAgeDays": 14
+      }
+    },
+    {
+      "id": "user.d3dscache",
+      "name": "DirectX shader cache",
+      "category": "cache",
+      "owner": "Windows (DirectX)",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\D3DSCache"
+      ],
+      "description": "Prepared graphics shaders that make games load faster. Safe to clear; rebuilt automatically.",
+      "advice": {
+        "verdict": "safe",
+        "why": "A cache Windows or a program rebuilds automatically when needed.",
+        "minAgeDays": 1
+      }
+    },
+    {
+      "id": "user.nvidia.cache",
+      "name": "NVIDIA shader cache",
+      "category": "cache",
+      "owner": "NVIDIA graphics driver",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\NVIDIA\\DXCache",
+        "{users}\\*\\AppData\\Local\\NVIDIA\\GLCache",
+        "{users}\\*\\AppData\\LocalLow\\NVIDIA\\PerDriverVersion\\DXCache",
+        "{programdata}\\NVIDIA Corporation\\NV_Cache"
+      ],
+      "description": "Graphics shader cache. Safe to clear; games may stutter briefly while it rebuilds.",
+      "advice": {
+        "verdict": "safe",
+        "why": "A cache Windows or a program rebuilds automatically when needed.",
+        "minAgeDays": 1
+      }
+    },
+    {
+      "id": "user.amd.cache",
+      "name": "AMD shader cache",
+      "category": "cache",
+      "owner": "AMD graphics driver",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\AMD\\DxCache",
+        "{users}\\*\\AppData\\Local\\AMD\\DxcCache",
+        "{users}\\*\\AppData\\Local\\AMD\\GLCache",
+        "{users}\\*\\AppData\\Local\\AMD\\VkCache"
+      ],
+      "description": "Graphics shader cache. Safe to clear; rebuilt automatically.",
+      "advice": {
+        "verdict": "safe",
+        "why": "A cache Windows or a program rebuilds automatically when needed.",
+        "minAgeDays": 1
+      }
+    },
+    {
+      "id": "user.intel.cache",
+      "name": "Intel shader cache",
+      "category": "cache",
+      "owner": "Intel graphics driver",
+      "paths": [
+        "{users}\\*\\AppData\\LocalLow\\Intel\\ShaderCache"
+      ],
+      "description": "Graphics shader cache. Safe to clear; rebuilt automatically.",
+      "advice": {
+        "verdict": "safe",
+        "why": "A cache Windows or a program rebuilds automatically when needed.",
+        "minAgeDays": 1
+      }
+    },
+    {
+      "id": "user.nvidia.installer",
+      "name": "NVIDIA driver installer files",
+      "category": "installer-cache",
+      "owner": "NVIDIA",
+      "paths": [
+        "{programdata}\\NVIDIA Corporation\\Downloader",
+        "{systemdrive}\\NVIDIA"
+      ],
+      "description": "Downloaded or extracted NVIDIA driver installers. Not needed after the driver is installed.",
+      "advice": {
+        "verdict": "recommend",
+        "why": "Driver installers that were unpacked here. The drivers are installed; these copies aren't needed.",
+        "minAgeDays": 30,
+        "deleteFolder": true
+      }
+    },
+    {
+      "id": "user.amd.installer",
+      "name": "AMD driver installer files",
+      "category": "installer-cache",
+      "owner": "AMD",
+      "paths": [
+        "{systemdrive}\\AMD"
+      ],
+      "description": "Extracted AMD driver installers. Not needed after the driver is installed.",
+      "advice": {
+        "verdict": "recommend",
+        "why": "Driver installers that were unpacked here. The drivers are installed; these copies aren't needed.",
+        "minAgeDays": 30,
+        "deleteFolder": true
+      }
+    },
+    {
+      "id": "browser.chrome",
+      "name": "Google Chrome data",
+      "category": "browser-data",
+      "owner": "Google Chrome",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\Google\\Chrome\\User Data"
+      ],
+      "description": "Your Chrome profiles: bookmarks, passwords, history and extensions. Do not delete unless you no longer use Chrome.",
+      "protect": "caution"
+    },
+    {
+      "id": "browser.edge",
+      "name": "Microsoft Edge data",
+      "category": "browser-data",
+      "owner": "Microsoft Edge",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\Microsoft\\Edge\\User Data"
+      ],
+      "description": "Your Edge profiles: favorites, passwords, history and extensions.",
+      "protect": "caution"
+    },
+    {
+      "id": "browser.brave",
+      "name": "Brave data",
+      "category": "browser-data",
+      "owner": "Brave",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\BraveSoftware\\Brave-Browser\\User Data"
+      ],
+      "description": "Your Brave profiles: bookmarks, passwords, history and extensions.",
+      "protect": "caution"
+    },
+    {
+      "id": "browser.vivaldi",
+      "name": "Vivaldi data",
+      "category": "browser-data",
+      "owner": "Vivaldi",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\Vivaldi\\User Data"
+      ],
+      "description": "Your Vivaldi profiles.",
+      "protect": "caution"
+    },
+    {
+      "id": "browser.opera",
+      "name": "Opera data",
+      "category": "browser-data",
+      "owner": "Opera",
+      "paths": [
+        "{users}\\*\\AppData\\Roaming\\Opera Software",
+        "{users}\\*\\AppData\\Local\\Opera Software"
+      ],
+      "description": "Your Opera profiles and cache.",
+      "protect": "caution"
+    },
+    {
+      "id": "browser.firefox",
+      "name": "Firefox profiles",
+      "category": "browser-data",
+      "owner": "Mozilla Firefox",
+      "paths": [
+        "{users}\\*\\AppData\\Roaming\\Mozilla\\Firefox"
+      ],
+      "description": "Your Firefox profiles: bookmarks, passwords, history and add-ons.",
+      "protect": "caution"
+    },
+    {
+      "id": "browser.chromium.cache",
+      "name": "Browser cache",
+      "category": "cache",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\Google\\Chrome\\User Data\\*\\Cache",
+        "{users}\\*\\AppData\\Local\\Google\\Chrome\\User Data\\*\\Code Cache",
+        "{users}\\*\\AppData\\Local\\Google\\Chrome\\User Data\\*\\GPUCache",
+        "{users}\\*\\AppData\\Local\\Google\\Chrome\\User Data\\*\\Service Worker\\CacheStorage",
+        "{users}\\*\\AppData\\Local\\Microsoft\\Edge\\User Data\\*\\Cache",
+        "{users}\\*\\AppData\\Local\\Microsoft\\Edge\\User Data\\*\\Code Cache",
+        "{users}\\*\\AppData\\Local\\Microsoft\\Edge\\User Data\\*\\GPUCache",
+        "{users}\\*\\AppData\\Local\\Microsoft\\Edge\\User Data\\*\\Service Worker\\CacheStorage",
+        "{users}\\*\\AppData\\Local\\BraveSoftware\\Brave-Browser\\User Data\\*\\Cache",
+        "{users}\\*\\AppData\\Local\\BraveSoftware\\Brave-Browser\\User Data\\*\\Code Cache",
+        "{users}\\*\\AppData\\Local\\BraveSoftware\\Brave-Browser\\User Data\\*\\GPUCache",
+        "{users}\\*\\AppData\\Local\\Vivaldi\\User Data\\*\\Cache",
+        "{users}\\*\\AppData\\Local\\Opera Software\\*\\Cache",
+        "{users}\\*\\AppData\\Local\\Google\\Chrome\\User Data\\ShaderCache",
+        "{users}\\*\\AppData\\Local\\Google\\Chrome\\User Data\\GrShaderCache",
+        "{users}\\*\\AppData\\Local\\Microsoft\\Edge\\User Data\\ShaderCache",
+        "{users}\\*\\AppData\\Local\\Microsoft\\Edge\\User Data\\GrShaderCache"
+      ],
+      "description": "Copies of websites the browser saved to load pages faster. Safe to clear (the browser's 'Clear browsing data' does this); pages re-download as needed.",
+      "advice": {
+        "verdict": "safe",
+        "why": "Copies of websites; the browser downloads them again when needed. Close the browser first.",
+        "minAgeDays": 1
+      }
+    },
+    {
+      "id": "browser.firefox.cache",
+      "name": "Firefox cache",
+      "category": "cache",
+      "owner": "Mozilla Firefox",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\Mozilla\\Firefox\\Profiles\\*\\cache2",
+        "{users}\\*\\AppData\\Local\\Mozilla\\Firefox\\Profiles\\*\\startupCache",
+        "{users}\\*\\AppData\\Local\\Mozilla\\Firefox\\Profiles\\*\\jumpListCache"
+      ],
+      "description": "Copies of websites Firefox saved to load pages faster. Safe to clear.",
+      "advice": {
+        "verdict": "safe",
+        "why": "Copies of websites; the browser downloads them again when needed. Close the browser first.",
+        "minAgeDays": 1
+      }
+    },
+    {
+      "id": "browser.chrome.optguide",
+      "name": "Chrome on-device AI model",
+      "category": "cache",
+      "owner": "Google Chrome",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\Google\\Chrome\\User Data\\OptGuideOnDeviceModel"
+      ],
+      "description": "An AI model Chrome downloads for built-in features. Chrome re-downloads it if those features are used.",
+      "advice": {
+        "verdict": "safe",
+        "why": "An AI model Chrome downloads again if its features are used.",
+        "minAgeDays": 7
+      }
+    },
+    {
+      "id": "browser.edge.updates",
+      "name": "Edge updater",
+      "category": "updates",
+      "owner": "Microsoft Edge",
+      "paths": [
+        "{programfilesx86}\\Microsoft\\EdgeUpdate",
+        "{programfilesx86}\\Microsoft\\EdgeWebView"
+      ],
+      "description": "Keeps Microsoft Edge and its WebView runtime (used by many apps) up to date.",
+      "protect": "program"
+    },
+    {
+      "id": "app.teams.cache",
+      "name": "Microsoft Teams cache",
+      "category": "cache",
+      "owner": "Microsoft Teams",
+      "paths": [
+        "{users}\\*\\AppData\\Roaming\\Microsoft\\Teams\\Cache",
+        "{users}\\*\\AppData\\Roaming\\Microsoft\\Teams\\Service Worker",
+        "{users}\\*\\AppData\\Roaming\\Microsoft\\Teams\\GPUCache",
+        "{users}\\*\\AppData\\Local\\Packages\\MSTeams_*\\LocalCache"
+      ],
+      "description": "Teams' cache of chats, images and web content. Safe to clear when Teams is closed.",
+      "advice": {
+        "verdict": "safe",
+        "why": "The app's cache. It rebuilds automatically; close the app first.",
+        "minAgeDays": 1
+      }
+    },
+    {
+      "id": "app.discord.cache",
+      "name": "Discord cache",
+      "category": "cache",
+      "owner": "Discord",
+      "paths": [
+        "{users}\\*\\AppData\\Roaming\\discord\\Cache",
+        "{users}\\*\\AppData\\Roaming\\discord\\Code Cache",
+        "{users}\\*\\AppData\\Roaming\\discord\\GPUCache"
+      ],
+      "description": "Discord's cache of images and media. Safe to clear when Discord is closed.",
+      "advice": {
+        "verdict": "safe",
+        "why": "The app's cache. It rebuilds automatically; close the app first.",
+        "minAgeDays": 1
+      }
+    },
+    {
+      "id": "app.spotify.cache",
+      "name": "Spotify cache",
+      "category": "cache",
+      "owner": "Spotify",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\Spotify\\Storage",
+        "{users}\\*\\AppData\\Local\\Spotify\\Data",
+        "{users}\\*\\AppData\\Local\\Packages\\SpotifyAB.SpotifyMusic_*\\LocalCache"
+      ],
+      "description": "Music Spotify cached or downloaded for offline listening. Clearing it removes offline downloads.",
+      "advice": {
+        "verdict": "review",
+        "why": "Spotify's cache, including songs downloaded for offline listening (those would need downloading again).",
+        "minAgeDays": 7
+      }
+    },
+    {
+      "id": "app.slack.cache",
+      "name": "Slack cache",
+      "category": "cache",
+      "owner": "Slack",
+      "paths": [
+        "{users}\\*\\AppData\\Roaming\\Slack\\Cache",
+        "{users}\\*\\AppData\\Roaming\\Slack\\Service Worker",
+        "{users}\\*\\AppData\\Roaming\\Slack\\Code Cache"
+      ],
+      "description": "Slack's cache. Safe to clear when Slack is closed.",
+      "advice": {
+        "verdict": "safe",
+        "why": "The app's cache. It rebuilds automatically; close the app first.",
+        "minAgeDays": 1
+      }
+    },
+    {
+      "id": "app.zoom",
+      "name": "Zoom data",
+      "category": "user-settings",
+      "owner": "Zoom",
+      "paths": [
+        "{users}\\*\\AppData\\Roaming\\Zoom"
+      ],
+      "description": "Zoom's program files and settings."
+    },
+    {
+      "id": "app.zoom.recordings",
+      "name": "Zoom recordings",
+      "category": "user-files",
+      "owner": "Zoom",
+      "paths": [
+        "{users}\\*\\Documents\\Zoom"
+      ],
+      "description": "Meetings you recorded with Zoom.",
+      "protect": "caution"
+    },
+    {
+      "id": "app.office.cache",
+      "name": "Office document cache",
+      "category": "cache",
+      "owner": "Microsoft Office",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\Microsoft\\Office\\16.0\\OfficeFileCache",
+        "{users}\\*\\AppData\\Local\\Microsoft\\Office\\OTele"
+      ],
+      "description": "Office's local cache of cloud documents. Rebuilt automatically.",
+      "advice": {
+        "verdict": "safe",
+        "why": "The app's cache. It rebuilds automatically; close the app first.",
+        "minAgeDays": 1
+      }
+    },
+    {
+      "id": "app.outlook.ost",
+      "name": "Outlook mailbox cache",
+      "category": "cache",
+      "owner": "Microsoft Outlook",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\Microsoft\\Outlook"
+      ],
+      "description": "Outlook keeps an offline copy of your mailbox here (.ost). It re-downloads from the server if removed, but .pst files here may be your only copy of old email.",
+      "protect": "caution",
+      "advice": {
+        "verdict": "keep",
+        "why": "Outlook's mailbox data."
+      }
+    },
+    {
+      "id": "app.office.clicktorun",
+      "name": "Office installation",
+      "category": "program",
+      "owner": "Microsoft Office",
+      "paths": [
+        "{programfiles}\\Microsoft Office",
+        "{programfilesx86}\\Microsoft Office",
+        "{programdata}\\Microsoft\\ClickToRun"
+      ],
+      "description": "Microsoft Office program files. Uninstall Office from Settings > Apps.",
+      "protect": "program"
+    },
+    {
+      "id": "app.adobe.cache",
+      "name": "Adobe media cache",
+      "category": "cache",
+      "owner": "Adobe apps",
+      "paths": [
+        "{users}\\*\\AppData\\Roaming\\Adobe\\Common\\Media Cache Files",
+        "{users}\\*\\AppData\\Roaming\\Adobe\\Common\\Media Cache",
+        "{users}\\*\\AppData\\Roaming\\Adobe\\Common\\Peak Files"
+      ],
+      "description": "Preview and audio-conform files made by Premiere Pro / After Effects. Safe to clear; regenerated when projects open.",
+      "advice": {
+        "verdict": "safe",
+        "why": "The app's cache. It rebuilds automatically; close the app first.",
+        "minAgeDays": 1
+      }
+    },
+    {
+      "id": "app.vscode.cache",
+      "name": "VS Code cache",
+      "category": "cache",
+      "owner": "Visual Studio Code",
+      "paths": [
+        "{users}\\*\\AppData\\Roaming\\Code\\Cache",
+        "{users}\\*\\AppData\\Roaming\\Code\\CachedData",
+        "{users}\\*\\AppData\\Roaming\\Code\\CachedExtensionVSIXs",
+        "{users}\\*\\AppData\\Roaming\\Code\\Code Cache",
+        "{users}\\*\\AppData\\Roaming\\Code\\GPUCache"
+      ],
+      "description": "VS Code caches. Safe to clear when VS Code is closed.",
+      "advice": {
+        "verdict": "safe",
+        "why": "The app's cache. It rebuilds automatically; close the app first.",
+        "minAgeDays": 1
+      }
+    },
+    {
+      "id": "app.vs.cache",
+      "name": "Visual Studio caches",
+      "category": "dev-cache",
+      "owner": "Visual Studio",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\Microsoft\\VisualStudio\\*\\ComponentModelCache",
+        "{users}\\*\\AppData\\Local\\Microsoft\\VisualStudio\\Packages",
+        "{users}\\*\\AppData\\Local\\Temp\\VSFeedbackIntelliCodeLogs"
+      ],
+      "description": "Visual Studio component caches and downloaded install packages."
+    },
+    {
+      "id": "app.jetbrains",
+      "name": "JetBrains IDE caches",
+      "category": "dev-cache",
+      "owner": "JetBrains IDEs",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\JetBrains"
+      ],
+      "description": "Indexes, caches and logs of JetBrains IDEs. Folders for IDE versions you no longer use can be removed."
+    },
+    {
+      "id": "dev.node_modules",
+      "name": "Node.js packages (node_modules)",
+      "category": "dev-cache",
+      "owner": "Node.js project",
+      "paths": [
+        "**\\node_modules"
+      ],
+      "description": "Packages downloaded for a JavaScript project. Can be re-created with 'npm install' (or yarn/pnpm), so old projects' node_modules are safe to delete.",
+      "advice": {
+        "verdict": "safe",
+        "why": "Packages installed for one project. They can be reinstalled from the project's own files ('npm install', 'pip install -r requirements.txt').",
+        "minAgeDays": 90,
+        "deleteFolder": true
+      }
+    },
+    {
+      "id": "dev.npm.cache",
+      "name": "npm cache",
+      "category": "dev-cache",
+      "owner": "npm",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\npm-cache",
+        "{users}\\*\\AppData\\Roaming\\npm-cache"
+      ],
+      "description": "Downloaded npm packages. Safe to clear ('npm cache clean --force'); re-downloaded when needed.",
+      "advice": {
+        "verdict": "safe",
+        "why": "Downloaded developer packages. They are downloaded again automatically the next time a project needs them.",
+        "minAgeDays": 30
+      }
+    },
+    {
+      "id": "dev.npm.global",
+      "name": "npm global packages",
+      "category": "program",
+      "owner": "npm",
+      "paths": [
+        "{users}\\*\\AppData\\Roaming\\npm"
+      ],
+      "description": "Command-line tools installed globally with npm.",
+      "protect": "program"
+    },
+    {
+      "id": "dev.yarn.cache",
+      "name": "Yarn cache",
+      "category": "dev-cache",
+      "owner": "Yarn",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\Yarn\\Cache",
+        "{users}\\*\\AppData\\Local\\Yarn\\Berry\\cache"
+      ],
+      "description": "Downloaded Yarn packages. Safe to clear ('yarn cache clean').",
+      "advice": {
+        "verdict": "safe",
+        "why": "Downloaded developer packages. They are downloaded again automatically the next time a project needs them.",
+        "minAgeDays": 30
+      }
+    },
+    {
+      "id": "dev.pnpm.store",
+      "name": "pnpm store",
+      "category": "dev-cache",
+      "owner": "pnpm",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\pnpm\\store",
+        "{anydrive}\\.pnpm-store"
+      ],
+      "description": "pnpm's shared package store. Prune with 'pnpm store prune'.",
+      "advice": {
+        "verdict": "tool",
+        "why": "pnpm's shared package store.",
+        "tool": "Run 'pnpm store prune'"
+      }
+    },
+    {
+      "id": "dev.pip.cache",
+      "name": "pip cache",
+      "category": "dev-cache",
+      "owner": "Python (pip)",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\pip\\Cache",
+        "{users}\\*\\AppData\\Local\\pip\\cache"
+      ],
+      "description": "Downloaded Python packages. Safe to clear ('pip cache purge').",
+      "advice": {
+        "verdict": "safe",
+        "why": "Downloaded developer packages. They are downloaded again automatically the next time a project needs them.",
+        "minAgeDays": 30
+      }
+    },
+    {
+      "id": "dev.uv.cache",
+      "name": "uv cache",
+      "category": "dev-cache",
+      "owner": "uv (Python)",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\uv\\cache"
+      ],
+      "description": "uv's Python package cache. Safe to clear ('uv cache clean').",
+      "advice": {
+        "verdict": "safe",
+        "why": "Downloaded developer packages. They are downloaded again automatically the next time a project needs them.",
+        "minAgeDays": 30
+      }
+    },
+    {
+      "id": "dev.conda.pkgs",
+      "name": "Conda package cache",
+      "category": "dev-cache",
+      "owner": "Anaconda / Miniconda",
+      "paths": [
+        "{users}\\*\\anaconda3\\pkgs",
+        "{users}\\*\\miniconda3\\pkgs",
+        "{programdata}\\anaconda3\\pkgs",
+        "{programdata}\\miniconda3\\pkgs",
+        "{users}\\*\\.conda\\pkgs"
+      ],
+      "description": "Downloaded conda packages. Clean with 'conda clean --all'.",
+      "advice": {
+        "verdict": "safe",
+        "why": "Downloaded developer packages. They are downloaded again automatically the next time a project needs them.",
+        "minAgeDays": 30
+      }
+    },
+    {
+      "id": "dev.pycache",
+      "name": "Python bytecode cache",
+      "category": "dev-cache",
+      "owner": "Python",
+      "paths": [
+        "**\\__pycache__"
+      ],
+      "description": "Compiled Python files. Safe to delete; Python recreates them.",
+      "advice": {
+        "verdict": "safe",
+        "why": "Compiled Python files; Python recreates them automatically.",
+        "minAgeDays": 1,
+        "deleteFolder": true
+      }
+    },
+    {
+      "id": "dev.venv",
+      "name": "Python virtual environment",
+      "category": "dev-cache",
+      "owner": "Python project",
+      "paths": [
+        "**\\.venv",
+        "**\\venv"
+      ],
+      "description": "Python packages installed for one project. Can be re-created from the project's requirements.",
+      "advice": {
+        "verdict": "safe",
+        "why": "Packages installed for one project. They can be reinstalled from the project's own files ('npm install', 'pip install -r requirements.txt').",
+        "minAgeDays": 90,
+        "deleteFolder": true
+      }
+    },
+    {
+      "id": "dev.nuget.packages",
+      "name": "NuGet package cache",
+      "category": "dev-cache",
+      "owner": "NuGet (.NET)",
+      "paths": [
+        "{users}\\*\\.nuget\\packages",
+        "{users}\\*\\AppData\\Local\\NuGet\\v3-cache",
+        "{users}\\*\\AppData\\Local\\NuGet\\Cache",
+        "{users}\\*\\AppData\\Local\\NuGet\\plugins-cache"
+      ],
+      "description": ".NET packages downloaded for builds. Safe to clear ('dotnet nuget locals all --clear'); re-downloaded on the next build.",
+      "advice": {
+        "verdict": "safe",
+        "why": "Downloaded developer packages. They are downloaded again automatically the next time a project needs them.",
+        "minAgeDays": 30
+      }
+    },
+    {
+      "id": "dev.dotnet.build",
+      "name": ".NET build output",
+      "category": "dev-cache",
+      "owner": ".NET project",
+      "paths": [
+        "**\\obj\\Debug",
+        "**\\obj\\Release",
+        "**\\bin\\Debug",
+        "**\\bin\\Release"
+      ],
+      "description": "Files produced by building a .NET project. Rebuilt every time the project is built.",
+      "advice": {
+        "verdict": "safe",
+        "why": "Build output; it is recreated the next time the project is built.",
+        "minAgeDays": 30,
+        "deleteFolder": true
+      }
+    },
+    {
+      "id": "dev.gradle",
+      "name": "Gradle cache",
+      "category": "dev-cache",
+      "owner": "Gradle",
+      "paths": [
+        "{users}\\*\\.gradle\\caches",
+        "{users}\\*\\.gradle\\wrapper\\dists",
+        "{users}\\*\\.gradle\\daemon"
+      ],
+      "description": "Downloaded build tools and libraries. Safe to clear; re-downloaded on the next build.",
+      "advice": {
+        "verdict": "safe",
+        "why": "Downloaded developer packages. They are downloaded again automatically the next time a project needs them.",
+        "minAgeDays": 30
+      }
+    },
+    {
+      "id": "dev.maven",
+      "name": "Maven repository",
+      "category": "dev-cache",
+      "owner": "Maven",
+      "paths": [
+        "{users}\\*\\.m2\\repository"
+      ],
+      "description": "Downloaded Java libraries. Safe to clear; re-downloaded on the next build.",
+      "advice": {
+        "verdict": "safe",
+        "why": "Downloaded developer packages. They are downloaded again automatically the next time a project needs them.",
+        "minAgeDays": 30
+      }
+    },
+    {
+      "id": "dev.cargo",
+      "name": "Rust (Cargo) cache",
+      "category": "dev-cache",
+      "owner": "Rust (Cargo)",
+      "paths": [
+        "{users}\\*\\.cargo\\registry",
+        "{users}\\*\\.cargo\\git"
+      ],
+      "description": "Downloaded Rust crates. Safe to clear; re-downloaded on the next build.",
+      "advice": {
+        "verdict": "safe",
+        "why": "Downloaded developer packages. They are downloaded again automatically the next time a project needs them.",
+        "minAgeDays": 30
+      }
+    },
+    {
+      "id": "dev.rust.target",
+      "name": "Rust build output",
+      "category": "dev-cache",
+      "owner": "Rust project",
+      "paths": [
+        "**\\target\\debug",
+        "**\\target\\release"
+      ],
+      "description": "Files produced by 'cargo build'. Often huge; recreated on the next build ('cargo clean').",
+      "advice": {
+        "verdict": "safe",
+        "why": "Build output; it is recreated the next time the project is built.",
+        "minAgeDays": 30,
+        "deleteFolder": true
+      }
+    },
+    {
+      "id": "dev.rustup",
+      "name": "Rust toolchains",
+      "category": "program",
+      "owner": "Rust (rustup)",
+      "paths": [
+        "{users}\\*\\.rustup"
+      ],
+      "description": "Installed Rust compilers and tools.",
+      "protect": "program"
+    },
+    {
+      "id": "dev.go.mod",
+      "name": "Go module cache",
+      "category": "dev-cache",
+      "owner": "Go",
+      "paths": [
+        "{users}\\*\\go\\pkg\\mod",
+        "{users}\\*\\AppData\\Local\\go-build"
+      ],
+      "description": "Downloaded Go modules and build cache. Clear with 'go clean -modcache -cache'.",
+      "advice": {
+        "verdict": "safe",
+        "why": "Downloaded developer packages. They are downloaded again automatically the next time a project needs them.",
+        "minAgeDays": 30
+      }
+    },
+    {
+      "id": "dev.android.sdk",
+      "name": "Android SDK",
+      "category": "program",
+      "owner": "Android Studio",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\Android\\Sdk"
+      ],
+      "description": "Android build tools, platforms and emulator images. Old system images can be removed in Android Studio's SDK Manager.",
+      "protect": "program"
+    },
+    {
+      "id": "dev.android.avd",
+      "name": "Android emulators",
+      "category": "virtual-machine",
+      "owner": "Android Studio",
+      "paths": [
+        "{users}\\*\\.android\\avd"
+      ],
+      "description": "Android virtual devices. Delete unused ones from Android Studio's Device Manager.",
+      "protect": "caution",
+      "advice": {
+        "verdict": "inapp",
+        "why": "Virtual disks and machines. Remove them from the app that manages them, or they'll break."
+      }
+    },
+    {
+      "id": "dev.git",
+      "name": "Git repository data",
+      "category": "dev-cache",
+      "owner": "Git",
+      "paths": [
+        "**\\.git"
+      ],
+      "description": "The full history of a code project. Deleting it loses that history (the files themselves stay).",
+      "protect": "caution",
+      "advice": {
+        "verdict": "keep",
+        "why": "A project's full history."
+      }
+    },
+    {
+      "id": "dev.docker",
+      "name": "Docker data",
+      "category": "virtual-machine",
+      "owner": "Docker Desktop",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\Docker",
+        "{programdata}\\Docker",
+        "{programdata}\\DockerDesktop"
+      ],
+      "description": "Docker images, containers and volumes, usually inside one large virtual disk. Free space with 'docker system prune', not by deleting files.",
+      "protect": "caution",
+      "advice": {
+        "verdict": "inapp",
+        "why": "Virtual disks and machines. Remove them from the app that manages them, or they'll break."
+      }
+    },
+    {
+      "id": "dev.wsl",
+      "name": "WSL Linux distributions",
+      "category": "virtual-machine",
+      "owner": "Windows Subsystem for Linux",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\Packages\\CanonicalGroupLimited.*\\LocalState",
+        "{users}\\*\\AppData\\Local\\Packages\\TheDebianProject.*\\LocalState",
+        "{users}\\*\\AppData\\Local\\wsl"
+      ],
+      "description": "Virtual disks holding your Linux distributions' files. Remove a distribution with 'wsl --unregister', never by deleting the file.",
+      "protect": "caution",
+      "advice": {
+        "verdict": "inapp",
+        "why": "Virtual disks and machines. Remove them from the app that manages them, or they'll break."
+      }
+    },
+    {
+      "id": "dev.vs.installer",
+      "name": "Visual Studio installer",
+      "category": "installer-cache",
+      "owner": "Visual Studio",
+      "paths": [
+        "{programfilesx86}\\Microsoft Visual Studio\\Installer",
+        "{programdata}\\Microsoft\\VisualStudio\\Packages"
+      ],
+      "description": "Visual Studio's installer and its package cache.",
+      "protect": "program"
+    },
+    {
+      "id": "dev.dotnet",
+      "name": ".NET runtimes and SDKs",
+      "category": "program",
+      "owner": "Microsoft .NET",
+      "paths": [
+        "{programfiles}\\dotnet",
+        "{programfilesx86}\\dotnet",
+        "{users}\\*\\.dotnet"
+      ],
+      "description": ".NET runtimes and SDKs. Old SDK versions can be removed from Settings > Apps.",
+      "protect": "program"
+    },
+    {
+      "id": "vm.hyperv",
+      "name": "Hyper-V virtual machines",
+      "category": "virtual-machine",
+      "owner": "Hyper-V",
+      "paths": [
+        "{programdata}\\Microsoft\\Windows\\Hyper-V",
+        "{users}\\Public\\Documents\\Hyper-V"
+      ],
+      "description": "Hyper-V virtual machines and their disks. Delete VMs from Hyper-V Manager.",
+      "protect": "caution",
+      "advice": {
+        "verdict": "inapp",
+        "why": "Virtual disks and machines. Remove them from the app that manages them, or they'll break."
+      }
+    },
+    {
+      "id": "vm.virtualbox",
+      "name": "VirtualBox virtual machines",
+      "category": "virtual-machine",
+      "owner": "VirtualBox",
+      "paths": [
+        "{users}\\*\\VirtualBox VMs"
+      ],
+      "description": "VirtualBox virtual machines. Remove VMs from VirtualBox so its settings stay consistent.",
+      "protect": "caution",
+      "advice": {
+        "verdict": "inapp",
+        "why": "Virtual disks and machines. Remove them from the app that manages them, or they'll break."
+      }
+    },
+    {
+      "id": "vm.vmware",
+      "name": "VMware virtual machines",
+      "category": "virtual-machine",
+      "owner": "VMware",
+      "paths": [
+        "{users}\\*\\Documents\\Virtual Machines"
+      ],
+      "description": "VMware virtual machines.",
+      "protect": "caution",
+      "advice": {
+        "verdict": "inapp",
+        "why": "Virtual disks and machines. Remove them from the app that manages them, or they'll break."
+      }
+    },
+    {
+      "id": "game.steam",
+      "name": "Steam",
+      "category": "game",
+      "owner": "Steam",
+      "paths": [
+        "{programfilesx86}\\Steam",
+        "{programfiles}\\Steam"
+      ],
+      "description": "The Steam app and its default game library.",
+      "protect": "program"
+    },
+    {
+      "id": "game.steam.library",
+      "name": "Steam game library",
+      "category": "game",
+      "owner": "Steam",
+      "paths": [
+        "{anydrive}\\SteamLibrary",
+        "**\\steamapps"
+      ],
+      "description": "Games installed with Steam. Uninstall games from Steam to free space."
+    },
+    {
+      "id": "game.steam.shadercache",
+      "name": "Steam shader cache",
+      "category": "cache",
+      "owner": "Steam",
+      "paths": [
+        "**\\steamapps\\shadercache"
+      ],
+      "description": "Pre-built graphics shaders for Steam games. Safe to clear; rebuilt or re-downloaded when games run.",
+      "advice": {
+        "verdict": "safe",
+        "why": "A cache Windows or a program rebuilds automatically when needed.",
+        "minAgeDays": 1
+      }
+    },
+    {
+      "id": "game.steam.downloading",
+      "name": "Steam unfinished downloads",
+      "category": "temp",
+      "owner": "Steam",
+      "paths": [
+        "**\\steamapps\\downloading",
+        "**\\steamapps\\temp"
+      ],
+      "description": "Partly downloaded game updates. Steam cleans these up when downloads finish.",
+      "advice": {
+        "verdict": "review",
+        "why": "Unfinished Steam downloads. Steam removes them itself when a download finishes; old ones are usually abandoned.",
+        "minAgeDays": 14
+      }
+    },
+    {
+      "id": "game.steam.workshop",
+      "name": "Steam Workshop content",
+      "category": "game",
+      "owner": "Steam",
+      "paths": [
+        "**\\steamapps\\workshop"
+      ],
+      "description": "Mods and community content you subscribed to.",
+      "protect": "caution"
+    },
+    {
+      "id": "game.epic",
+      "name": "Epic Games",
+      "category": "game",
+      "owner": "Epic Games Launcher",
+      "paths": [
+        "{programfiles}\\Epic Games",
+        "{programfilesx86}\\Epic Games",
+        "{programdata}\\Epic"
+      ],
+      "description": "Epic Games Launcher and games installed with it. Uninstall games from the launcher.",
+      "protect": "program"
+    },
+    {
+      "id": "game.epic.webcache",
+      "name": "Epic launcher web cache",
+      "category": "cache",
+      "owner": "Epic Games Launcher",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\EpicGamesLauncher\\Saved\\webcache",
+        "{users}\\*\\AppData\\Local\\EpicGamesLauncher\\Saved\\webcache_*"
+      ],
+      "description": "The launcher's web cache. Safe to clear when the launcher is closed.",
+      "advice": {
+        "verdict": "safe",
+        "why": "The app's cache. It rebuilds automatically; close the app first.",
+        "minAgeDays": 1
+      }
+    },
+    {
+      "id": "game.gog",
+      "name": "GOG Galaxy",
+      "category": "game",
+      "owner": "GOG Galaxy",
+      "paths": [
+        "{programfilesx86}\\GOG Galaxy",
+        "{programdata}\\GOG.com"
+      ],
+      "description": "GOG Galaxy and its data.",
+      "protect": "program"
+    },
+    {
+      "id": "game.ea",
+      "name": "EA app",
+      "category": "game",
+      "owner": "EA app",
+      "paths": [
+        "{programfiles}\\EA Games",
+        "{programfiles}\\Electronic Arts",
+        "{programdata}\\EA Desktop",
+        "{programdata}\\Origin"
+      ],
+      "description": "EA app (formerly Origin) and games installed with it.",
+      "protect": "program"
+    },
+    {
+      "id": "game.ubisoft",
+      "name": "Ubisoft Connect",
+      "category": "game",
+      "owner": "Ubisoft Connect",
+      "paths": [
+        "{programfilesx86}\\Ubisoft"
+      ],
+      "description": "Ubisoft Connect and games installed with it.",
+      "protect": "program"
+    },
+    {
+      "id": "game.battlenet",
+      "name": "Battle.net",
+      "category": "game",
+      "owner": "Battle.net",
+      "paths": [
+        "{programfilesx86}\\Battle.net",
+        "{programdata}\\Battle.net",
+        "{programdata}\\Blizzard Entertainment"
+      ],
+      "description": "Blizzard's Battle.net launcher and its data.",
+      "protect": "program"
+    },
+    {
+      "id": "game.riot",
+      "name": "Riot Games",
+      "category": "game",
+      "owner": "Riot Games",
+      "paths": [
+        "{systemdrive}\\Riot Games",
+        "{programdata}\\Riot Games"
+      ],
+      "description": "Riot Client and its games.",
+      "protect": "program"
+    },
+    {
+      "id": "game.minecraft",
+      "name": "Minecraft",
+      "category": "game",
+      "owner": "Minecraft",
+      "paths": [
+        "{users}\\*\\AppData\\Roaming\\.minecraft"
+      ],
+      "description": "Minecraft Java Edition: worlds, mods and game files. Your worlds are in the 'saves' folder."
+    },
+    {
+      "id": "game.minecraft.saves",
+      "name": "Minecraft worlds",
+      "category": "user-files",
+      "owner": "Minecraft",
+      "paths": [
+        "{users}\\*\\AppData\\Roaming\\.minecraft\\saves"
+      ],
+      "description": "Your Minecraft worlds. Deleting them loses them for good.",
+      "protect": "caution"
+    },
+    {
+      "id": "pm.chocolatey",
+      "name": "Chocolatey",
+      "category": "program",
+      "owner": "Chocolatey",
+      "paths": [
+        "{programdata}\\chocolatey"
+      ],
+      "description": "The Chocolatey package manager and programs it installed.",
+      "protect": "program"
+    },
+    {
+      "id": "pm.chocolatey.lib-bkp",
+      "name": "Chocolatey package backups",
+      "category": "backup",
+      "owner": "Chocolatey",
+      "paths": [
+        "{programdata}\\chocolatey\\lib-bkp",
+        "{programdata}\\chocolatey\\lib-bad"
+      ],
+      "description": "Leftovers from failed or replaced Chocolatey package installs.",
+      "advice": {
+        "verdict": "recommend",
+        "why": "Backups of replaced or failed Chocolatey packages.",
+        "minAgeDays": 30,
+        "deleteFolder": true
+      }
+    },
+    {
+      "id": "pm.scoop",
+      "name": "Scoop",
+      "category": "program",
+      "owner": "Scoop",
+      "paths": [
+        "{users}\\*\\scoop"
+      ],
+      "description": "The Scoop package manager and programs it installed.",
+      "protect": "program"
+    },
+    {
+      "id": "pm.scoop.cache",
+      "name": "Scoop download cache",
+      "category": "installer-cache",
+      "owner": "Scoop",
+      "paths": [
+        "{users}\\*\\scoop\\cache"
+      ],
+      "description": "Downloaded installers kept by Scoop. Safe to clear ('scoop cache rm *').",
+      "advice": {
+        "verdict": "safe",
+        "why": "Installers Scoop already used.",
+        "minAgeDays": 30
+      }
+    },
+    {
+      "id": "pm.winget",
+      "name": "WinGet packages",
+      "category": "program",
+      "owner": "Windows Package Manager (winget)",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\Microsoft\\WinGet\\Packages",
+        "{programfiles}\\WinGet\\Packages"
+      ],
+      "description": "Portable programs installed with winget.",
+      "protect": "program"
+    },
+    {
+      "id": "misc.intel",
+      "name": "Intel driver files",
+      "category": "installer-cache",
+      "owner": "Intel",
+      "paths": [
+        "{systemdrive}\\Intel"
+      ],
+      "description": "Logs and extracted files from Intel driver installers. Usually not needed after drivers are installed.",
+      "advice": {
+        "verdict": "recommend",
+        "why": "Driver installers that were unpacked here. The drivers are installed; these copies aren't needed.",
+        "minAgeDays": 30,
+        "deleteFolder": true
+      }
+    },
+    {
+      "id": "misc.perflogs",
+      "name": "Performance logs",
+      "category": "logs",
+      "owner": "Windows",
+      "paths": [
+        "{systemdrive}\\PerfLogs"
+      ],
+      "description": "Folder for Windows performance reports. Usually empty.",
+      "advice": {
+        "verdict": "safe",
+        "why": "Diagnostic logs. Old ones are only useful for troubleshooting past problems.",
+        "minAgeDays": 30
+      }
+    },
+    {
+      "id": "misc.msocache",
+      "name": "Office install source",
+      "category": "installer-cache",
+      "owner": "Microsoft Office (older versions)",
+      "paths": [
+        "{anydrive}\\MSOCache"
+      ],
+      "description": "Installation files for older Office versions, used for repairs and updates."
+    },
+    {
+      "id": "misc.config.msi",
+      "name": "Windows Installer rollback",
+      "category": "temp",
+      "owner": "Windows Installer",
+      "paths": [
+        "{anydrive}\\Config.Msi"
+      ],
+      "description": "Temporary files used to undo a failed installation. Normally empty.",
+      "advice": {
+        "verdict": "review",
+        "why": "Leftovers from installers or disk repairs.",
+        "minAgeDays": 30
+      }
+    },
+    {
+      "id": "misc.found",
+      "name": "Recovered file fragments",
+      "category": "backup",
+      "owner": "Windows (Check Disk)",
+      "paths": [
+        "{anydrive}\\FOUND.*"
+      ],
+      "description": "Pieces of files recovered by Check Disk. Usually unusable.",
+      "advice": {
+        "verdict": "review",
+        "why": "Leftovers from installers or disk repairs.",
+        "minAgeDays": 30
+      }
+    },
+    {
+      "id": "misc.msdownld",
+      "name": "Leftover update download",
+      "category": "temp",
+      "owner": "Windows Update / installers",
+      "paths": [
+        "{anydrive}\\msdownld.tmp"
+      ],
+      "description": "Temporary folder left by installers. Safe to delete if empty or old.",
+      "advice": {
+        "verdict": "review",
+        "why": "Leftovers from installers or disk repairs.",
+        "minAgeDays": 30
+      }
+    },
+    {
+      "id": "misc.extend",
+      "name": "NTFS metadata",
+      "category": "windows",
+      "owner": "Windows (file system)",
+      "paths": [
+        "{anydrive}\\$Extend",
+        "{anydrive}\\$Mft",
+        "{anydrive}\\$LogFile",
+        "{anydrive}\\$Secure"
+      ],
+      "description": "Internal file-system data. Never touch.",
+      "protect": "system"
+    },
+    {
+      "id": "file.desktop-ini",
+      "name": "Folder settings (desktop.ini)",
+      "category": "windows",
+      "owner": "Windows (File Explorer)",
+      "paths": [
+        "**\\desktop.ini"
+      ],
+      "description": "A tiny hidden file that stores a folder's icon and name. Harmless; leave it.",
+      "advice": {
+        "verdict": "keep",
+        "why": "Tiny, and folders lose their custom look without it."
+      }
+    },
+    {
+      "id": "file.thumbs-db",
+      "name": "Old thumbnail cache (Thumbs.db)",
+      "category": "cache",
+      "owner": "Windows (File Explorer)",
+      "paths": [
+        "**\\Thumbs.db",
+        "**\\ehthumbs.db",
+        "**\\ehthumbs_vista.db"
+      ],
+      "description": "Picture previews made by old versions of Windows. Current Windows doesn't need them.",
+      "advice": {
+        "verdict": "safe",
+        "why": "Old Windows picture-preview cache; Windows 10/11 doesn't use it."
+      }
+    },
+    {
+      "id": "file.ntuser",
+      "name": "Your account's settings (registry)",
+      "category": "windows",
+      "owner": "Windows",
+      "protect": "system",
+      "paths": [
+        "{users}\\*\\NTUSER.DAT",
+        "{users}\\*\\NTUSER.DAT*",
+        "{users}\\*\\ntuser.ini",
+        "{users}\\*\\ntuser.pol",
+        "{users}\\*\\AppData\\Local\\Microsoft\\Windows\\UsrClass.dat",
+        "{users}\\*\\AppData\\Local\\Microsoft\\Windows\\UsrClass.dat*"
+      ],
+      "description": "Your Windows account's settings. Deleting them breaks your account."
+    },
+    {
+      "id": "file.ds-store",
+      "name": "Mac folder settings (.DS_Store)",
+      "category": "cache",
+      "paths": [
+        "**\\.DS_Store",
+        "**\\._*"
+      ],
+      "description": "Hidden files a Mac leaves on drives and in zip files. Windows doesn't use them.",
+      "advice": {
+        "verdict": "safe",
+        "why": "Mac-only folder settings; useless on Windows."
+      }
+    },
+    {
+      "id": "app.puterscanny",
+      "name": "PuterScanny's own data",
+      "category": "program-data",
+      "owner": "PuterScanny",
+      "protect": "caution",
+      "paths": [
+        "{users}\\*\\AppData\\Local\\PuterScanny",
+        "{anydrive}\\PuterScanny Quarantine"
+      ],
+      "description": "Saved scans, the clean-up history and the quarantine. Manage them from PuterScanny (Undo & quarantine tab).",
+      "advice": {
+        "verdict": "keep",
+        "why": "PuterScanny's own data: deleting the quarantine by hand would make undo impossible."
+      }
+    }
+  ]
+}

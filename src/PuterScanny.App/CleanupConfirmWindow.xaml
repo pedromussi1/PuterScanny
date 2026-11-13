@@ -1,0 +1,44 @@
+<Window x:Class="PuterScanny.App.CleanupConfirmWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Icon="/Assets/PuterScanny.ico"
+        Title="Clean up selected items" Width="760" Height="600" MinWidth="560" MinHeight="420"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False" ResizeMode="CanResizeWithGrip">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackPanel>
+            <TextBlock x:Name="Headline" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap" />
+            <TextBlock x:Name="ReviewWarning" TextWrapping="Wrap" Margin="0,6,0,0" Visibility="Collapsed"
+                       Foreground="{DynamicResource SystemFillColorCautionBrush}" />
+            <TextBlock TextWrapping="Wrap" Margin="0,6,0,10" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                       Text="Each item is checked again right before it's moved. Anything that changed since the scan, is in use, or is protected is skipped and left exactly where it is." />
+        </StackPanel>
+        <DataGrid x:Name="Items" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="None"
+                  AutomationProperties.Name="Items to clean up">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Item" Binding="{Binding Name}" Width="2*" />
+                <DataGridTextColumn Header="Size" Binding="{Binding SizeText}" Width="90" />
+                <DataGridTextColumn Header="Verdict" Binding="{Binding Verdict}" Width="150" />
+                <DataGridTextColumn Header="Location" Binding="{Binding Path}" Width="3*" />
+            </DataGrid.Columns>
+        </DataGrid>
+        <StackPanel Grid.Row="2" Margin="0,14,0,0">
+            <TextBlock Text="Where should they go?" FontWeight="SemiBold" Margin="0,0,0,6" />
+            <RadioButton x:Name="UseRecycleBin" GroupName="Method" IsChecked="True"
+                         Content="Recycle Bin: undo from PuterScanny or from the Recycle Bin. Space is freed when you empty the Recycle Bin." />
+            <RadioButton x:Name="UseQuarantine" GroupName="Method" Margin="0,4,0,0"
+                         Content="PuterScanny quarantine: instant, no size limit, undo from PuterScanny. Space is freed when you empty the quarantine." />
+            <CheckBox x:Name="RestorePoint" Margin="0,10,0,0" Content="Create a Windows restore point first" />
+            <TextBlock x:Name="RestorePointNote" FontSize="12" Margin="24,2,0,0" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+        </StackPanel>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="Cancel" IsCancel="True" MinWidth="90" Margin="0,0,8,0" />
+            <Button x:Name="Confirm" Content="Clean up" IsDefault="True" MinWidth="120" Style="{DynamicResource AccentButtonStyle}" Click="Confirm_Click" />
+        </StackPanel>
+    </Grid>
+</Window>

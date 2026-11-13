@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PuterScanny.AI/PuterScanny.AI.csproj" />
+    <Project Path="src/PuterScanny.Analysis/PuterScanny.Analysis.csproj" />
+    <Project Path="src/PuterScanny.App/PuterScanny.App.csproj" />
+    <Project Path="src/PuterScanny.Cleanup/PuterScanny.Cleanup.csproj" />
+    <Project Path="src/PuterScanny.Core/PuterScanny.Core.csproj" />
+    <Project Path="src/PuterScanny.Knowledge/PuterScanny.Knowledge.csproj" />
+    <Project Path="src/PuterScanny.Scanning/PuterScanny.Scanning.csproj" />
+    <Project Path="src/PuterScanny.Signals/PuterScanny.Signals.csproj" />
+    <Project Path="src/PuterScanny.Storage/PuterScanny.Storage.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PuterScanny.Tests/PuterScanny.Tests.csproj" />
+  </Folder>
+</Solution>
