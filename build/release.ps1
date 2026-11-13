@@ -60,7 +60,8 @@ Run $iscc @("/DAppVersion=$version", '/Q', "$root\installer\PuterScanny.iss")
 $setup = "$dist\PuterScanny-$version-setup.exe"
 
 $sums = foreach ($f in $setup, $zip) { "{0}  {1}" -f (Get-FileHash $f -Algorithm SHA256).Hash.ToLowerInvariant(), (Split-Path $f -Leaf) }
-$sums | Set-Content "$dist\SHA256SUMS.txt" -Encoding ascii
+# Unix line endings, so "sha256sum -c SHA256SUMS.txt" works as well as Get-FileHash.
+[IO.File]::WriteAllText("$dist\SHA256SUMS.txt", (($sums -join "`n") + "`n"), [Text.Encoding]::ASCII)
 
 Write-Host ''
 Write-Host 'Done:' -ForegroundColor Green
