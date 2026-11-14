@@ -329,16 +329,6 @@ public sealed class ChatTests(ChatScanFixture scan) : IClassFixture<ChatScanFixt
     }
 
     [Fact]
-    public void The_TorrentZIP_date_is_recognised_in_any_time_zone_and_nothing_else_is()
-    {
-        Assert.True(FileDates.IsTorrentZipDate(new DateTime(1996, 12, 24, 23, 32, 0, DateTimeKind.Local).ToUniversalTime()));
-        Assert.True(FileDates.IsTorrentZipDate(new DateTime(1996, 12, 24, 22, 32, 0, DateTimeKind.Utc)));
-        Assert.False(FileDates.IsTorrentZipDate(new DateTime(1996, 12, 24, 23, 31, 0, DateTimeKind.Local).ToUniversalTime()));
-        Assert.False(FileDates.IsTorrentZipDate(new DateTime(2024, 12, 24, 23, 32, 0, DateTimeKind.Local).ToUniversalTime()));
-        Assert.False(FileDates.IsTorrentZipDate(default));
-    }
-
-    [Fact]
     public async Task Can_I_delete_it_after_asking_what_something_is_puts_the_recommendation_first()
     {
         var engine = scan.Engine();

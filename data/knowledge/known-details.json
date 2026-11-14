@@ -1,0 +1,1283 @@
+{
+  // Small, well-documented facts about how files get their names and dates, so answers don't take them literally.
+  // Each entry only applies on an exact match. Text placeholders: {group} = a named group of the pattern;
+  // {date} = groups y, mo, d (and h, mi); {languages} = the "langs" group as language names; {lookup:group} = the
+  // matching "lookups" text for that group. Corrections and additions are welcome.
+  "dates": [
+    {
+      "id": "torrentzip",
+      "local": "1996-12-24T23:32:00",
+      "utc": "1996-12-24T22:32:00",
+      "text": "Its file date, 24 Dec 1996 23:32, is the fixed date TorrentZIP gives every file it packs (MAME's first release date). ROM and emulator sets use it, so the date says nothing about when the file was made or changed.",
+      "folderText": "{count} here carry TorrentZIP's fixed date, 24 Dec 1996 23:32, used on ROM and emulator sets, so their dates say nothing about when they were made."
+    },
+    {
+      "id": "zip-minimum",
+      "local": "1980-01-01T00:00:00",
+      "utc": "1980-01-01T00:00:00",
+      "text": "Its file date, 1 Jan 1980, is the earliest date a zip file can record. Tools that don't keep real dates write it, so the date says nothing about the file's age.",
+      "folderText": "{count} here are dated 1 Jan 1980, the earliest date a zip file can record, so those dates say nothing about their age."
+    },
+    {
+      "id": "unix-zero",
+      "utcFrom": "1970-01-01T00:00:00",
+      "utcTo": "1970-01-01T00:00:02",
+      "text": "Its file date, 1 Jan 1970, is the Unix \"zero\" date: the real date was lost or deliberately reset (some build tools and package managers do this on purpose).",
+      "folderText": "{count} here are dated 1 Jan 1970, the Unix \"zero\" date, so their real dates were lost or reset."
+    },
+    {
+      "id": "windows-zero",
+      "utcTo": "1601-01-02T00:00:00",
+      "text": "It has no real file date (1601 is Windows' \"zero\" date).",
+      "folderText": "{count} here have no real file date."
+    },
+    {
+      "id": "npm-package",
+      "utc": "1985-10-26T08:15:00",
+      "text": "Its file date, 26 Oct 1985 08:15 (UTC), is the fixed date npm gives every file it packs into a package (a nod to Back to the Future), so the date says nothing about when the file was made or changed.",
+      "folderText": "{count} here carry npm's fixed package date, 26 Oct 1985, so their dates say nothing about when they were made."
+    }
+  ],
+  "futureDate": "Its file date is in the future, so a clock was wrong when it was saved (on this PC or the one it came from), and the date can't be trusted.",
+  "names": [
+    {
+      "id": "no-intro",
+      "files": true,
+      "extensions": [
+        ".nes",
+        ".fds",
+        ".sfc",
+        ".smc",
+        ".gb",
+        ".gbc",
+        ".gba",
+        ".nds",
+        ".3ds",
+        ".n64",
+        ".z64",
+        ".v64",
+        ".md",
+        ".gen",
+        ".smd",
+        ".sms",
+        ".gg",
+        ".32x",
+        ".pce",
+        ".a26",
+        ".a78",
+        ".lnx",
+        ".ws",
+        ".wsc",
+        ".ngp",
+        ".ngc",
+        ".vb",
+        ".col",
+        ".int",
+        ".iso",
+        ".bin",
+        ".cue",
+        ".chd",
+        ".cso",
+        ".rvz",
+        ".wbfs",
+        ".gcm",
+        ".cdi",
+        ".gdi",
+        ".pbp",
+        ".zip",
+        ".7z"
+      ],
+      "pattern": "^[^()\\[\\]]+? \\((?<region>(?:USA|Europe|Japan|World|Germany|France|Spain|Italy|Netherlands|Sweden|Australia|Korea|China|Brazil|Canada|Asia|Taiwan|Hong Kong|Russia|Scandinavia|UK)(?:, (?:USA|Europe|Japan|World|Germany|France|Spain|Italy|Netherlands|Sweden|Australia|Korea|China|Brazil|Canada|Asia|Taiwan|Hong Kong|Russia|Scandinavia|UK))*)\\)(?: \\((?<langs>(?:En|Fr|De|Es|It|Nl|Pt|Sv|No|Da|Fi|Ja|Zh|Ko|Pl|Ru|Ca|Cs|Hu|El|Tr|Ar)(?:[,+](?:En|Fr|De|Es|It|Nl|Pt|Sv|No|Da|Fi|Ja|Zh|Ko|Pl|Ru|Ca|Cs|Hu|El|Tr|Ar))*)\\))?",
+      "text": "Its name follows the No-Intro / Redump convention for verified game dumps: the brackets give the release region ({region}){?langs:, and its languages ({languages})}.",
+      "folderText": "Game files here are named the No-Intro / Redump way: the brackets give each game's release region and languages."
+    },
+    {
+      "id": "dump-status",
+      "files": true,
+      "extensions": [
+        ".nes",
+        ".sfc",
+        ".smc",
+        ".gb",
+        ".gbc",
+        ".gba",
+        ".nds",
+        ".n64",
+        ".z64",
+        ".v64",
+        ".md",
+        ".gen",
+        ".sms",
+        ".gg",
+        ".pce",
+        ".iso",
+        ".bin",
+        ".chd",
+        ".zip",
+        ".7z"
+      ],
+      "pattern": "\\((?<flag>Beta|Proto|Demo|Sample|Unl|Pirate|Rev [0-9A-Z]+)(?: \\d+)?\\)",
+      "lookups": {
+        "flag": {
+          "Beta": "a beta (unfinished) version of the game",
+          "Proto": "a prototype, an early unreleased version",
+          "Demo": "a demo version",
+          "Sample": "a sample copy",
+          "Unl": "an unlicensed game, released without the console maker's approval",
+          "Pirate": "a pirate (bootleg) release",
+          "Rev": "a later revision of the game, with fixes"
+        }
+      },
+      "text": "\"({flag})\" in the name marks {lookup:flag}."
+    },
+    {
+      "id": "goodtools",
+      "files": true,
+      "extensions": [
+        ".nes",
+        ".sfc",
+        ".smc",
+        ".gb",
+        ".gbc",
+        ".gba",
+        ".n64",
+        ".z64",
+        ".v64",
+        ".md",
+        ".gen",
+        ".smd",
+        ".sms",
+        ".gg",
+        ".pce",
+        ".zip",
+        ".7z"
+      ],
+      "pattern": "\\[(?<code>!|b\\d*|h[\\w+]*|t\\d*|f\\d*|o\\d*|a\\d*|p\\d*|T[+-][^\\]]*)\\]",
+      "lookups": {
+        "code": {
+          "!": "a verified good copy",
+          "b": "a bad (corrupt) copy",
+          "h": "a hacked copy",
+          "t": "a copy with a trainer (cheats) added",
+          "f": "a copy fixed to run on more emulators",
+          "o": "an overdump (it has extra junk data)",
+          "a": "an alternate version",
+          "p": "a pirate release",
+          "T": "a fan translation"
+        }
+      },
+      "text": "The [{code}] tag is a GoodTools code: it marks {lookup:code}."
+    },
+    {
+      "id": "browser-copy",
+      "files": true,
+      "pattern": "^(?<base>.+) \\((?<n>[1-9]\\d?)\\)(?<ext>\\.[A-Za-z0-9]{1,8})?$",
+      "sibling": "{base}{ext}",
+      "text": "The \"({n})\" at the end is what browsers add when the same file is downloaded again (and what Windows adds to copies), so this is probably a repeat of {base}{ext}.",
+      "siblingText": " {base}{ext} is in the same folder."
+    },
+    {
+      "id": "windows-copy",
+      "files": true,
+      "folders": true,
+      "pattern": "^(?<base>.+) - Copy(?: \\(\\d+\\))?(?<ext>\\.[A-Za-z0-9]{1,8})?$",
+      "sibling": "{base}{ext}",
+      "text": "Windows names copies this way when something is copied into the same folder, so this is a copy of {base}{ext}.",
+      "siblingText": " The original is in the same folder."
+    },
+    {
+      "id": "office-owner",
+      "files": true,
+      "maxBytes": 4096,
+      "pattern": "^~\\$.+\\.(?:docx?|docm|xlsx?|xlsm|xlsb|pptx?|pptm|vsdx?)$",
+      "text": "Office creates a small hidden \"owner\" file like this while a document is open, to record who has it open. It's left behind if Office closes unexpectedly, and it holds none of the document's content."
+    },
+    {
+      "id": "gog-installer",
+      "files": true,
+      "pattern": "^setup_[a-z0-9_.\\-]+?(?:_\\([a-z0-9_.\\-]+\\))*_\\(\\d{4,}\\)(?:-\\d+)?\\.(?:exe|bin)$",
+      "text": "Named the way GOG.com names its offline game installers. Bigger games come as one .exe plus .bin parts, and all of them are needed to install the game."
+    },
+    {
+      "id": "steam-appmanifest",
+      "files": true,
+      "pattern": "^appmanifest_(?<id>\\d+)\\.acf$",
+      "text": "This is Steam's record of an installed game (app {id}). Steam uses it to know the game is installed; without it, Steam thinks the game is gone."
+    },
+    {
+      "id": "android-camera",
+      "files": true,
+      "extensions": [
+        ".jpg",
+        ".jpeg",
+        ".heic",
+        ".heif",
+        ".png",
+        ".webp",
+        ".dng",
+        ".gif",
+        ".mp4",
+        ".mov",
+        ".3gp",
+        ".mkv",
+        ".webm"
+      ],
+      "pattern": "^(?:IMG|VID|PANO|BURST|MVIMG)_(?<y>20\\d\\d)(?<mo>\\d\\d)(?<d>\\d\\d)_(?<h>\\d\\d)(?<mi>\\d\\d)\\d\\d",
+      "text": "Named the way Android phone cameras name photos and videos, so it was taken on {date}.",
+      "folderText": "Photos or videos here are named by Android phone cameras, which put the date taken in the name."
+    },
+    {
+      "id": "pixel-camera",
+      "files": true,
+      "extensions": [
+        ".jpg",
+        ".jpeg",
+        ".heic",
+        ".heif",
+        ".png",
+        ".webp",
+        ".dng",
+        ".gif",
+        ".mp4",
+        ".mov",
+        ".3gp",
+        ".mkv",
+        ".webm"
+      ],
+      "pattern": "^PXL_(?<y>20\\d\\d)(?<mo>\\d\\d)(?<d>\\d\\d)_(?<h>\\d\\d)(?<mi>\\d\\d)",
+      "text": "Named the way Google Pixel phones name photos and videos, so it was taken on {date} (UTC).",
+      "folderText": "Photos or videos here come from a Google Pixel phone, which puts the date taken in the name."
+    },
+    {
+      "id": "whatsapp",
+      "files": true,
+      "extensions": [
+        ".jpg",
+        ".jpeg",
+        ".heic",
+        ".heif",
+        ".png",
+        ".webp",
+        ".dng",
+        ".gif",
+        ".mp4",
+        ".mov",
+        ".3gp",
+        ".mkv",
+        ".webm",
+        ".opus",
+        ".ogg",
+        ".m4a",
+        ".aac",
+        ".mp3"
+      ],
+      "pattern": "^WhatsApp (?:Image|Video|Audio|Ptt) (?<y>20\\d\\d)-(?<mo>\\d\\d)-(?<d>\\d\\d) at (?<h>\\d{1,2})\\.(?<mi>\\d\\d)",
+      "text": "Saved from WhatsApp, which names files by when they were sent or received: {date}.",
+      "folderText": "Files here were saved from WhatsApp, which names them by when they were sent or received."
+    },
+    {
+      "id": "snipping-tool",
+      "files": true,
+      "extensions": [
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".mp4"
+      ],
+      "pattern": "^Screenshot (?<y>20\\d\\d)-(?<mo>\\d\\d)-(?<d>\\d\\d) (?<h>\\d\\d)(?<mi>\\d\\d)\\d\\d",
+      "text": "A screenshot saved by Windows' Snipping Tool, which names them by when they were taken: {date}.",
+      "folderText": "Screenshots here were saved by Windows' Snipping Tool, which puts the date taken in the name."
+    },
+    {
+      "id": "android-screenshot",
+      "files": true,
+      "extensions": [
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".webp"
+      ],
+      "pattern": "^Screenshot_(?<y>20\\d\\d)(?<mo>\\d\\d)(?<d>\\d\\d)[-_](?<h>\\d\\d)(?<mi>\\d\\d)",
+      "text": "A screenshot from an Android phone, which names them by when they were taken: {date}."
+    },
+    {
+      "id": "printscreen",
+      "files": true,
+      "pattern": "^Screenshot \\((?<n>\\d+)\\)\\.png$",
+      "suppresses": [
+        "browser-copy"
+      ],
+      "text": "Windows saves screenshots taken with Windows + Print Screen this way, numbered in order (this is number {n})."
+    },
+    {
+      "id": "camera-numbering",
+      "files": true,
+      "pattern": "^(?:DSC_|DSCN|DSCF|_DSC|DSC0|IMG_|GOPR|DJI_)\\d{4}\\.(?:jpe?g|heic|png|nef|nrw|arw|cr2|cr3|raf|orf|rw2|dng|mov|mp4|avi)$",
+      "text": "Named by a camera's own numbering, which counts up with each shot (DSC is used by Nikon and Sony, DSCF by Fujifilm, IMG_ by Canon and iPhones, GOPR by GoPro, DJI_ by DJI drones)."
+    },
+    {
+      "id": "release-name",
+      "files": true,
+      "folders": true,
+      "pattern": "^(?<title>[A-Za-z0-9'&]+(?:\\.[A-Za-z0-9'&]+)*?)\\.(?<year>(?:19|20)\\d\\d)\\..*?(?<res>2160p|1080p|720p|576p|480p)\\..*-(?<group>[A-Za-z0-9]+)(?:\\.(?:mkv|mp4|avi|m4v))?$",
+      "text": "Named the way video releases are named: title, year ({year}), resolution ({res}), source and format, and at the end the group that released it ({group})."
+    },
+    {
+      "id": "tv-episode",
+      "files": true,
+      "extensions": [
+        ".mkv",
+        ".mp4",
+        ".avi",
+        ".m4v",
+        ".wmv",
+        ".ts",
+        ".srt",
+        ".ass",
+        ".sub"
+      ],
+      "pattern": "\\b[Ss](?<s>\\d{1,2})[Ee](?<e>\\d{1,3})\\b",
+      "text": "S{s}E{e} in the name means season {s}, episode {e}."
+    },
+    {
+      "id": "ds-store",
+      "files": true,
+      "pattern": "^\\.DS_Store$",
+      "text": "Made by macOS Finder to remember how a folder is shown. It does nothing on Windows; it came along when files were copied from a Mac."
+    },
+    {
+      "id": "appledouble",
+      "files": true,
+      "maxBytes": 65536,
+      "pattern": "^\\._.+",
+      "text": "A Mac \"AppleDouble\" file: extra Mac-only data that came along when files were copied from a Mac. It's useless on Windows."
+    },
+    {
+      "id": "macosx-folder",
+      "folders": true,
+      "pattern": "^__MACOSX$",
+      "text": "Made by macOS when it zips files: it holds Mac-only extra data and is useless on Windows."
+    },
+    {
+      "id": "split-numbered-part",
+      "files": true,
+      "pattern": "^(?<base>.+\\.(?=[A-Za-z0-9]*[A-Za-z])[A-Za-z0-9]{1,5})\\.(?=\\d{3}$)0*(?<n>\\d+)$",
+      "text": "This is part {n} of {base}, which was split into numbered pieces (.001, .002…), the way 7-Zip splits big files. All the pieces are needed to rebuild it.",
+      "folderText": "Files here are numbered pieces (.001, .002…) of bigger files that were split up, the way 7-Zip does it; all the pieces of each are needed."
+    },
+    {
+      "id": "split-rar-part",
+      "files": true,
+      "extensions": [
+        ".rar"
+      ],
+      "pattern": "^(?<base>.+)\\.part0*(?<n>\\d+)\\.rar$",
+      "text": "This is part {n} of the RAR archive {base}, which was split into several files. All the parts are needed to open it.",
+      "folderText": "RAR archives here are split into numbered parts (.part1.rar, .part2.rar…); all the parts of each are needed to open it."
+    },
+    {
+      "id": "split-rar-old",
+      "files": true,
+      "pattern": "^(?<base>.+)\\.r(?<n>\\d{2})$",
+      "sibling": "{base}.rar",
+      "text": "This is one piece of the split RAR archive {base}.rar, in RAR's older naming (the first piece is .rar, then .r00, .r01…). All the pieces are needed to open it.",
+      "siblingText": " {base}.rar is in the same folder."
+    },
+    {
+      "id": "split-zip",
+      "files": true,
+      "pattern": "^(?<base>.+)\\.z(?<n>\\d{2})$",
+      "sibling": "{base}.zip",
+      "text": "This is one piece of a split zip archive: the pieces are named .z01, .z02… and the last one is {base}.zip. All of them are needed to open it.",
+      "siblingText": " {base}.zip is in the same folder."
+    },
+    {
+      "id": "checksum-sidecar",
+      "files": true,
+      "extensions": [
+        ".md5",
+        ".sha1",
+        ".sha256",
+        ".sha512"
+      ],
+      "pattern": "^(?<base>.+\\.[A-Za-z0-9]{1,8})\\.(?:(?<md5>md5)|(?<sha1>sha1)|(?<sha256>sha256)|(?<sha512>sha512))$",
+      "sibling": "{base}",
+      "text": "A checksum file for {base}: it holds that file's {?md5:MD5}{?sha1:SHA-1}{?sha256:SHA-256}{?sha512:SHA-512} fingerprint, used to check that it was downloaded or copied without damage.",
+      "siblingText": " {base} is in the same folder."
+    },
+    {
+      "id": "chrome-unconfirmed",
+      "files": true,
+      "extensions": [
+        ".crdownload"
+      ],
+      "pattern": "^Unconfirmed \\d{1,7}\\.crdownload$",
+      "text": "Chrome (and other browsers built on Chromium, like Edge) gives a download this temporary random name when it warned that the file might be harmful and is waiting for you to keep or discard it. If it's still here, that download was probably never confirmed or finished."
+    },
+    {
+      "id": "onedrive-conflict",
+      "files": true,
+      "pattern": "^(?<base>.+)-(?<pc>(?-i:DESKTOP-[A-Z0-9]{7}))(?<ext>\\.[A-Za-z0-9]{1,8})?$",
+      "sibling": "{base}{ext}",
+      "text": "OneDrive adds the PC's name ({pc}) to a file like this when the same file was changed in two places and it couldn't merge them, so this is probably the other version of {base}{ext}.",
+      "siblingText": " {base}{ext} is in the same folder."
+    },
+    {
+      "id": "dropbox-conflicted-copy",
+      "files": true,
+      "folders": true,
+      "pattern": "^(?<base>.+?) \\((?:(?<who>[^()]+?)['’]s )?conflicted copy (?<y>\\d{4})-(?<mo>\\d\\d)-(?<d>\\d\\d)(?: \\(\\d+\\))?\\)(?<ext>\\.[A-Za-z0-9]{1,8})?$",
+      "sibling": "{base}{ext}",
+      "text": "Dropbox makes a \"conflicted copy\" like this when the same file was changed in two places at once and it can't tell which version to keep; this copy {?who:holds {who}'s changes and }was saved on {date}.",
+      "siblingText": " The original, {base}{ext}, is in the same folder."
+    },
+    {
+      "id": "dropbox-case-conflict",
+      "files": true,
+      "folders": true,
+      "pattern": "^(?<base>.+?) \\(Case Conflict(?: \\d+)?\\)(?<ext>\\.[A-Za-z0-9]{1,8})?$",
+      "sibling": "{base}{ext}",
+      "text": "Dropbox adds \"(Case Conflict)\" when two items in a folder have names that differ only in capital letters, which Windows can't keep side by side, so this is the second of the two.",
+      "siblingText": " The other one is in the same folder."
+    },
+    {
+      "id": "windows-new-folder",
+      "folders": true,
+      "pattern": "^New folder(?: \\((?<n>\\d+)\\))?$",
+      "text": "\"New folder\" is the name Windows gives a folder made with New > Folder, so it was probably never renamed{?n: (the \"({n})\" means another \"New folder\" was already there)}."
+    },
+    {
+      "id": "windows-new-file",
+      "files": true,
+      "pattern": "^New (?:Text Document(?: \\(\\d+\\))?\\.txt|Microsoft Word Document(?: \\(\\d+\\))?\\.docx|Microsoft Excel Worksheet(?: \\(\\d+\\))?\\.xlsx|Microsoft PowerPoint Presentation(?: \\(\\d+\\))?\\.pptx|Compressed \\(zipped\\) Folder(?: \\(\\d+\\))?\\.zip)$",
+      "suppresses": [
+        "browser-copy"
+      ],
+      "text": "This is the default name Windows gives a new file made with right-click > New, so it was probably never renamed."
+    },
+    {
+      "id": "libreoffice-lock",
+      "files": true,
+      "maxBytes": 4096,
+      "pattern": "^\\.~lock\\.(?<base>.+)#$",
+      "sibling": "{base}",
+      "text": "LibreOffice (and OpenOffice) creates a small lock file like this while {base} is open, so others are warned it's in use. It's left behind if the program closes unexpectedly, and it holds none of the document's content.",
+      "siblingText": " {base} is in the same folder."
+    },
+    {
+      "id": "vim-swap",
+      "files": true,
+      "extensions": [
+        ".swp",
+        ".swo",
+        ".swn"
+      ],
+      "pattern": "^\\.?(?<base>.+\\.[A-Za-z0-9]{1,8})\\.sw[nop]$",
+      "sibling": "{base}",
+      "text": "Vim (a text editor) keeps a swap file like this while {base} is open, so changes can be recovered after a crash. Vim deletes it when it stops editing the file, so one left behind probably means Vim crashed or is still editing it.",
+      "siblingText": " {base} is in the same folder."
+    },
+    {
+      "id": "merge-orig",
+      "files": true,
+      "extensions": [
+        ".orig"
+      ],
+      "pattern": "^(?<base>.+\\.[A-Za-z0-9]{1,8})\\.orig$",
+      "sibling": "{base}",
+      "text": "Git's merge tool keeps the file as it was during a merge, with its conflict markers, by adding \".orig\" to the name, so this is probably an older copy of {base} from a merge.",
+      "siblingText": " {base} is in the same folder."
+    },
+    {
+      "id": "git-mergetool-temp",
+      "files": true,
+      "pattern": "^(?<base>.+)_(?<which>(?-i:BACKUP|BASE|LOCAL|REMOTE))_\\d+(?<ext>\\.[A-Za-z0-9]{1,8})?$",
+      "lookups": {
+        "which": {
+          "BACKUP": "a backup of the file with its conflict markers",
+          "BASE": "the common version both sides started from",
+          "LOCAL": "the version from the current branch",
+          "REMOTE": "the version being merged in"
+        }
+      },
+      "text": "Git's merge tool writes temporary copies like this while a conflict in {base}{ext} is being resolved; this one is {lookup:which}. They're normally removed when the merge tool finishes, so this one was probably left behind."
+    },
+    {
+      "id": "chkdsk-chk",
+      "files": true,
+      "extensions": [
+        ".chk"
+      ],
+      "pattern": "^FILE\\d{4}\\.CHK$",
+      "text": "chkdsk (Windows' disk checker) saves pieces of lost data it finds while repairing a drive as numbered files like this. Each holds a fragment of one or more files whose names were lost.",
+      "folderText": "Files here are fragments of lost data that chkdsk saved while repairing the drive; their original names were lost."
+    },
+    {
+      "id": "chkdsk-found-folder",
+      "folders": true,
+      "pattern": "^FOUND\\.\\d{3}$",
+      "text": "chkdsk (Windows' disk checker) puts pieces of lost data it recovered while repairing this drive in a hidden folder like this, as FILE0000.CHK, FILE0001.CHK and so on."
+    },
+    {
+      "id": "recycle-bin-folder",
+      "folders": true,
+      "pattern": "^\\$Recycle\\.Bin$",
+      "text": "This is Windows' Recycle Bin for this drive: deleted files wait here until the bin is emptied, with a separate hidden folder for each user account."
+    },
+    {
+      "id": "recycle-bin-item",
+      "files": true,
+      "folders": true,
+      "pattern": "^\\$(?!RECYCLE\\.BIN$)(?<k>(?-i:[IR]))(?-i:[A-Z0-9]{6})(?:\\.[^.]+)?$",
+      "lookups": {
+        "k": {
+          "I": "the Recycle Bin's record of a deleted item: its original name, location, size and when it was deleted",
+          "R": "a deleted item itself, renamed by the Recycle Bin (the matching $I file remembers its original name and location)"
+        }
+      },
+      "text": "This is {lookup:k}."
+    },
+    {
+      "id": "system-volume-information",
+      "folders": true,
+      "pattern": "^System Volume Information$",
+      "text": "A hidden Windows system folder found on every drive, even USB drives. Windows keeps System Restore points here, along with data for search indexing, shadow copies (used by backups) and shortcut link tracking."
+    },
+    {
+      "id": "windows-update-msu",
+      "files": true,
+      "extensions": [
+        ".msu"
+      ],
+      "pattern": "^windows[\\d.]+-kb(?<kb>\\d{6,7})(?:-v\\d+)?-(?<arch>x64|x86|arm64)(?:[_-][^.]*)?\\.msu$",
+      "lookups": {
+        "arch": {
+          "x64": "64-bit (x64)",
+          "x86": "32-bit (x86)",
+          "arm64": "Arm64"
+        }
+      },
+      "text": "A Windows update package from Microsoft's Update Catalog, for {lookup:arch} PCs: KB{kb} is the number of the Microsoft support article that describes the update."
+    },
+    {
+      "id": "inno-uninstaller",
+      "files": true,
+      "extensions": [
+        ".exe",
+        ".dat"
+      ],
+      "pattern": "^unins\\d{3}\\.(?:(?<exe>exe)|(?<dat>dat))$",
+      "text": "Part of the uninstaller that Inno Setup (a common installer maker) puts in a program's folder: {?exe:the uninstall program itself}{?dat:the record of what was installed, which the uninstaller reads}. It's what runs when that program is uninstalled."
+    },
+    {
+      "id": "git-folder",
+      "folders": true,
+      "pattern": "^\\.git$",
+      "text": "This is a Git repository's database: the project's whole history of changes, plus its branches and settings. The project's current files are in the folder around it."
+    },
+    {
+      "id": "git-placeholder",
+      "files": true,
+      "maxBytes": 1024,
+      "pattern": "^\\.(?:gitkeep|keep)$",
+      "text": "An empty placeholder file. Git can't store empty folders, so people put a file like this in a folder to keep it in a project (a common convention, not a Git feature)."
+    },
+    {
+      "id": "git-pack",
+      "files": true,
+      "extensions": [
+        ".pack",
+        ".idx",
+        ".rev",
+        ".mtimes"
+      ],
+      "pattern": "^pack-[0-9a-f]{40}(?:[0-9a-f]{24})?\\.(?:(?<pack>pack)|(?<idx>idx)|(?<rev>rev)|(?<mtimes>mtimes))$",
+      "text": "Part of a Git repository's database (inside a .git folder): this is {?pack:the compressed store of the project's files and history}{?idx:the index Git uses to find things in the matching .pack file}{?rev:a reverse index for the matching .pack file}{?mtimes:the timestamps of the objects in the matching .pack file}.",
+      "folderText": "Files here are Git pack files: the compressed history of a Git project."
+    },
+    {
+      "id": "git-hook-sample",
+      "files": true,
+      "extensions": [
+        ".sample"
+      ],
+      "pattern": "^(?:applypatch-msg|pre-applypatch|post-update|pre-commit|pre-merge-commit|prepare-commit-msg|commit-msg|pre-rebase|pre-push|pre-receive|update|push-to-checkout|fsmonitor-watchman|sendemail-validate)\\.sample$",
+      "text": "An example Git \"hook\" script that Git copies into every new repository. It's switched off: it only runs if someone renames it to remove \".sample\".",
+      "folderText": "These are Git's example hook scripts, copied into every new repository and switched off unless renamed."
+    },
+    {
+      "id": "package-lock",
+      "files": true,
+      "extensions": [
+        ".json"
+      ],
+      "pattern": "^package-lock\\.json$",
+      "text": "npm (Node.js's package manager) writes this file automatically to record the exact version of every package it installed in node_modules, so the same versions can be installed again."
+    },
+    {
+      "id": "node-modules",
+      "folders": true,
+      "pattern": "^node_modules$",
+      "text": "npm (Node.js's package manager) installs a project's add-on packages in this folder. It's built from the list in the project's package.json, so npm install can fill it again."
+    },
+    {
+      "id": "pycache",
+      "folders": true,
+      "pattern": "^__pycache__$",
+      "text": "Python saves compiled copies of the .py files next to it here, so they load faster. Python makes them again automatically when they're missing or out of date."
+    },
+    {
+      "id": "python-venv",
+      "folders": true,
+      "pattern": "^\\.?venv$",
+      "text": "Probably a Python \"virtual environment\": a private copy of Python plus the packages one project installed, kept apart from the rest of the PC (.venv is the usual name for one)."
+    },
+    {
+      "id": "gradle-cache",
+      "folders": true,
+      "pattern": "^\\.gradle$",
+      "text": "Gradle (a build tool for Java and Android projects) keeps cached data here, which it generates while building."
+    },
+    {
+      "id": "py-typed",
+      "files": true,
+      "maxBytes": 1024,
+      "pattern": "^py\\.typed$",
+      "text": "A small marker file (usually empty) that tells Python type checkers this package includes type information, following the PEP 561 standard."
+    },
+    {
+      "id": "tf-checkpoint-data",
+      "files": true,
+      "pattern": "^(?<base>.+)\\.data-\\d{5}-of-\\d{5}$",
+      "sibling": "{base}.index",
+      "text": "Part of a saved TensorFlow checkpoint (the trained values of an AI model). This data file only works together with {base}.index, which tells TensorFlow what's in it.",
+      "siblingText": " {base}.index is in the same folder.",
+      "folderText": "Files here are TensorFlow checkpoints: saved trained values of an AI model, each made of a .data file plus an .index file."
+    },
+    {
+      "id": "model-shard",
+      "files": true,
+      "extensions": [
+        ".safetensors",
+        ".bin",
+        ".gguf"
+      ],
+      "pattern": "^(?<base>.+?)-(?=\\d{5}-of-\\d{5}\\.)0*(?<i>\\d+)-of-0*(?<n>\\d+)\\.(?:safetensors|bin|gguf)$",
+      "text": "Part {i} of {n} of a large AI model that was saved in pieces (Hugging Face and GGUF tools split big models this way). The model probably can't be loaded unless all {n} parts are present.",
+      "folderText": "AI model files here are split into numbered parts, which are probably all needed to load the model."
+    },
+    {
+      "id": "hf-cache-repo",
+      "folders": true,
+      "pattern": "^(?:(?<model>models)|(?<dataset>datasets)|(?<space>spaces)|(?<kernel>kernels))--(?:(?<org>[^-][^/\\\\]*?)--)?(?<name>[^-].*)$",
+      "text": "This is where Hugging Face tools keep a downloaded copy of the {?org:{org}/}{name} {?model:model}{?dataset:dataset}{?space:Space}{?kernel:kernel} from the Hugging Face Hub; it's downloaded again if it's needed and missing."
+    },
+    {
+      "id": "hf-incomplete",
+      "files": true,
+      "extensions": [
+        ".incomplete"
+      ],
+      "pattern": "^[0-9a-f]{40,64}\\.incomplete$",
+      "text": "A partly downloaded file left behind by Hugging Face tools when a model or dataset download was interrupted."
+    },
+    {
+      "id": "audacity-block",
+      "files": true,
+      "extensions": [
+        ".au"
+      ],
+      "pattern": "^e[0-9a-f]{7}\\.au$",
+      "text": "Probably one of the small audio \"block files\" of an older Audacity project (version 2 or earlier). Audacity stored a project's audio as many small .au pieces in a _data folder next to the .aup file, and the project needs all of them.",
+      "folderText": "Audio files here look like an older Audacity project's block files: small pieces of audio that only make sense together with the project's .aup file."
+    },
+    {
+      "id": "gtzan-clip",
+      "files": true,
+      "extensions": [
+        ".au",
+        ".wav"
+      ],
+      "pattern": "^(?<genre>blues|classical|country|disco|hiphop|jazz|metal|pop|reggae|rock)\\.\\d{5}\\.(?:au|wav)$",
+      "text": "Named like the GTZAN dataset, a well-known collection of 1,000 30-second music clips (100 for each of 10 genres; this is a {genre} clip) used to train and test music-genre AI models.",
+      "folderText": "Audio files here are named like the GTZAN dataset: 1,000 30-second music clips in 10 genres, used to train and test music-genre AI models."
+    },
+    {
+      "id": "obs-recording",
+      "files": true,
+      "extensions": [
+        ".mkv",
+        ".mp4",
+        ".mov",
+        ".flv",
+        ".ts",
+        ".png"
+      ],
+      "pattern": "^(?:(?<rb>Replay) |(?<shot>Screenshot) )?(?<y>20\\d\\d)-(?<mo>\\d\\d)-(?<d>\\d\\d) (?<h>\\d\\d)-(?<mi>\\d\\d)-\\d\\d\\.(?:mkv|mp4|mov|flv|ts|png)$",
+      "text": "Probably made with OBS Studio, which by default names files by the date and time they were made: {date}.{?rb: \"Replay\" at the start marks a saved replay (the last moments OBS was keeping in memory).}{?shot: It's a screenshot taken in OBS.}",
+      "folderText": "Recordings here are probably from OBS Studio, which names them by the date and time they were made."
+    },
+    {
+      "id": "nvidia-shadowplay",
+      "files": true,
+      "extensions": [
+        ".mp4"
+      ],
+      "pattern": "^(?<app>.+?) (?<y>20\\d\\d)\\.(?<mo>\\d\\d)\\.(?<d>\\d\\d) - (?<h>\\d\\d)\\.(?<mi>\\d\\d)\\.\\d\\d\\.\\d\\d(?:\\.DVR)?\\.mp4$",
+      "text": "Probably recorded with NVIDIA ShadowPlay (in GeForce Experience or the NVIDIA app), which names clips by the game or app ({app}) and the date and time: {date}.",
+      "folderText": "Videos here are probably NVIDIA ShadowPlay clips, which are named by game and date."
+    },
+    {
+      "id": "steam-screenshot",
+      "files": true,
+      "extensions": [
+        ".jpg"
+      ],
+      "pattern": "^(?<y>20\\d\\d)(?<mo>\\d\\d)(?<d>\\d\\d)(?<h>\\d\\d)(?<mi>\\d\\d)\\d\\d_[1-9]\\d{0,2}\\.jpg$",
+      "text": "Probably a Steam screenshot: Steam names them by when they were taken ({date}), plus a counter.",
+      "folderText": "Pictures here are probably Steam screenshots, which are named by when they were taken."
+    },
+    {
+      "id": "google-takeout",
+      "files": true,
+      "extensions": [
+        ".zip",
+        ".tgz"
+      ],
+      "pattern": "^takeout-(?<y>20\\d\\d)(?<mo>\\d\\d)(?<d>\\d\\d)T(?<h>\\d\\d)(?<mi>\\d\\d)\\d\\dZ(?:-\\d+)?-(?<part>\\d{3})\\.(?:zip|tgz)$",
+      "text": "A Google Takeout download (a copy of data from a Google account), made on {date} (UTC). Takeout splits big exports into several numbered files; this is part {part}.",
+      "folderText": "Files here are Google Takeout downloads: copies of data from a Google account, split into numbered parts."
+    },
+    {
+      "id": "google-photos-sidecar",
+      "files": true,
+      "extensions": [
+        ".json"
+      ],
+      "maxBytes": 65536,
+      "pattern": "^.+\\.(?:jpe?g?|heic|heif|png|gif|webp|avif|dng|mp4|mov|m4v|3gp)(?:\\.s[a-z-]*)?(?:\\(\\d+\\))?\\.json$",
+      "suppresses": [
+        "android-camera",
+        "pixel-camera",
+        "android-screenshot",
+        "whatsapp",
+        "snipping-tool"
+      ],
+      "text": "Probably from a Google Photos export (Google Takeout). Takeout saves a small .json file like this next to each photo or video, holding details such as when it was taken, where, and its description.",
+      "folderText": "This looks like a Google Photos export from Google Takeout: the .json files next to the photos hold their dates, places and descriptions."
+    },
+    {
+      "id": "google-photos-year",
+      "folders": true,
+      "pattern": "^Photos from (?<y>(?:19|20)\\d\\d)$",
+      "text": "Named the way Google Takeout names folders in a Google Photos export: one folder per year, here {y}."
+    },
+    {
+      "id": "telegram-desktop",
+      "files": true,
+      "pattern": "^(?:photo|video|audio|doc)_(?<y>20\\d\\d)-(?<mo>\\d\\d)-(?<d>\\d\\d)_(?<h>\\d\\d)-(?<mi>\\d\\d)-\\d\\d(?: \\(\\d+\\))?\\.\\w+$",
+      "suppresses": [
+        "browser-copy"
+      ],
+      "text": "Saved from Telegram's desktop app, which names files that have no name of their own by a date and time: {date}. That's usually when it was saved, sometimes when it was sent.",
+      "folderText": "Files here were saved from Telegram's desktop app, which names them by date and time."
+    },
+    {
+      "id": "telegram-export",
+      "folders": true,
+      "pattern": "^(?<kind>Chat|Data)Export_(?<y>20\\d\\d)-(?<mo>\\d\\d)-(?<d>\\d\\d)(?: \\(\\d+\\))?$",
+      "lookups": {
+        "kind": {
+          "Chat": "one chat's messages and media",
+          "Data": "data from a Telegram account (whatever was picked: chats, media, contacts and so on)"
+        }
+      },
+      "text": "Made by Telegram's desktop app when exporting on {date}: it holds a copy of {lookup:kind}."
+    },
+    {
+      "id": "signal-desktop",
+      "files": true,
+      "pattern": "^signal-(?<y>20\\d\\d)-(?<mo>\\d\\d)-(?<d>\\d\\d)-(?<h>\\d\\d)-?(?<mi>\\d\\d)-?\\d\\d(?:-\\d{3})?(?:_\\d{3})?\\.\\w+$",
+      "text": "Saved from Signal's desktop app, which names attachments that have no name of their own by when the message was sent: {date}.",
+      "folderText": "Files here were saved from Signal's desktop app, which names them by when they were sent."
+    },
+    {
+      "id": "mac-screenshot",
+      "files": true,
+      "extensions": [
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".heic",
+        ".tif",
+        ".tiff",
+        ".pdf",
+        ".gif",
+        ".mov"
+      ],
+      "pattern": "^(?<kind>Screen Shot|Screenshot|Screen Recording) (?<y>20\\d\\d)-(?<mo>\\d\\d)-(?<d>\\d\\d) at (?:(?<h>\\d{1,2})\\.(?<mi>\\d\\d)\\.\\d\\d(?![\\s\\u202F]?[AP]M)|\\d{1,2}\\.\\d\\d\\.\\d\\d[\\s\\u202F]?[AP]M)\\.(?:png|jpe?g|heic|tiff?|pdf|gif|mov)$",
+      "lookups": {
+        "kind": {
+          "Screen Shot": "A screenshot",
+          "Screenshot": "A screenshot",
+          "Screen Recording": "A screen recording"
+        }
+      },
+      "text": "{lookup:kind} made on a Mac, which names them by when they were made: {date}.",
+      "folderText": "Screenshots or screen recordings here were made on a Mac, which puts the date and time in the name."
+    },
+    {
+      "id": "zoom-cloud",
+      "files": true,
+      "extensions": [
+        ".mp4",
+        ".m4a",
+        ".vtt",
+        ".txt"
+      ],
+      "pattern": "^GMT(?<y>20\\d\\d)(?<mo>\\d\\d)(?<d>\\d\\d)-(?<h>\\d\\d)(?<mi>\\d\\d)\\d\\d_Recording",
+      "text": "A Zoom cloud recording, downloaded from Zoom's website. Zoom names these by when the recording started, in GMT (UTC): {date}.",
+      "folderText": "Files here are Zoom cloud recordings, named by when each recording started (in GMT)."
+    },
+    {
+      "id": "zoom-local",
+      "files": true,
+      "extensions": [
+        ".mp4",
+        ".m4a"
+      ],
+      "pattern": "^(?:zoom_\\d+\\.mp4|audio_only(?:_\\d+)?\\.m4a)$",
+      "text": "Probably a Zoom meeting recorded on this computer. Zoom names local recordings zoom_0.mp4, zoom_1.mp4 and so on (audio_only.m4a for the sound alone), and keeps each meeting in its own folder named with the meeting's date.",
+      "folderText": "This holds a Zoom meeting recorded on this computer."
+    },
+    {
+      "id": "zoom-unconverted",
+      "files": true,
+      "extensions": [
+        ".zoom"
+      ],
+      "pattern": "^double_click_to_convert(?:_\\d+)?\\.zoom$",
+      "text": "Part of a Zoom meeting recorded on this computer that was never converted into a video. Double-clicking it, with Zoom installed, finishes the conversion into an MP4."
+    },
+    {
+      "id": "teams-recording",
+      "files": true,
+      "extensions": [
+        ".mp4"
+      ],
+      "pattern": "(?:^|[ -])(?<y>20\\d\\d)(?<mo>\\d\\d)(?<d>\\d\\d)_(?<h>\\d\\d)(?<mi>\\d\\d)\\d\\d-Meeting Recording\\.mp4$",
+      "text": "A Microsoft Teams meeting recording. Teams names them after the meeting, followed by when the recording started: {date}. They're normally kept in a \"Recordings\" folder in OneDrive.",
+      "folderText": "Videos here are Microsoft Teams meeting recordings, named after the meeting and when it started."
+    },
+    {
+      "id": "gopro-chapter",
+      "files": true,
+      "extensions": [
+        ".mp4"
+      ],
+      "pattern": "^G[HX](?<ch>\\d\\d)(?<file>\\d{4})\\.mp4$",
+      "text": "Named by a GoPro camera: part {ch} of video {file}. GoPro splits long recordings into parts (\"chapters\"), so files ending in the same four digits ({file}) belong to one video.",
+      "folderText": "Videos here come from a GoPro, which splits long recordings into numbered parts."
+    },
+    {
+      "id": "gopro-old-chapter",
+      "files": true,
+      "extensions": [
+        ".mp4"
+      ],
+      "pattern": "^GP(?<ch>\\d\\d)(?<file>\\d{4})\\.mp4$",
+      "sibling": "GOPR{file}.MP4",
+      "text": "Named by an older GoPro camera: a later part of video {file}. GoPro splits long recordings into parts; the first part is named GOPR{file}.MP4 and the following ones GP01{file}, GP02{file} and so on.",
+      "siblingText": " The first part, GOPR{file}.MP4, is in the same folder."
+    },
+    {
+      "id": "insta360",
+      "files": true,
+      "extensions": [
+        ".insv",
+        ".insp",
+        ".lrv",
+        ".mp4",
+        ".jpg",
+        ".dng"
+      ],
+      "pattern": "^(?:PRO_)?(?:VID|IMG|LRV)_(?<y>20\\d\\d)(?<mo>\\d\\d)(?<d>\\d\\d)_(?<h>\\d\\d)(?<mi>\\d\\d)\\d\\d_[01][01]_\\d{3}\\.(?:insv|insp|lrv|mp4|jpg|dng)$",
+      "suppresses": [
+        "android-camera"
+      ],
+      "text": "Named the way Insta360 cameras name files, so it was recorded on {date}. Files with the same date and number belong to the same shot (LRV files are small preview copies).",
+      "folderText": "Files here come from an Insta360 camera, which puts the date taken in the name."
+    },
+    {
+      "id": "iphone-edited",
+      "files": true,
+      "pattern": "^IMG_E(?<n>\\d{4})(?<ext>\\.(?:jpe?g|heic|png|mov))$",
+      "sibling": "IMG_{n}{ext}",
+      "text": "Probably an edited copy from an iPhone or iPad: the E marks the edited version of photo or video IMG_{n}.",
+      "siblingText": " The original, IMG_{n}{ext}, is in the same folder."
+    },
+    {
+      "id": "dcim",
+      "folders": true,
+      "pattern": "^DCIM$",
+      "text": "The standard folder cameras and phones keep photos and videos in (DCIM stands for Digital Camera IMages), so this was probably copied from a camera, phone or memory card."
+    },
+    {
+      "id": "dcf-folder",
+      "folders": true,
+      "pattern": "^(?-i:[1-9]\\d\\d[A-Z_][A-Z0-9_]{4})$",
+      "text": "Probably a camera's photo folder: inside DCIM, cameras and phones name folders with a number from 100 to 999 plus five characters, often the maker's name (like 100CANON or 100APPLE)."
+    },
+    {
+      "id": "tosec",
+      "files": true,
+      "extensions": [
+        ".zip",
+        ".7z",
+        ".rar",
+        ".adf",
+        ".adz",
+        ".dms",
+        ".ipf",
+        ".d64",
+        ".d71",
+        ".d81",
+        ".g64",
+        ".t64",
+        ".tap",
+        ".prg",
+        ".crt",
+        ".tzx",
+        ".z80",
+        ".sna",
+        ".dsk",
+        ".st",
+        ".stx",
+        ".msa",
+        ".atr",
+        ".xex",
+        ".cas",
+        ".rom",
+        ".mx1",
+        ".mx2",
+        ".uef",
+        ".ssd",
+        ".dsd",
+        ".hdf",
+        ".lha",
+        ".bin",
+        ".iso",
+        ".cue",
+        ".img",
+        ".nes",
+        ".sfc",
+        ".smc",
+        ".gb",
+        ".gbc",
+        ".gba",
+        ".gen",
+        ".smd",
+        ".sms",
+        ".gg",
+        ".pce",
+        ".a26",
+        ".a52",
+        ".a78",
+        ".lnx",
+        ".j64",
+        ".col",
+        ".int",
+        ".nds",
+        ".n64",
+        ".z64",
+        ".v64",
+        ".po",
+        ".do",
+        ".2mg",
+        ".woz",
+        ".nib",
+        ".chd",
+        ".gdi",
+        ".cdi"
+      ],
+      "pattern": "^[^()\\[\\]]+? (?:\\(demo(?:-[a-z]+)?\\) )?\\((?<when>(?:(?=[0-9-]*x)(?<unk>))?(?:19|20)[0-9x]{2}(?:-[0-9x]{2}(?:-[0-9x]{2})?)?)\\)\\((?:-|(?<pub>[^()]+))\\)",
+      "text": "Its name follows the TOSEC convention for cataloguing old software: the first brackets give the release date ({when}){?pub: and the next ones the publisher ({pub})}.{?unk: An x in the date stands for a digit nobody knows.}",
+      "folderText": "Files here are named the TOSEC way: the brackets give each item's release date and publisher."
+    },
+    {
+      "id": "ps1-bios",
+      "files": true,
+      "pattern": "^scph-?(?<model>\\d{3,5})\\.bin$",
+      "text": "Named the way PlayStation (PS1) emulators expect the console's BIOS file: \"SCPH\" plus the model number of the PlayStation it was copied from (SCPH-{model}). It's the console's built-in startup software, which emulators use to run games."
+    },
+    {
+      "id": "ps1-bios-alt",
+      "files": true,
+      "pattern": "^(?:(?<psp>PSXONPSP660)|(?<ps3>ps1_rom))\\.bin$",
+      "text": "A PlayStation (PS1) BIOS taken from a {?psp:PSP}{?ps3:PS3}, which has one built in to play PS1 games. PS1 emulators such as Beetle PSX can use it in place of the original console's BIOS."
+    },
+    {
+      "id": "gb-bios",
+      "files": true,
+      "pattern": "^(?:(?<gba>gba)|(?<gbc>gbc)|(?<sgb>sgb)|(?<gb>gb))_bios\\.bin$",
+      "text": "Named the way emulators such as mGBA expect the {?gba:Game Boy Advance}{?gbc:Game Boy Color}{?sgb:Super Game Boy}{?gb:Game Boy} BIOS file: a copy of the console's built-in startup code. mGBA can use it but doesn't require it."
+    },
+    {
+      "id": "nds-bios",
+      "files": true,
+      "pattern": "^(?<dsi>dsi_)?bios(?<arm>[79])\\.bin$",
+      "text": "Named the way emulators such as melonDS expect a Nintendo DS{?dsi:i} BIOS file (the ARM{arm} one): a copy of the console's built-in startup code."
+    },
+    {
+      "id": "dreamcast-bios",
+      "files": true,
+      "pattern": "^dc_boot\\.bin$",
+      "text": "Named the way Dreamcast emulators such as Flycast expect the Dreamcast BIOS: a copy of the console's built-in startup software."
+    },
+    {
+      "id": "gamecube-ipl",
+      "files": true,
+      "pattern": "^IPL\\.bin$",
+      "text": "Probably a GameCube BIOS (the console's \"IPL\" startup software): the Dolphin emulator looks for it under this name, in a folder for each region."
+    },
+    {
+      "id": "pce-cd-bios",
+      "files": true,
+      "pattern": "^syscard(?<v>[123])\\.pce$",
+      "text": "Named the way PC Engine emulators such as Beetle PCE expect a CD-ROM System Card BIOS (version {v}): the startup software that PC Engine CD games need."
+    },
+    {
+      "id": "sega-cd-bios",
+      "files": true,
+      "pattern": "^bios_CD_(?:(?<e>E)|(?<u>U)|(?<j>J))\\.bin$",
+      "text": "Named the way Genesis Plus GX and other emulators expect the {?e:European Mega-CD}{?u:US Sega CD}{?j:Japanese Mega-CD} BIOS: the console's startup software, which its CD games need."
+    },
+    {
+      "id": "switch-keys",
+      "files": true,
+      "pattern": "^(?:(?<prod>prod)|(?<title>title))\\.keys$",
+      "text": "{?prod:Holds the main decryption keys}{?title:Holds per-game decryption keys} dumped from a Nintendo Switch. Switch emulators such as Ryujinx read it to open Switch games."
+    },
+    {
+      "id": "switch-title-id",
+      "files": true,
+      "extensions": [
+        ".nsp",
+        ".xci",
+        ".nsz",
+        ".xcz"
+      ],
+      "pattern": "\\[(?<tid>01[0-9A-F]{14})\\](?:\\[v(?<ver>\\d+)\\])?(?:\\[(?<kind>(?<base>BASE)|(?<upd>UPD)|(?<dlcupd>DLCUPD)|(?<dlc>DLC)|(?<delta>DELTA))\\])?",
+      "text": "The 16-digit code in square brackets is the Nintendo Switch title ID that identifies this content{?ver:, and [v{ver}] is its version number}{?base:; [{kind}] says it's the base game}{?upd:; [{kind}] says it's an update}{?dlcupd:; [{kind}] says it's an update for downloadable content}{?dlc:; [{kind}] says it's downloadable content (DLC)}{?delta:; [{kind}] says it's a partial (delta) update}.",
+      "folderText": "Nintendo Switch files here carry their title IDs (16-digit codes) in square brackets in their names."
+    },
+    {
+      "id": "retroarch-state",
+      "files": true,
+      "pattern": "^.+\\.state(?:(?<slot>\\d{1,3})|(?<auto>\\.auto))?$",
+      "text": "Named the way RetroArch names save states: a snapshot of a game at one exact moment{?slot:, in save slot {slot}}{?auto:, saved automatically when RetroArch closed}.",
+      "folderText": "Save states here are named the RetroArch way: snapshots of games at one exact moment, numbered by save slot."
+    },
+    {
+      "id": "dolphin-memcard",
+      "files": true,
+      "pattern": "^MemoryCard(?<slot>[AB])\\.(?:(?<usa>USA)|(?<eur>EUR)|(?<jpn>JAP|JPN)|(?<dev>DEV))(?:\\.\\d+)?\\.raw$",
+      "text": "Named the way the Dolphin emulator names its GameCube memory cards: this is the card in slot {slot}, used for {?usa:American}{?eur:European}{?jpn:Japanese}{?dev:development} games. It holds the saves of every GameCube game played with it."
+    },
+    {
+      "id": "dolphin-state",
+      "files": true,
+      "pattern": "^(?-i:(?<id>[A-Z0-9]{6}))\\.s(?<slot>\\d\\d)$",
+      "text": "Named the way the Dolphin emulator (GameCube and Wii) names save states: the game's 6-character ID ({id}) and the save slot ({slot}).",
+      "folderText": "Save states here are named the Dolphin way: each game's 6-character ID and a slot number."
+    },
+    {
+      "id": "pcsx2-state",
+      "files": true,
+      "pattern": "^(?<serial>[A-Z]{4}-\\d{5}) \\((?<crc>[0-9A-F]{8})\\)\\.(?:(?<slot>\\d\\d)|(?<resume>resume))\\.p2s(?:\\.backup)?$",
+      "text": "Named the way the PCSX2 emulator (PlayStation 2) names save states: the game's disc serial ({serial}), a checksum that identifies the exact game version ({crc}), and {?slot:the save slot ({slot})}{?resume:\"resume\", the state it saves by itself to carry on where you left off}.",
+      "folderText": "Save states here are named the PCSX2 way: each game's disc serial, a checksum and a slot number."
+    },
+    {
+      "id": "pcsx2-memcard",
+      "files": true,
+      "pattern": "^Mcd0*(?<n>[1-9]\\d*)\\.ps2$",
+      "text": "Named the way the PCSX2 emulator names its PlayStation 2 memory cards (this is card {n}). It holds the saves of the games played with it."
+    },
+    {
+      "id": "duckstation-memcard",
+      "files": true,
+      "pattern": "^(?:shared_card_(?<shared>[1-8])|(?<serial>[A-Z]{4}-\\d{5})_(?<n>[1-8]))\\.mcd$",
+      "text": "Named the way the DuckStation emulator (PlayStation) names its memory cards: {?shared:a card shared by all games (card {shared})}{?serial:the card for the game with disc serial {serial} (card {n})}. It holds the game saves."
+    },
+    {
+      "id": "xbox360-default-xex",
+      "files": true,
+      "pattern": "^default\\.xex$",
+      "text": "The main program of an Xbox 360 game. Xbox 360 emulators such as Xenia start the game from this file."
+    },
+    {
+      "id": "ps-eboot",
+      "files": true,
+      "pattern": "^EBOOT\\.(?:(?<bin>BIN)|(?<pbp>PBP))$",
+      "text": "{?bin:The main program of a PlayStation 3 game (it sits in the game's USRDIR folder).}{?pbp:The packaged program of a PSP game or homebrew app: it bundles the program with the game's details and icons. The PSP runs it from a folder under PSP/GAME.}"
+    },
+    {
+      "id": "ps-param-sfo",
+      "files": true,
+      "pattern": "^PARAM\\.SFO$",
+      "text": "Holds a PlayStation game's basic details, such as its title, game ID and version. PSP and PS3 games (and those of later PlayStations) each carry one."
+    },
+    {
+      "id": "reshade-ini",
+      "files": true,
+      "pattern": "^ReShade\\.ini$",
+      "text": "ReShade's settings file. ReShade adds visual effects (shaders) to games; finding this next to a game's program means ReShade is set up for that game."
+    },
+    {
+      "id": "reshade-preset",
+      "files": true,
+      "pattern": "^ReShadePreset\\.ini$",
+      "text": "ReShade's default preset: the list of visual effects ReShade applies to this game, with their settings."
+    },
+    {
+      "id": "reshade-shaders",
+      "folders": true,
+      "pattern": "^reshade-shaders$",
+      "text": "Holds the shader effects and textures that ReShade (a tool that adds visual effects to games) loads for this game."
+    },
+    {
+      "id": "vortex-staging",
+      "files": true,
+      "pattern": "^__vortex_staging_folder$",
+      "text": "A marker the Vortex mod manager puts in its staging folder, the folder where it keeps the files of the mods it installed."
+    },
+    {
+      "id": "vortex-folder-tag",
+      "files": true,
+      "pattern": "^__folder_managed_by_vortex$",
+      "text": "The Vortex mod manager puts this marker in folders it created while installing mods into a game, so it can remove them again once they're empty."
+    },
+    {
+      "id": "vortex-deployment",
+      "files": true,
+      "pattern": "^vortex\\.deployment(?:\\.(?<type>[^.]+))?\\.(?:json|msgpack)$",
+      "text": "The Vortex mod manager's record of which mod files it placed in a game's folder{?type: (for mods of type \"{type}\")}, so it can update or remove them later."
+    },
+    {
+      "id": "vortex-backup",
+      "files": true,
+      "pattern": "^(?<base>.+)\\.vortex_backup$",
+      "sibling": "{base}",
+      "text": "A game file ({base}) that the Vortex mod manager set aside because a mod replaced it. Vortex puts it back when the mod is removed.",
+      "siblingText": " The mod's version of {base} is in the same folder."
+    },
+    {
+      "id": "mo2-ini",
+      "files": true,
+      "pattern": "^ModOrganizer\\.ini$",
+      "text": "The main settings file of Mod Organizer 2, a mod manager often used for games such as Skyrim and Fallout."
+    },
+    {
+      "id": "steam-api",
+      "files": true,
+      "pattern": "^steam_api(?:64)?\\.dll$",
+      "text": "Steam's library for games (part of Steamworks). Games sold on Steam ship it next to their program to talk to Steam."
+    },
+    {
+      "id": "steam-appid",
+      "files": true,
+      "pattern": "^steam_appid\\.txt$",
+      "text": "Holds a Steam game's app ID so its developers can run it outside the Steam client while testing. Valve's docs say it shouldn't ship with released games."
+    },
+    {
+      "id": "unity-crash-handler",
+      "files": true,
+      "pattern": "^UnityCrashHandler(?:32|64)\\.exe$",
+      "text": "Unity's crash handler, which comes with Windows games made with the Unity engine. It means the game in this folder was made with Unity."
+    },
+    {
+      "id": "unity-player",
+      "files": true,
+      "pattern": "^UnityPlayer\\.dll$",
+      "text": "The Unity engine's own code (the Unity Player), which comes with Windows games made with Unity."
+    },
+    {
+      "id": "unity-gameassembly",
+      "files": true,
+      "pattern": "^GameAssembly\\.dll$",
+      "text": "Probably a Unity game's compiled code: Unity games built with IL2CPP keep all of their scripts in GameAssembly.dll."
+    },
+    {
+      "id": "unity-il2cpp-backup",
+      "folders": true,
+      "pattern": "^(?<game>.+)_BackUpThisFolder_ButDontShipItWithYourGame$",
+      "text": "Made by Unity when it builds a game ({game}) with IL2CPP: debugging data (symbols and C++ code generated from the game's scripts) that developers keep for each release but don't ship. The game doesn't use it to run."
+    },
+    {
+      "id": "unity-assembly-csharp",
+      "files": true,
+      "pattern": "^Assembly-CSharp(?:-Editor)?(?:-firstpass)?\\.dll$",
+      "text": "The compiled scripts of a Unity game or project: Unity builds a project's own C# scripts into Assembly-CSharp files."
+    },
+    {
+      "id": "unity-projectversion",
+      "files": true,
+      "pattern": "^ProjectVersion\\.txt$",
+      "text": "Records which version of the Unity editor a Unity project uses; Unity and Unity Hub read and update it."
+    },
+    {
+      "id": "unreal-patch-pak",
+      "files": true,
+      "extensions": [
+        ".pak"
+      ],
+      "pattern": "_P\\.pak$",
+      "text": "The \"_P\" at the end of the name marks an Unreal Engine patch file: the engine loads it with priority over the game's other .pak files, so its contents replace theirs. Game updates and mods use this."
+    },
+    {
+      "id": "unreal-pakchunk",
+      "files": true,
+      "extensions": [
+        ".pak",
+        ".utoc",
+        ".ucas",
+        ".sig"
+      ],
+      "pattern": "^pakchunk(?<n>\\d+)",
+      "text": "One of an Unreal Engine game's packed data files: the engine splits a game's content into numbered chunks, and this is chunk {n}.",
+      "folderText": "Files here are an Unreal Engine game's packed data, split into numbered \"pakchunk\" files."
+    },
+    {
+      "id": "unreal-ddc",
+      "folders": true,
+      "pattern": "^DerivedDataCache$",
+      "text": "Unreal Engine's Derived Data Cache: files the engine works out from a project's content as it loads it. The engine makes them again when they're missing, but loading is much slower until it has."
+    },
+    {
+      "id": "fmod-master-bank",
+      "files": true,
+      "pattern": "^Master\\.bank$",
+      "text": "Probably the master sound bank of a game that uses FMOD audio (FMOD Studio names it \"Master\" by default). It holds the game's main audio mixer and must be loaded for the game's FMOD sounds to play."
+    },
+    {
+      "id": "fmod-strings-bank",
+      "files": true,
+      "pattern": "^Master\\.strings\\.bank$",
+      "text": "The strings bank of a game that uses FMOD audio: a lookup table of the game's sound event names. It holds no audio itself."
+    },
+    {
+      "id": "wwise-init-bank",
+      "files": true,
+      "pattern": "^Init\\.bnk$",
+      "text": "The initialization sound bank of a game that uses Wwise audio: it holds the audio project's settings, and the game loads it before its other .bnk sound banks."
+    },
+    {
+      "id": "elden-ring-save",
+      "files": true,
+      "pattern": "^ER0000\\.sl2(?<bak>\\.bak)?$",
+      "text": "{?bak:The game's own backup of }Elden Ring's save file (the game keeps it in AppData\\Roaming\\EldenRing, in a folder named after the Steam account ID)."
+    }
+  ]
+}

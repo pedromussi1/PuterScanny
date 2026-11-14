@@ -1,0 +1,1571 @@
+[
+  {
+    "id": "split-numbered-part",
+    "folder": false,
+    "match": [
+      "backup.7z.001",
+      "Game.zip.002",
+      "movie.mkv.010",
+      "disk.iso.123"
+    ],
+    "noMatch": [
+      "backup.001",
+      "report.2024.001",
+      "backup.7z.0001",
+      "backup.7z.001.txt"
+    ]
+  },
+  {
+    "id": "split-rar-part",
+    "folder": false,
+    "match": [
+      "Photos.part1.rar",
+      "Photos.part01.rar",
+      "big.archive.part003.rar"
+    ],
+    "noMatch": [
+      "Photos.rar",
+      "part1.rar",
+      "Photos.part1.zip",
+      "Photos.partA.rar"
+    ]
+  },
+  {
+    "id": "split-rar-old",
+    "folder": false,
+    "match": [
+      "Photos.r00",
+      "Photos.r01",
+      "my.backup.r42"
+    ],
+    "noMatch": [
+      "Photos.rar",
+      "Photos.r",
+      "Photos.r001",
+      "script.R"
+    ]
+  },
+  {
+    "id": "split-zip",
+    "folder": false,
+    "match": [
+      "Archive.z01",
+      "Archive.z02",
+      "photos.2024.z19"
+    ],
+    "noMatch": [
+      "Archive.zip",
+      "Archive.z",
+      "Archive.z001",
+      "Archive.zst"
+    ]
+  },
+  {
+    "id": "checksum-sidecar",
+    "folder": false,
+    "match": [
+      "ubuntu.iso.sha256",
+      "tool-1.2.zip.sha512",
+      "setup.exe.md5",
+      "app.tar.gz.sha1",
+      "DISK.ISO.SHA256"
+    ],
+    "noMatch": [
+      "checksums.sha256",
+      "file.sha256.txt",
+      "SHA256SUMS",
+      "ubuntu.iso.sha384"
+    ]
+  },
+  {
+    "id": "chrome-unconfirmed",
+    "folder": false,
+    "match": [
+      "Unconfirmed 123456.crdownload",
+      "Unconfirmed 7.crdownload",
+      "unconfirmed 1000000.crdownload"
+    ],
+    "noMatch": [
+      "setup.exe.crdownload",
+      "Unconfirmed 123456.exe",
+      "Unconfirmed.crdownload",
+      "Unconfirmed 12345678.crdownload"
+    ]
+  },
+  {
+    "id": "onedrive-conflict",
+    "folder": false,
+    "match": [
+      "Report-DESKTOP-AB12CD3.txt",
+      "Budget 2024-DESKTOP-7QK2M9P.xlsx",
+      "notes-DESKTOP-ZZZZZZZ"
+    ],
+    "noMatch": [
+      "Report-desktop-ab12cd3.txt",
+      "Report-DESKTOP-AB12.txt",
+      "Report-LAPTOP-AB12CD34.txt",
+      "DESKTOP-AB12CD3.txt"
+    ]
+  },
+  {
+    "id": "dropbox-conflicted-copy",
+    "folder": false,
+    "match": [
+      "Budget (Ana Silva's conflicted copy 2024-03-05).xlsx",
+      "Notes (conflicted copy 2019-11-30).txt",
+      "Plan (John’s conflicted copy 2023-01-02 (1)).docx",
+      "Projects (Bob's conflicted copy 2022-07-14)"
+    ],
+    "noMatch": [
+      "Budget (conflicted copy).xlsx",
+      "Budget (Ana's conflicted copy 2024-03-05) final.xlsx",
+      "Budget conflicted copy 2024-03-05.xlsx",
+      "Budget (Ana's conflicted copy 24-03-05).xlsx",
+      "Budget (copy 2024-03-05).xlsx"
+    ]
+  },
+  {
+    "id": "dropbox-case-conflict",
+    "folder": false,
+    "match": [
+      "Records (Case Conflict).pdf",
+      "records (Case Conflict)",
+      "Photo (Case Conflict 1).jpg"
+    ],
+    "noMatch": [
+      "Records (Conflict).pdf",
+      "Records Case Conflict.pdf",
+      "(Case Conflict).pdf",
+      "Records (Case Conflicts).pdf"
+    ]
+  },
+  {
+    "id": "windows-new-folder",
+    "folder": true,
+    "match": [
+      "New folder",
+      "New folder (2)",
+      "New Folder (13)"
+    ],
+    "noMatch": [
+      "New folder 2",
+      "My New folder",
+      "New folders",
+      "New folder (2) old"
+    ]
+  },
+  {
+    "id": "windows-new-file",
+    "folder": false,
+    "match": [
+      "New Text Document.txt",
+      "New Text Document (2).txt",
+      "New Microsoft Word Document.docx",
+      "New Compressed (zipped) Folder.zip"
+    ],
+    "noMatch": [
+      "New Text Document.docx",
+      "My New Text Document.txt",
+      "New Text Document 2.txt",
+      "New Document.txt"
+    ]
+  },
+  {
+    "id": "libreoffice-lock",
+    "folder": false,
+    "match": [
+      ".~lock.Report.odt#",
+      ".~lock.Budget 2024.xlsx#",
+      ".~lock.notes.docx#"
+    ],
+    "noMatch": [
+      "~lock.Report.odt#",
+      ".~lock.Report.odt",
+      ".lock.Report.odt#",
+      "Report.odt#"
+    ]
+  },
+  {
+    "id": "vim-swap",
+    "folder": false,
+    "match": [
+      ".notes.txt.swp",
+      "config.ini.swp",
+      ".main.py.swo",
+      ".main.py.swn"
+    ],
+    "noMatch": [
+      "notes.swp",
+      "movie.swf",
+      "install.swm",
+      ".notes.txt.swx"
+    ]
+  },
+  {
+    "id": "merge-orig",
+    "folder": false,
+    "match": [
+      "index.js.orig",
+      "README.md.orig",
+      "Program.cs.orig"
+    ],
+    "noMatch": [
+      "index.orig",
+      "index.js.original",
+      "index.js.orig.bak",
+      ".orig"
+    ]
+  },
+  {
+    "id": "git-mergetool-temp",
+    "folder": false,
+    "match": [
+      "index_LOCAL_12345.js",
+      "README_REMOTE_987.md",
+      "Program_BASE_4242.cs",
+      "Makefile_BACKUP_1"
+    ],
+    "noMatch": [
+      "photo_local_2024.jpg",
+      "index_LOCAL.js",
+      "index_MERGED_123.js",
+      "index-LOCAL-123.js"
+    ]
+  },
+  {
+    "id": "chkdsk-chk",
+    "folder": false,
+    "match": [
+      "FILE0000.CHK",
+      "file0001.chk",
+      "FILE9999.CHK"
+    ],
+    "noMatch": [
+      "FILE000.CHK",
+      "FILE0000.CHK.bak",
+      "MYFILE0000.CHK",
+      "FILE0000.TXT"
+    ]
+  },
+  {
+    "id": "chkdsk-found-folder",
+    "folder": true,
+    "match": [
+      "FOUND.000",
+      "found.001",
+      "FOUND.123"
+    ],
+    "noMatch": [
+      "FOUND",
+      "FOUND.0000",
+      "Lost and FOUND.000",
+      "FOUND.ABC"
+    ]
+  },
+  {
+    "id": "recycle-bin-folder",
+    "folder": true,
+    "match": [
+      "$Recycle.Bin",
+      "$RECYCLE.BIN",
+      "$recycle.bin"
+    ],
+    "noMatch": [
+      "Recycle.Bin",
+      "$Recycle Bin",
+      "RECYCLER",
+      "$Recycle.Bin.old"
+    ]
+  },
+  {
+    "id": "recycle-bin-item",
+    "folder": false,
+    "match": [
+      "$IAB12CD.docx",
+      "$RAB12CD.docx",
+      "$R0QZ7XK",
+      "$I0QZ7XK.jpg"
+    ],
+    "noMatch": [
+      "$RECYCLE.BIN",
+      "$iab12cd.docx",
+      "$XAB12CD.docx",
+      "$IAB12C.docx",
+      "IAB12CD.docx",
+      "$RAB12CDE.docx"
+    ]
+  },
+  {
+    "id": "system-volume-information",
+    "folder": true,
+    "match": [
+      "System Volume Information",
+      "system volume information",
+      "SYSTEM VOLUME INFORMATION"
+    ],
+    "noMatch": [
+      "System Volume Info",
+      "System Volume Information (2)",
+      "My System Volume Information",
+      "SystemVolumeInformation"
+    ]
+  },
+  {
+    "id": "windows-update-msu",
+    "folder": false,
+    "match": [
+      "windows11.0-kb5048667-x64_d4ad0ca69de9a02bc356757581e0e0d6960c9f93.msu",
+      "windows10.0-kb5034441-x64.msu",
+      "Windows6.1-KB4474419-v3-x64.msu",
+      "windows11.0-kb5043080-arm64_953449672073f8fb99badb4cc6d5d7849b9c83e8.msu"
+    ],
+    "noMatch": [
+      "windows11.0-kb5048667.msu",
+      "kb5048667-x64.msu",
+      "windows11.0-kb504-x64.msu",
+      "windows11.0-kb5048667-amd64.msu"
+    ]
+  },
+  {
+    "id": "inno-uninstaller",
+    "folder": false,
+    "match": [
+      "unins000.exe",
+      "unins000.dat",
+      "UNINS001.EXE"
+    ],
+    "noMatch": [
+      "unins.exe",
+      "unins0000.exe",
+      "uninstall.exe",
+      "unins000.msi"
+    ]
+  },
+  {
+    "id": "git-folder",
+    "folder": true,
+    "match": [
+      ".git",
+      ".GIT",
+      ".Git"
+    ],
+    "noMatch": [
+      "git",
+      ".github",
+      ".gitignore",
+      "repo.git"
+    ]
+  },
+  {
+    "id": "git-placeholder",
+    "folder": false,
+    "match": [
+      ".gitkeep",
+      ".keep",
+      ".GITKEEP"
+    ],
+    "noMatch": [
+      "gitkeep",
+      ".gitkeep.txt",
+      ".keeper",
+      "keep"
+    ]
+  },
+  {
+    "id": "git-pack",
+    "folder": false,
+    "match": [
+      "pack-0123456789abcdef0123456789abcdef01234567.pack",
+      "pack-0123456789abcdef0123456789abcdef01234567.idx",
+      "pack-0123456789abcdef0123456789abcdef01234567.rev",
+      "pack-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef.pack"
+    ],
+    "noMatch": [
+      "pack-0123.pack",
+      "pack-0123456789abcdef0123456789abcdef01234567.zip",
+      "mypack.pack",
+      "pack-0123456789abcdef0123456789abcdef0123456g.pack"
+    ]
+  },
+  {
+    "id": "git-hook-sample",
+    "folder": false,
+    "match": [
+      "pre-commit.sample",
+      "commit-msg.sample",
+      "fsmonitor-watchman.sample",
+      "update.sample"
+    ],
+    "noMatch": [
+      "pre-commit",
+      "config.sample",
+      "pre-commit.sample.bak",
+      "my-pre-commit.sample"
+    ]
+  },
+  {
+    "id": "package-lock",
+    "folder": false,
+    "match": [
+      "package-lock.json",
+      "PACKAGE-LOCK.JSON",
+      "Package-Lock.json"
+    ],
+    "noMatch": [
+      "package.json",
+      "package-lock.json.bak",
+      "my-package-lock.json",
+      "package-lock.yaml"
+    ]
+  },
+  {
+    "id": "node-modules",
+    "folder": true,
+    "match": [
+      "node_modules",
+      "Node_Modules",
+      "NODE_MODULES"
+    ],
+    "noMatch": [
+      "node_module",
+      "node_modules_old",
+      "node-modules",
+      "my_node_modules"
+    ]
+  },
+  {
+    "id": "pycache",
+    "folder": true,
+    "match": [
+      "__pycache__",
+      "__PYCACHE__",
+      "__PyCache__"
+    ],
+    "noMatch": [
+      "pycache",
+      "_pycache_",
+      "__pycache__old",
+      "__pycache"
+    ]
+  },
+  {
+    "id": "python-venv",
+    "folder": true,
+    "match": [
+      ".venv",
+      "venv",
+      "VENV"
+    ],
+    "noMatch": [
+      "venvs",
+      ".venv2",
+      "my-venv",
+      "env"
+    ]
+  },
+  {
+    "id": "gradle-cache",
+    "folder": true,
+    "match": [
+      ".gradle",
+      ".Gradle",
+      ".GRADLE"
+    ],
+    "noMatch": [
+      "gradle",
+      ".gradle-old",
+      "build.gradle",
+      ".gradle2"
+    ]
+  },
+  {
+    "id": "py-typed",
+    "folder": false,
+    "match": [
+      "py.typed",
+      "PY.TYPED",
+      "Py.Typed"
+    ],
+    "noMatch": [
+      "py.typed.txt",
+      "typed",
+      "mypy.typed",
+      "py_typed"
+    ]
+  },
+  {
+    "id": "tf-checkpoint-data",
+    "folder": false,
+    "match": [
+      "ckpt-10.data-00000-of-00001",
+      "model.ckpt.data-00000-of-00001",
+      "variables.data-00001-of-00002"
+    ],
+    "noMatch": [
+      "ckpt-10.index",
+      "ckpt-10.data-0-of-1",
+      "ckpt-10.data-00000-of-00001.bak",
+      "ckpt-10.data"
+    ]
+  },
+  {
+    "id": "model-shard",
+    "folder": false,
+    "match": [
+      "model-00001-of-00006.safetensors",
+      "pytorch_model-00002-of-00003.bin",
+      "Grok-100B-v1.0-Q4_0-00003-of-00009.gguf",
+      "model-00010-of-00012.safetensors"
+    ],
+    "noMatch": [
+      "model.safetensors",
+      "model-1-of-6.safetensors",
+      "model-00001-of-00006.safetensors.index.json",
+      "model-00001-00006.bin"
+    ]
+  },
+  {
+    "id": "hf-cache-repo",
+    "folder": true,
+    "match": [
+      "models--julien-c--EsperBERTo-small",
+      "models--bert-base-cased",
+      "datasets--glue",
+      "spaces--dalle-mini--dalle-mini"
+    ],
+    "noMatch": [
+      "models-bert-base-cased",
+      "models--",
+      "mymodels--bert",
+      "models---bert"
+    ]
+  },
+  {
+    "id": "hf-incomplete",
+    "folder": false,
+    "match": [
+      "403450e234d65943a7dcf7e05a771ce3c92faa84dd07db4ac20f592037a1e4bd.incomplete",
+      "7cb18dc9bafbfcf74629a4b760af1b160957a83e.incomplete",
+      "D7EDF6BD2A681FB0175F7735299831EE1B22B812.incomplete"
+    ],
+    "noMatch": [
+      "model.incomplete",
+      "7cb18dc9.incomplete",
+      "7cb18dc9bafbfcf74629a4b760af1b160957a83e.part",
+      "7cb18dc9bafbfcf74629a4b760af1b160957a83z.incomplete"
+    ]
+  },
+  {
+    "id": "audacity-block",
+    "folder": false,
+    "match": [
+      "e0800ac5.au",
+      "e0000021.au",
+      "E08BF9A0.AU"
+    ],
+    "noMatch": [
+      "e0800ac5.wav",
+      "song.au",
+      "e0800ac.au",
+      "f0800ac5.au"
+    ]
+  },
+  {
+    "id": "gtzan-clip",
+    "folder": false,
+    "match": [
+      "blues.00000.au",
+      "jazz.00054.wav",
+      "hiphop.00099.au",
+      "rock.00012.au"
+    ],
+    "noMatch": [
+      "blues.0000.au",
+      "folk.00000.au",
+      "blues.00000.mp3",
+      "my blues.00000.au"
+    ]
+  },
+  {
+    "id": "obs-recording",
+    "folder": false,
+    "match": [
+      "2023-05-12 10-11-12.mkv",
+      "Replay 2024-01-31 23-59-59.mp4",
+      "Screenshot 2023-05-12 10-11-12.png",
+      "2025-11-03 08-00-00.mov"
+    ],
+    "noMatch": [
+      "2023-05-12 10-11-12.txt",
+      "Screenshot 2023-05-12 101112.png",
+      "Game 2023-05-12 10-11-12.mp4",
+      "2023-05-12 10.11.12.mkv",
+      "2023-13-12 10-11-12.mkv"
+    ]
+  },
+  {
+    "id": "nvidia-shadowplay",
+    "folder": false,
+    "match": [
+      "Counter-strike 2 2023.05.12 - 10.11.12.01.mp4",
+      "Desktop 2024.11.14 - 22.05.33.03.DVR.mp4",
+      "Minecraft 2021.01.02 - 00.00.00.10.mp4"
+    ],
+    "noMatch": [
+      "Desktop 2024.11.14 - 22.05.33.mp4",
+      "Desktop 2024.11.14 - 22.05.33.03.mkv",
+      "2024.11.14 - 22.05.33.03.mp4",
+      "Desktop 2024-11-14 22-05-33.mp4"
+    ]
+  },
+  {
+    "id": "steam-screenshot",
+    "folder": false,
+    "match": [
+      "20230512101112_1.jpg",
+      "20210405231831_1.jpg",
+      "20191231235959_2.jpg"
+    ],
+    "noMatch": [
+      "20230512101112.jpg",
+      "20230512_101112_1.jpg",
+      "20230512101112_1.png",
+      "2023051210111_1.jpg",
+      "20231312101112_1.jpg"
+    ]
+  },
+  {
+    "id": "google-takeout",
+    "folder": false,
+    "match": [
+      "takeout-20211023T070558Z-001.zip",
+      "takeout-20260406T202814Z-11-001.zip",
+      "takeout-20230512T101112Z-012.tgz"
+    ],
+    "noMatch": [
+      "takeout-20211023T070558-001.zip",
+      "takeout.zip",
+      "takeout-20211023T070558Z-001.rar",
+      "mytakeout-20211023T070558Z-001.zip"
+    ]
+  },
+  {
+    "id": "google-photos-sidecar",
+    "folder": false,
+    "match": [
+      "IMG_1234.jpg.json",
+      "IMG_1234.jpg.supplemental-metadata.json",
+      "PXL_20230715_181512345.PORTRAIT.ORIGINAL-01.jp.json",
+      "IMG_20180214_171835513.jpg.supplemental-metada.json",
+      "VID_0001.mp4.supplemental-metadata(1).json"
+    ],
+    "noMatch": [
+      "metadata.json",
+      "package.json",
+      "IMG_1234.json",
+      "photo.jpg.backup.json",
+      "IMG_1234.jpg"
+    ]
+  },
+  {
+    "id": "google-photos-year",
+    "folder": true,
+    "match": [
+      "Photos from 2019",
+      "Photos from 1999",
+      "photos from 2023"
+    ],
+    "noMatch": [
+      "Photos from 2019 trip",
+      "Photos 2019",
+      "Photos from Italy"
+    ]
+  },
+  {
+    "id": "telegram-desktop",
+    "folder": false,
+    "match": [
+      "photo_2023-05-12_10-11-12.jpg",
+      "video_2024-01-02_03-04-05.mp4",
+      "audio_2022-12-31_23-59-59.ogg",
+      "photo_2023-05-12_10-11-12 (2).jpg"
+    ],
+    "noMatch": [
+      "photo_2023-05-12.jpg",
+      "photo_20230512_101112.jpg",
+      "image_2023-05-12_10-11-12.jpg",
+      "photo_2023-05-12 10-11-12.jpg"
+    ]
+  },
+  {
+    "id": "telegram-export",
+    "folder": true,
+    "match": [
+      "ChatExport_2023-05-12",
+      "DataExport_2024-01-31 (1)",
+      "ChatExport_2022-02-28 (3)"
+    ],
+    "noMatch": [
+      "ChatExport_2023-05-12_backup",
+      "ChatExport",
+      "MailExport_2023-05-12",
+      "ChatExport_2023-02-30"
+    ]
+  },
+  {
+    "id": "signal-desktop",
+    "folder": false,
+    "match": [
+      "signal-2023-05-12-101112.jpg",
+      "signal-2024-01-31-23-59-59-123.png",
+      "signal-2024-01-31-23-59-59-123_002.jpeg"
+    ],
+    "noMatch": [
+      "signal-2023-05-12.jpg",
+      "signal_2023-05-12-101112.jpg",
+      "signal-desktop-2023-05-12.exe",
+      "signal-2023-05-12-1011.jpg"
+    ]
+  },
+  {
+    "id": "mac-screenshot",
+    "folder": false,
+    "match": [
+      "Screenshot 2023-05-12 at 10.11.12.png",
+      "Screen Shot 2019-05-12 at 3.45.12 PM.png",
+      "Screen Recording 2024-02-01 at 09.15.00.mov",
+      "Screen Shot 2022-12-08 at 12.33.59 PM.png"
+    ],
+    "noMatch": [
+      "Screenshot 2023-05-12 101112.png",
+      "Screenshot 2023-05-12 at 10.11.png",
+      "Screenshot (3).png",
+      "Screen Shot 2019-05-12 at 3.45.12 PM.txt"
+    ]
+  },
+  {
+    "id": "zoom-cloud",
+    "folder": false,
+    "match": [
+      "GMT20210427-141742_Recording_640x360.mp4",
+      "GMT20240227-171716_Recording_1920x1080.mp4",
+      "GMT20240227-171716_Recording.m4a",
+      "GMT20240227-171716_Recording.transcript.vtt"
+    ],
+    "noMatch": [
+      "GMT20210427_141742_Recording.mp4",
+      "GMT20210427-141742.mp4",
+      "zoom_0.mp4",
+      "GMT20210427-141742_Recording.mkv"
+    ]
+  },
+  {
+    "id": "zoom-local",
+    "folder": false,
+    "match": [
+      "zoom_0.mp4",
+      "zoom_12.mp4",
+      "audio_only.m4a",
+      "audio_only_1.m4a"
+    ],
+    "noMatch": [
+      "zoom_0.mkv",
+      "zoom.mp4",
+      "zoom_a.mp4",
+      "audio_only.mp3"
+    ]
+  },
+  {
+    "id": "zoom-unconverted",
+    "folder": false,
+    "match": [
+      "double_click_to_convert_01.zoom",
+      "double_click_to_convert.zoom",
+      "double_click_to_convert_12.zoom"
+    ],
+    "noMatch": [
+      "double_click_to_convert_01.mp4",
+      "click_to_convert_01.zoom",
+      "double_click_to_convert_01.zoom.bak"
+    ]
+  },
+  {
+    "id": "teams-recording",
+    "folder": false,
+    "match": [
+      "H2 FY2021 Review 20210615_140058-Meeting Recording.mp4",
+      "Weekly sync-20230512_101112-Meeting Recording.mp4",
+      "Project kickoff-20240102_090000-Meeting Recording.mp4"
+    ],
+    "noMatch": [
+      "Weekly sync-20230512_101112-Meeting Transcript.docx",
+      "Weekly sync-20230512-Meeting Recording.mp4",
+      "Meeting Recording.mp4",
+      "Weekly sync-20230512_101112-Meeting Recording.mkv"
+    ]
+  },
+  {
+    "id": "gopro-chapter",
+    "folder": false,
+    "match": [
+      "GX010123.MP4",
+      "GH020045.mp4",
+      "GX990001.MP4"
+    ],
+    "noMatch": [
+      "GX01234.MP4",
+      "GX010123.MOV",
+      "GOPR0123.MP4",
+      "GP010123.MP4"
+    ]
+  },
+  {
+    "id": "gopro-old-chapter",
+    "folder": false,
+    "match": [
+      "GP010123.MP4",
+      "GP020123.mp4",
+      "GP150001.MP4"
+    ],
+    "noMatch": [
+      "GOPR0123.MP4",
+      "GP0123.MP4",
+      "GP010123.MOV",
+      "GX010123.MP4"
+    ]
+  },
+  {
+    "id": "insta360",
+    "folder": false,
+    "match": [
+      "VID_20240416_213000_00_001.insv",
+      "LRV_20240416_213000_01_001.lrv",
+      "IMG_20240416_213000_00_001.insp",
+      "PRO_VID_20240416_213000_00_002.mp4"
+    ],
+    "noMatch": [
+      "VID_20240416_213000.mp4",
+      "IMG_20240416_213000_00_001.png",
+      "VID_20240416_213000_22_001.insv",
+      "VID_20240416_213000_00_01.insv"
+    ]
+  },
+  {
+    "id": "iphone-edited",
+    "folder": false,
+    "match": [
+      "IMG_E1234.JPG",
+      "IMG_E0001.HEIC",
+      "IMG_E0001.mov"
+    ],
+    "noMatch": [
+      "IMG_1234.JPG",
+      "IMG_E12345.JPG",
+      "IMG_E1234.CR2",
+      "IMG_EDIT1234.JPG"
+    ]
+  },
+  {
+    "id": "dcim",
+    "folder": true,
+    "match": [
+      "DCIM",
+      "dcim",
+      "Dcim"
+    ],
+    "noMatch": [
+      "DCIM2",
+      "My DCIM",
+      "DCIM_backup"
+    ]
+  },
+  {
+    "id": "dcf-folder",
+    "folder": true,
+    "match": [
+      "100CANON",
+      "101APPLE",
+      "100_FUJI",
+      "100MSDCF"
+    ],
+    "noMatch": [
+      "100canon",
+      "2023BACK",
+      "100PHOTOS",
+      "099CANON",
+      "100 CANON"
+    ]
+  },
+  {
+    "id": "tosec",
+    "folder": false,
+    "match": [
+      "Legend of TOSEC, The (1986)(Devstudio)(US)[a].zip",
+      "Turrican II (1991)(Rainbow Arts)(Disk 1 of 3).adf",
+      "Some Game (19xx)(-).d64",
+      "Demo Thing (demo) (1992-03)(Ocean).zip",
+      "Elite (198x)(Acornsoft)[cr].ssd"
+    ],
+    "noMatch": [
+      "Super Mario World (USA).sfc",
+      "Report (2020) (final).zip",
+      "Thesis (2019)(final).md",
+      "Legend of TOSEC (Devstudio)(1986).zip",
+      "Game (1991).zip"
+    ]
+  },
+  {
+    "id": "ps1-bios",
+    "folder": false,
+    "match": [
+      "scph1001.bin",
+      "SCPH5501.BIN",
+      "scph101.bin",
+      "scph5502.bin",
+      "scph-7001.bin"
+    ],
+    "noMatch": [
+      "scph1001.bin.bak",
+      "scph.bin",
+      "myscph1001.bin",
+      "scph1001.rom",
+      "scph12.bin"
+    ]
+  },
+  {
+    "id": "ps1-bios-alt",
+    "folder": false,
+    "match": [
+      "PSXONPSP660.bin",
+      "psxonpsp660.BIN",
+      "ps1_rom.bin"
+    ],
+    "noMatch": [
+      "PSXONPSP660.bin.txt",
+      "ps2_rom.bin",
+      "ps1_rom_backup.bin",
+      "PSXONPSP661.bin"
+    ]
+  },
+  {
+    "id": "gb-bios",
+    "folder": false,
+    "match": [
+      "gba_bios.bin",
+      "GBA_BIOS.BIN",
+      "gb_bios.bin",
+      "gbc_bios.bin",
+      "sgb_bios.bin"
+    ],
+    "noMatch": [
+      "gba_bios.bin.zip",
+      "nds_bios.bin",
+      "gba-bios.bin",
+      "my_gba_bios.bin",
+      "gba_bios.rom"
+    ]
+  },
+  {
+    "id": "nds-bios",
+    "folder": false,
+    "match": [
+      "bios7.bin",
+      "bios9.bin",
+      "BIOS9.BIN",
+      "dsi_bios7.bin",
+      "dsi_bios9.bin"
+    ],
+    "noMatch": [
+      "bios8.bin",
+      "bios.bin",
+      "bios7.rom",
+      "mybios7.bin",
+      "bios79.bin"
+    ]
+  },
+  {
+    "id": "dreamcast-bios",
+    "folder": false,
+    "match": [
+      "dc_boot.bin",
+      "DC_BOOT.BIN",
+      "Dc_Boot.bin"
+    ],
+    "noMatch": [
+      "dc_flash.bin",
+      "dc_boot.bin.bak",
+      "dcboot.bin",
+      "dc_boot.rom"
+    ]
+  },
+  {
+    "id": "gamecube-ipl",
+    "folder": false,
+    "match": [
+      "IPL.bin",
+      "ipl.bin",
+      "IPL.BIN"
+    ],
+    "noMatch": [
+      "IPL.bin.bak",
+      "IPL2.bin",
+      "myIPL.bin",
+      "IPL.rom"
+    ]
+  },
+  {
+    "id": "pce-cd-bios",
+    "folder": false,
+    "match": [
+      "syscard3.pce",
+      "SYSCARD3.PCE",
+      "syscard1.pce",
+      "syscard2.pce"
+    ],
+    "noMatch": [
+      "syscard4.pce",
+      "syscard3.bin",
+      "syscard.pce",
+      "syscard3.pce.zip"
+    ]
+  },
+  {
+    "id": "sega-cd-bios",
+    "folder": false,
+    "match": [
+      "bios_CD_U.bin",
+      "bios_CD_E.bin",
+      "bios_CD_J.bin",
+      "BIOS_CD_U.BIN"
+    ],
+    "noMatch": [
+      "bios_CD_X.bin",
+      "bios_MD.bin",
+      "bios_CD_U.rom",
+      "bios_CD_US.bin"
+    ]
+  },
+  {
+    "id": "switch-keys",
+    "folder": false,
+    "match": [
+      "prod.keys",
+      "title.keys",
+      "PROD.KEYS"
+    ],
+    "noMatch": [
+      "dev.keys",
+      "prod.keys.txt",
+      "prod.key",
+      "myprod.keys"
+    ]
+  },
+  {
+    "id": "switch-title-id",
+    "folder": false,
+    "match": [
+      "Super Game [0100ABCD12345000][v0].nsp",
+      "Super Game [0100ABCD12345800][v65536][UPD].nsp",
+      "Super Game [0100abcd12345000].xci",
+      "Super Game 1.0.1 [0100ABCD12345800][v65536][UPD].nsz"
+    ],
+    "noMatch": [
+      "Super Game [0200ABCD12345000][v0].nsp",
+      "Super Game [0100ABCD1234500][v0].nsp",
+      "Super Game (USA).nsp",
+      "Super Game [v0].nsp"
+    ]
+  },
+  {
+    "id": "retroarch-state",
+    "folder": false,
+    "match": [
+      "Super Mario World (USA).state",
+      "Super Mario World (USA).state1",
+      "Super Mario 64 (USA).state.auto",
+      "Chrono Trigger.state12"
+    ],
+    "noMatch": [
+      "Super Mario World (USA).state.png",
+      "Super Mario World (USA).srm",
+      ".state",
+      "game.statex",
+      "game.state1.bak"
+    ]
+  },
+  {
+    "id": "dolphin-memcard",
+    "folder": false,
+    "match": [
+      "MemoryCardA.USA.raw",
+      "MemoryCardB.EUR.raw",
+      "MemoryCardA.JAP.raw",
+      "MemoryCardA.USA.59.raw"
+    ],
+    "noMatch": [
+      "MemoryCardC.USA.raw",
+      "MemoryCardA.raw",
+      "MemoryCardA.USA.gci",
+      "MemoryCardA.BRA.raw"
+    ]
+  },
+  {
+    "id": "dolphin-state",
+    "folder": false,
+    "match": [
+      "GALE01.s01",
+      "RMCE01.s10",
+      "GZLE01.S02"
+    ],
+    "noMatch": [
+      "GALE01.s1",
+      "GALE0.s01",
+      "GALE01.sav",
+      "GALE01.s01.dtm",
+      "GALE01X.s01",
+      "backup.s01",
+      "gale01.s02"
+    ]
+  },
+  {
+    "id": "pcsx2-state",
+    "folder": false,
+    "match": [
+      "SLUS-20624 (FC99EC8C).00.p2s",
+      "SLUS-21423 (7EA439F5).01.p2s",
+      "SCES-50490 (A5768F53).resume.p2s",
+      "SLUS-20624 (FC99EC8C).03.p2s.backup"
+    ],
+    "noMatch": [
+      "SLUS-20624.00.p2s",
+      "SLUS-20624 (FC99EC8C).p2s",
+      "SLUS_206.24 (FC99EC8C).00.p2s",
+      "SLUS-20624 (FC99EC8C).00.sav"
+    ]
+  },
+  {
+    "id": "pcsx2-memcard",
+    "folder": false,
+    "match": [
+      "Mcd001.ps2",
+      "Mcd002.ps2",
+      "mcd001.PS2"
+    ],
+    "noMatch": [
+      "Mcd000.ps2",
+      "Mcd001.ps1",
+      "Memcard001.ps2",
+      "Mcd001.ps2.bak"
+    ]
+  },
+  {
+    "id": "duckstation-memcard",
+    "folder": false,
+    "match": [
+      "shared_card_1.mcd",
+      "shared_card_2.mcd",
+      "SLUS-00594_1.mcd",
+      "SCES-00001_2.mcd"
+    ],
+    "noMatch": [
+      "shared_card_9.mcd",
+      "shared_card_1.mcr",
+      "SLUS-00594.mcd",
+      "Final Fantasy VII_1.mcd"
+    ]
+  },
+  {
+    "id": "xbox360-default-xex",
+    "folder": false,
+    "match": [
+      "default.xex",
+      "Default.xex",
+      "DEFAULT.XEX"
+    ],
+    "noMatch": [
+      "default.xbe",
+      "default2.xex",
+      "default.xexp",
+      "game.xex"
+    ]
+  },
+  {
+    "id": "ps-eboot",
+    "folder": false,
+    "match": [
+      "EBOOT.BIN",
+      "EBOOT.PBP",
+      "eboot.bin",
+      "eboot.pbp"
+    ],
+    "noMatch": [
+      "EBOOT.ELF",
+      "EBOOT2.BIN",
+      "EBOOT.BIN.bak",
+      "BOOT.BIN"
+    ]
+  },
+  {
+    "id": "ps-param-sfo",
+    "folder": false,
+    "match": [
+      "PARAM.SFO",
+      "param.sfo",
+      "Param.sfo"
+    ],
+    "noMatch": [
+      "PARAM.SFO.bak",
+      "PARAMS.SFO",
+      "PARAM.SFX",
+      "MYPARAM.SFO"
+    ]
+  },
+  {
+    "id": "reshade-ini",
+    "folder": false,
+    "match": [
+      "ReShade.ini",
+      "reshade.ini",
+      "RESHADE.INI"
+    ],
+    "noMatch": [
+      "ReShadePreset.ini",
+      "ReShade.ini.bak",
+      "ReShade.log",
+      "GShade.ini"
+    ]
+  },
+  {
+    "id": "reshade-preset",
+    "folder": false,
+    "match": [
+      "ReShadePreset.ini",
+      "reshadepreset.ini",
+      "RESHADEPRESET.INI"
+    ],
+    "noMatch": [
+      "ReShade.ini",
+      "ReShadePreset2.ini",
+      "ReShadePreset.ini.bak",
+      "MyReShadePreset.ini"
+    ]
+  },
+  {
+    "id": "reshade-shaders",
+    "folder": true,
+    "match": [
+      "reshade-shaders",
+      "ReShade-Shaders",
+      "RESHADE-SHADERS"
+    ],
+    "noMatch": [
+      "reshade",
+      "shaders",
+      "reshade-shaders-old",
+      "reshade_shaders"
+    ]
+  },
+  {
+    "id": "vortex-staging",
+    "folder": false,
+    "match": [
+      "__vortex_staging_folder",
+      "__VORTEX_STAGING_FOLDER",
+      "__Vortex_Staging_Folder"
+    ],
+    "noMatch": [
+      "__vortex_staging_folder.txt",
+      "_vortex_staging_folder",
+      "vortex_staging_folder",
+      "__folder_managed_by_vortex"
+    ]
+  },
+  {
+    "id": "vortex-folder-tag",
+    "folder": false,
+    "match": [
+      "__folder_managed_by_vortex",
+      "__Folder_Managed_By_Vortex",
+      "__FOLDER_MANAGED_BY_VORTEX"
+    ],
+    "noMatch": [
+      "__folder_managed_by_vortex.txt",
+      "__vortex_staging_folder",
+      "folder_managed_by_vortex",
+      "__delete_if_empty_now"
+    ]
+  },
+  {
+    "id": "vortex-deployment",
+    "folder": false,
+    "match": [
+      "vortex.deployment.json",
+      "vortex.deployment.msgpack",
+      "vortex.deployment.dinput.json",
+      "vortex.deployment.enb.msgpack"
+    ],
+    "noMatch": [
+      "vortex.deployment.json.bak",
+      "vortex.json",
+      "deployment.json",
+      "vortex.deployment.a.b.json"
+    ]
+  },
+  {
+    "id": "vortex-backup",
+    "folder": false,
+    "match": [
+      "Skyrim.ini.vortex_backup",
+      "dinput8.dll.vortex_backup",
+      "textures.bsa.vortex_backup"
+    ],
+    "noMatch": [
+      "Skyrim.ini.backup",
+      "vortex_backup",
+      ".vortex_backup.txt",
+      "Skyrim.ini.vortex_backup.old"
+    ]
+  },
+  {
+    "id": "mo2-ini",
+    "folder": false,
+    "match": [
+      "ModOrganizer.ini",
+      "modorganizer.ini",
+      "MODORGANIZER.INI"
+    ],
+    "noMatch": [
+      "ModOrganizer.exe",
+      "ModOrganizer.ini.bak",
+      "ModOrganizer2.ini",
+      "meta.ini"
+    ]
+  },
+  {
+    "id": "steam-api",
+    "folder": false,
+    "match": [
+      "steam_api.dll",
+      "steam_api64.dll",
+      "STEAM_API64.DLL"
+    ],
+    "noMatch": [
+      "steam_api32.dll",
+      "steam_api64.dll.bak",
+      "steamclient64.dll",
+      "steam_api.so"
+    ]
+  },
+  {
+    "id": "steam-appid",
+    "folder": false,
+    "match": [
+      "steam_appid.txt",
+      "Steam_AppID.txt",
+      "STEAM_APPID.TXT"
+    ],
+    "noMatch": [
+      "steam_appid.txt.bak",
+      "steam_appid.ini",
+      "appid.txt",
+      "steam_app_id.txt"
+    ]
+  },
+  {
+    "id": "unity-crash-handler",
+    "folder": false,
+    "match": [
+      "UnityCrashHandler64.exe",
+      "UnityCrashHandler32.exe",
+      "unitycrashhandler64.EXE"
+    ],
+    "noMatch": [
+      "UnityCrashHandler.exe",
+      "UnityCrashHandler64.dll",
+      "UnityCrashHandler64.exe.bak",
+      "CrashHandler64.exe"
+    ]
+  },
+  {
+    "id": "unity-player",
+    "folder": false,
+    "match": [
+      "UnityPlayer.dll",
+      "unityplayer.dll",
+      "UNITYPLAYER.DLL"
+    ],
+    "noMatch": [
+      "UnityPlayer.dll.bak",
+      "UnityPlayer2.dll",
+      "UnityPlayer.pdb",
+      "MyUnityPlayer.dll"
+    ]
+  },
+  {
+    "id": "unity-gameassembly",
+    "folder": false,
+    "match": [
+      "GameAssembly.dll",
+      "gameassembly.dll",
+      "GAMEASSEMBLY.DLL"
+    ],
+    "noMatch": [
+      "GameAssembly.pdb",
+      "GameAssembly.dll.bak",
+      "GameAssembly2.dll",
+      "Assembly-CSharp.dll"
+    ]
+  },
+  {
+    "id": "unity-il2cpp-backup",
+    "folder": true,
+    "match": [
+      "MyGame_BackUpThisFolder_ButDontShipItWithYourGame",
+      "a_BackUpThisFolder_ButDontShipItWithYourGame",
+      "Kitchen Chaos_BackUpThisFolder_ButDontShipItWithYourGame"
+    ],
+    "noMatch": [
+      "MyGame_Data",
+      "_BackUpThisFolder_ButDontShipItWithYourGame",
+      "MyGame_BackUpThisFolder",
+      "MyGame_BackUpThisFolder_ButDontShipItWithYourGame_old"
+    ]
+  },
+  {
+    "id": "unity-assembly-csharp",
+    "folder": false,
+    "match": [
+      "Assembly-CSharp.dll",
+      "Assembly-CSharp-firstpass.dll",
+      "Assembly-CSharp-Editor.dll",
+      "Assembly-CSharp-Editor-firstpass.dll"
+    ],
+    "noMatch": [
+      "Assembly-CSharp.pdb",
+      "Assembly-UnityScript.dll",
+      "Assembly-CSharp.dll.bak",
+      "Assembly-CSharp-secondpass.dll"
+    ]
+  },
+  {
+    "id": "unity-projectversion",
+    "folder": false,
+    "match": [
+      "ProjectVersion.txt",
+      "projectversion.txt",
+      "PROJECTVERSION.TXT"
+    ],
+    "noMatch": [
+      "ProjectVersion.txt.orig",
+      "ProjectVersions.txt",
+      "Version.txt",
+      "ProjectVersion.json"
+    ]
+  },
+  {
+    "id": "unreal-patch-pak",
+    "folder": false,
+    "match": [
+      "pakchunk0-WindowsNoEditor_P.pak",
+      "MyMod_P.pak",
+      "zzz_mods_p.pak"
+    ],
+    "noMatch": [
+      "pakchunk0-WindowsNoEditor.pak",
+      "MyMod_P.utoc",
+      "MyMod_PP.pak.bak",
+      "MyMod-P.pak"
+    ]
+  },
+  {
+    "id": "unreal-pakchunk",
+    "folder": false,
+    "match": [
+      "pakchunk0-WindowsNoEditor.pak",
+      "pakchunk0-Windows.utoc",
+      "pakchunk1001-Windows.ucas",
+      "pakchunk12optional-Windows.pak"
+    ],
+    "noMatch": [
+      "pakchunk-Windows.pak",
+      "mypakchunk0-Windows.pak",
+      "pakchunk0-Windows.txt",
+      "chunk0-Windows.pak"
+    ]
+  },
+  {
+    "id": "unreal-ddc",
+    "folder": true,
+    "match": [
+      "DerivedDataCache",
+      "deriveddatacache",
+      "DERIVEDDATACACHE"
+    ],
+    "noMatch": [
+      "DerivedDataCache_old",
+      "DataCache",
+      "Derived Data Cache",
+      "MyDerivedDataCache"
+    ]
+  },
+  {
+    "id": "fmod-master-bank",
+    "folder": false,
+    "match": [
+      "Master.bank",
+      "master.bank",
+      "MASTER.BANK"
+    ],
+    "noMatch": [
+      "Master.strings.bank",
+      "Music.bank",
+      "Master.bnk",
+      "Master.bank.bak"
+    ]
+  },
+  {
+    "id": "fmod-strings-bank",
+    "folder": false,
+    "match": [
+      "Master.strings.bank",
+      "master.strings.bank",
+      "MASTER.STRINGS.BANK"
+    ],
+    "noMatch": [
+      "Master.bank",
+      "Master.strings.bank.bak",
+      "Music.strings.bank",
+      "Master.assets.bank"
+    ]
+  },
+  {
+    "id": "wwise-init-bank",
+    "folder": false,
+    "match": [
+      "Init.bnk",
+      "init.bnk",
+      "INIT.BNK"
+    ],
+    "noMatch": [
+      "Init.bnk.bak",
+      "Init.bank",
+      "Music.bnk",
+      "Init2.bnk"
+    ]
+  },
+  {
+    "id": "elden-ring-save",
+    "folder": false,
+    "match": [
+      "ER0000.sl2",
+      "ER0000.sl2.bak",
+      "er0000.SL2"
+    ],
+    "noMatch": [
+      "ER0001.sl2",
+      "ER0000.co2",
+      "DS30000.sl2",
+      "ER0000.sl2.old"
+    ]
+  }
+]

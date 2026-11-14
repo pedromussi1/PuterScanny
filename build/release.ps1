@@ -34,7 +34,7 @@ Run dotnet @('publish', 'src\PuterScanny.App\PuterScanny.App.csproj', '-c', 'Rel
     '-p:DebugType=None', '-p:DebugSymbols=false', '-o', $publish, '--nologo')
 
 # Sanity checks: the things a release can't work without.
-foreach ($required in 'PuterScanny.exe', 'knowledge\file-types.json', 'knowledge\locations.json', 'knowledge\signatures.json',
+foreach ($required in 'PuterScanny.exe', 'knowledge\file-types.json', 'knowledge\locations.json', 'knowledge\signatures.json', 'knowledge\known-details.json',
                       'e_sqlite3.dll', 'runtimes\win-x64\native\avx2\llama.dll', 'runtimes\win-x64\native\noavx\llama.dll') {
     if (-not (Test-Path "$publish\$required")) { throw "Missing from the build: $required" }
 }

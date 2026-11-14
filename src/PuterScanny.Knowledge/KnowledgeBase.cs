@@ -39,6 +39,9 @@ public sealed class KnowledgeBase
     public IReadOnlyList<LocationCategory> LocationCategories { get; }
     public IReadOnlyList<LocationRule> Rules { get; }
 
+    /// <summary>Small facts about how files get their names and dates (TorrentZIP's 1996 date, ROM and camera names…).</summary>
+    public KnownDetails Details { get; private init; } = KnownDetails.Empty;
+
     /// <summary>Bytes from the start of a file needed to test every signature.</summary>
     public int MaxSignatureLength { get; }
 
@@ -144,7 +147,10 @@ public sealed class KnowledgeBase
                     adv.TryGetProperty("tool", out var tool) ? tool.GetString() : null) : null))
             .ToList();
 
-        return new KnowledgeBase(categories, types, signatures, locationCategories, rules);
+        return new KnowledgeBase(categories, types, signatures, locationCategories, rules)
+        {
+            Details = KnownDetails.Load(Path.Combine(folder, "known-details.json")),
+        };
     }
 
     private static string Str(JsonElement e, string name) =>

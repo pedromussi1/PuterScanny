@@ -158,6 +158,22 @@ public sealed partial class ScanDatabase
         return list;
     }
 
+    /// <summary>How many files inside a folder were last changed at exactly one of these moments (UTC ticks).</summary>
+    public long CountFilesModifiedAt(string scope, IReadOnlyList<long> ticks)
+    {
+        if (ticks.Count == 0) return 0;
+        using var cmd = _connection.CreateCommand();
+        string scopeSql = ScopeClause(cmd, scope);
+        var names = new List<string>();
+        for (int i = 0; i < ticks.Count; i++)
+        {
+            names.Add("$t" + i.ToString(CultureInfo.InvariantCulture));
+            cmd.Parameters.AddWithValue(names[^1], ticks[i]);
+        }
+        cmd.CommandText = $"SELECT COUNT(*) FROM entry e WHERE e.is_dir = 0 {scopeSql} AND e.modified_utc IN ({string.Join(",", names)}) AND e.id NOT IN (SELECT entry_id FROM removed)";
+        return Convert.ToInt64(cmd.ExecuteScalar(), CultureInfo.InvariantCulture);
+    }
+
     /// <summary>The biggest files of one kind (see <see cref="GetTypeStats"/>) inside a folder.</summary>
     public IReadOnlyList<FileSystemEntry> GetFilesOfType(string scope, string typeLabel, int limit)
     {

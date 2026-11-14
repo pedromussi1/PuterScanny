@@ -14,7 +14,8 @@ Free to download and use, with no account, no ads and no subscription. It never 
 
 Pick a drive or folder and press **Scan**. For every file and folder, PuterScanny tells you:
 
-- **What it is**, by its real content and not just its name. It reads file signatures, program details, publishers and digital signatures, and knows 861 file types.
+- **What it is**, by its real content and not just its name. It reads file signatures, program details, publishers and digital signatures, and knows 992 file types.
+- **What its name and dates really mean**, by well-known conventions instead of taking them literally. For example, 24 Dec 1996 23:32 is TorrentZIP's fixed date on ROM sets, *(USA) (En,Fr)* is a No-Intro release region and language list, *IMG_20230512_101112* and *WhatsApp Image 2024-02-01 at…* carry the date taken, *report (1).pdf* is a repeat download, and *__MACOSX* and *._* files are Mac leftovers. The list is plain JSON (`data/knowledge/known-details.json`), and each entry only applies on an exact match.
 - **Who it belongs to**: which installed program, game, store app or package manager put it there. Portable programs (unzipped tools, emulators, game builds that run without being installed) are recognised too, and their folders are kept whole, so the files they need, such as a game's disc image, are never offered for deletion on their own.
 - **Whether Windows needs it**: system files protected by Windows, drivers, services, scheduled tasks, startup entries, fonts, and files that running programs are using right now.
 - **When you last used it**, from Windows' own records: program launches, recent files, apps' recent lists, Office, Steam and, as administrator, Prefetch run counts.

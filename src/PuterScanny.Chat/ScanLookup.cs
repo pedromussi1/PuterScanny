@@ -309,7 +309,7 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
         {
             var changed = a?.ContainedLastModifiedUtc ?? e.ModifiedUtc;
             // The date it arrived counts too (and a TorrentZIP placeholder date says nothing).
-            if (e.CreatedUtc > changed && e.CreatedUtc <= _now || !e.IsDirectory && FileDates.IsTorrentZipDate(e.ModifiedUtc))
+            if (e.CreatedUtc > changed && e.CreatedUtc <= _now || !e.IsDirectory && kb.Details.IsPlaceholderDate(e.ModifiedUtc, _now))
                 parts.Add($"added {ChatText.Ago(e.CreatedUtc, _now)}");
             else if (changed != default)
                 parts.Add($"changed {ChatText.Ago(changed, _now)}");
@@ -474,6 +474,14 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
             lines.Add($"Text of {readme.Name} (in {readme.Folder}): {readme.Text}");
         }
 
+        // 3b. Good to know: what its name and dates mean by known conventions (known-details.json).
+        var good = KnownDetailsFor(e, p);
+        if (good.Count > 0)
+        {
+            paras.Add("Good to know:" + string.Concat(good.Select(g => "\n• " + g)));
+            lines.AddRange(good.Select(g => "Known detail: " + g));
+        }
+
         // 4. The recommendation: the label, the main reason, and only the reasons that add something.
         s.Clear();
         var own = a is not null && e.Depth > 0 ? RecommendationExplainer.Explain(db, kb, e) : null;
@@ -530,11 +538,12 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
         lines.Add($"Last opened: {(usedAt is { } u2 ? ChatText.Ago(u2, _now) : "no record")}");
         var changedAt = a?.ContainedLastModifiedUtc ?? e.ModifiedUtc;
         bool arrived = e.CreatedUtc != default && e.CreatedUtc <= _now;
-        if (!e.IsDirectory && FileDates.IsTorrentZipDate(e.ModifiedUtc))
+        if (!e.IsDirectory && kb.Details.IsPlaceholderDate(e.ModifiedUtc, _now))
         {
+            // Its own date means nothing (see "Good to know"): when it arrived is what's known.
             if (arrived) s.Append($"; added to this PC {ChatText.Ago(e.CreatedUtc, _now)}");
-            s.Append(". Its file date, 24 Dec 1996, is the fixed date TorrentZIP gives ROM and emulator files, so it doesn't show when the file was made or changed.");
-            lines.Add("File date: 24 Dec 1996 23:32, the fixed TorrentZIP date used on ROM sets (not a real change date)");
+            s.Append('.');
+            lines.Add("File date: not a real date (see the known detail above)");
             if (arrived) lines.Add($"Added to this PC: {ChatText.Ago(e.CreatedUtc, _now)}");
         }
         else
@@ -586,6 +595,9 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
 
     private static string Sentence(string text) => ChatText.Sentence(text);
 
+    private List<string> KnownDetailsFor(FileSystemEntry e, ItemProfile p) =>
+        KnownDetailsFinder.For(db, kb, e, _now, p.Kinds.SelectMany(k => k.Examples)).ToList();
+
     /// <summary>The reasons worth showing: not the ones that only repeat the headline ("Your own file" / "It looks like
     /// your own file") or say something general about how recommendations work.</summary>
     private static IEnumerable<string> UsefulReasons(Recommendation rec)
@@ -599,7 +611,8 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
             if (text.Length == 0) continue;
             if (System.Text.RegularExpressions.Regex.IsMatch(text, @"never suggests deleting|on its own\.?$", System.Text.RegularExpressions.RegexOptions.IgnoreCase)) continue;
             if (System.Text.RegularExpressions.Regex.Replace(Words(text), @"\s+", " ") == headline) continue;
-            yield return text.Replace("PuterScanny ", "", StringComparison.Ordinal);
+            yield return text.Replace("only that PuterScanny can't tell", "only that nothing shows either way", StringComparison.Ordinal)
+                             .Replace("PuterScanny ", "", StringComparison.Ordinal);
         }
     }
 

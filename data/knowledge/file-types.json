@@ -275,7 +275,22 @@
       ".pbm": "Portable bitmap",
       ".pgm": "Portable graymap",
       ".ppm": "Portable pixmap",
-      ".qoi": "QOI image"
+      ".qoi": "QOI image",
+      ".crw": "Canon RAW photo (older cameras)",
+      ".nrw": "Nikon RAW photo (Coolpix)",
+      ".srf": "Sony RAW photo",
+      ".sr2": "Sony RAW photo",
+      ".x3f": "Sigma RAW photo",
+      ".3fr": "Hasselblad RAW photo",
+      ".iiq": "Phase One RAW photo",
+      ".kdc": "Kodak RAW photo",
+      ".mrw": "Minolta RAW photo",
+      ".mef": "Mamiya RAW photo",
+      ".mos": "Leaf RAW photo",
+      ".rwl": "Leica RAW photo",
+      ".gpr": "GoPro RAW photo",
+      ".mpo": "Multi-picture photo (often 3D)",
+      ".insp": "Insta360 photo"
     },
     "video": {
       ".mp4": "MP4 video",
@@ -304,7 +319,13 @@
       ".r3d": "RED camera video",
       ".insv": "Insta360 video",
       ".lrv": "GoPro low-resolution preview video",
-      ".thm": "Camera video thumbnail"
+      ".thm": "Camera video thumbnail",
+      ".mod": "Camcorder video (standard definition)",
+      ".tod": "Camcorder video (HD)",
+      ".moi": "Camcorder video information (goes with MOD/TOD)",
+      ".wtv": "Recorded TV show (Windows Media Center)",
+      ".dvr-ms": "Recorded TV show (older Windows Media Center)",
+      ".zoom": "Unconverted Zoom recording"
     },
     "audio": {
       ".mp3": "MP3 audio",
@@ -335,7 +356,8 @@
       ".pls": "Playlist",
       ".wpl": "Windows Media playlist",
       ".cue": "CD cue sheet",
-      ".sf2": "SoundFont instrument bank"
+      ".sf2": "SoundFont instrument bank",
+      ".au": "AU audio (Sun format)"
     },
     "archive": {
       ".zip": "ZIP archive",
@@ -364,7 +386,9 @@
       ".cpio": "CPIO archive",
       ".wim": "Windows image archive",
       ".esd": "Windows electronic software download image",
-      ".swm": "Split Windows image archive"
+      ".swm": "Split Windows image archive",
+      ".z01": "Split ZIP archive part",
+      ".z02": "Split ZIP archive part"
     },
     "disk-image": {
       ".iso": "Disc image",
@@ -375,7 +399,10 @@
       ".mds": "Alcohol disc image descriptor",
       ".dmg": "macOS disk image",
       ".udf": "UDF disc image",
-      ".toast": "Toast disc image"
+      ".toast": "Toast disc image",
+      ".cdi": "Disc image (DiscJuggler)",
+      ".ccd": "CloneCD disc image description",
+      ".ecm": "Compressed CD image (ECM)"
     },
     "installer": {
       ".msi": "Windows Installer package",
@@ -604,7 +631,42 @@
       ".pxd": "Cython declarations",
       ".ino": "Arduino sketch",
       ".pde": "Processing sketch",
-      ".bas": "BASIC source code"
+      ".bas": "BASIC source code",
+      ".sample": "Sample file (often a switched-off Git hook)",
+      ".cts": "TypeScript source (CommonJS module)",
+      ".nix": "Nix language file",
+      ".typed": "Python type-information marker (py.typed)",
+      ".pxi": "Cython include file",
+      ".anim": "Unity animation clip",
+      ".controller": "Unity animator controller",
+      ".overridecontroller": "Unity animator override controller",
+      ".mask": "Unity avatar mask",
+      ".mixer": "Unity audio mixer",
+      ".physicmaterial": "Unity physics material",
+      ".physicsmaterial2d": "Unity 2D physics material",
+      ".rendertexture": "Unity render texture",
+      ".spriteatlas": "Unity sprite atlas",
+      ".terrainlayer": "Unity terrain layer",
+      ".playable": "Unity playable asset",
+      ".guiskin": "Unity GUI skin",
+      ".fontsettings": "Unity font settings",
+      ".cubemap": "Unity cubemap",
+      ".flare": "Unity lens flare",
+      ".shadervariants": "Unity shader variant collection",
+      ".asmdef": "Unity assembly definition",
+      ".asmref": "Unity assembly reference",
+      ".cginc": "Shader include (Unity)",
+      ".compute": "Compute shader (Unity)",
+      ".uss": "Unity UI style sheet",
+      ".uxml": "Unity UI layout",
+      ".vfx": "Unity visual effect graph",
+      ".shadergraph": "Unity Shader Graph",
+      ".shadersubgraph": "Unity Shader Graph sub-graph",
+      ".inputactions": "Unity input actions",
+      ".usf": "Unreal Engine shader source",
+      ".ush": "Unreal Engine shader header",
+      ".tscn": "Godot scene",
+      ".tres": "Godot resource"
     },
     "web": {
       ".html": "Web page",
@@ -631,7 +693,8 @@
       ".part": "Unfinished download",
       ".partial": "Unfinished Edge download",
       ".download": "Unfinished download",
-      ".opdownload": "Unfinished Opera download"
+      ".opdownload": "Unfinished Opera download",
+      ".incomplete": "Unfinished download"
     },
     "config": {
       ".ini": "Settings file",
@@ -683,7 +746,13 @@
       ".rules": "Rules file",
       ".policy": "Policy file",
       ".vmoptions": "Java VM options",
-      ".xcconfig": "Xcode configuration"
+      ".xcconfig": "Xcode configuration",
+      ".gitkeep": "Empty-folder placeholder (Git)",
+      ".npmignore": "npm ignore list",
+      ".prettierignore": "Prettier ignore list",
+      ".vsconfig": "Visual Studio component list",
+      ".example": "Example settings file (a template to copy)",
+      ".dwlt": "Unity editor window layout"
     },
     "data": {
       ".dat": "Data file",
@@ -733,7 +802,15 @@
       ".msgpack": "MessagePack data",
       ".tfrecord": "TensorFlow data",
       ".lmdb": "LMDB database file",
-      ".mdx": "Index file"
+      ".mdx": "Index file",
+      ".sfv": "Checksum list (SFV)",
+      ".md5": "Checksum file (MD5)",
+      ".sha1": "Checksum file (SHA-1)",
+      ".sha256": "Checksum file (SHA-256)",
+      ".sha512": "Checksum file (SHA-512)",
+      ".rev": "RAR recovery volume or Git pack index",
+      ".pack": "Packed data (Git keeps project history in these)",
+      ".xdelta": "Binary patch (xdelta)"
     },
     "database": {
       ".db": "Database",
@@ -793,7 +870,8 @@
       ".pfm": "PostScript font metrics",
       ".afm": "Font metrics",
       ".eot": "Embedded web font",
-      ".bdf": "Bitmap font"
+      ".bdf": "Bitmap font",
+      ".nftr": "Nintendo DS font"
     },
     "3d": {
       ".fbx": "3D model (FBX)",
@@ -832,7 +910,9 @@
       ".uasset": "Unreal Engine asset",
       ".umap": "Unreal Engine level",
       ".vox": "Voxel model",
-      ".abc": "Alembic animation cache"
+      ".abc": "Alembic animation cache",
+      ".dwf": "Autodesk design for viewing (DWF)",
+      ".dwfx": "Autodesk design for viewing (DWFx)"
     },
     "design": {
       ".psd": "Photoshop image",
@@ -880,7 +960,8 @@
       ".pat": "Pattern file",
       ".swatches": "Color swatches",
       ".ase": "Color swatches",
-      ".cdr": "CorelDRAW drawing"
+      ".cdr": "CorelDRAW drawing",
+      ".aae": "Apple Photos edit settings (sidecar)"
     },
     "email": {
       ".pst": "Outlook data file (emails, keep!)",
@@ -1054,7 +1135,57 @@
       ".resource": "Game resource data",
       ".ress": "Unity game resources",
       ".bundle": "Game asset bundle",
-      ".unity3d": "Unity web player data"
+      ".unity3d": "Unity web player data",
+      ".rvz": "GameCube/Wii disc image (RVZ)",
+      ".gcz": "GameCube/Wii compressed disc image",
+      ".wia": "GameCube/Wii disc image (WIA)",
+      ".ciso": "GameCube/Wii disc image (CISO)",
+      ".dol": "GameCube/Wii program",
+      ".tmd": "Nintendo title metadata",
+      ".cso": "Compressed disc image (CSO)",
+      ".pbp": "PSP game package",
+      ".sfo": "PlayStation game details (SFO)",
+      ".xex": "Xbox 360 or Atari 8-bit program",
+      ".srm": "Game save (emulator)",
+      ".state": "Emulator save state",
+      ".mcr": "PlayStation memory card (emulator)",
+      ".mcd": "PlayStation memory card (emulator)",
+      ".ps2": "PS2 memory card (PCSX2)",
+      ".p2s": "Save state (PCSX2)",
+      ".nsz": "Nintendo Switch package (compressed)",
+      ".xcz": "Nintendo Switch cartridge image (compressed)",
+      ".nca": "Nintendo Switch content archive",
+      ".nro": "Nintendo Switch homebrew app",
+      ".3dsx": "Nintendo 3DS homebrew app",
+      ".wua": "Wii U game archive",
+      ".wud": "Wii U disc image",
+      ".wux": "Wii U disc image (compressed)",
+      ".rpx": "Wii U program",
+      ".gdi": "Dreamcast disc image (GD-ROM)",
+      ".ips": "ROM patch (IPS)",
+      ".bps": "ROM patch (BPS)",
+      ".ups": "ROM patch (UPS)",
+      ".asi": "Game mod plugin (ASI)",
+      ".hmod": "NES/SNES Classic mod (hakchi)",
+      ".srldr": "TWiLight Menu++ part (Nintendo DS program)",
+      ".ushaderbytecode": "Unreal Engine compiled shaders",
+      ".ufont": "Unreal Engine font data",
+      ".bank": "Game audio bank (FMOD)",
+      ".fsb": "Game audio bank (FMOD sample bank)",
+      ".bnk": "Game audio bank (Wwise)",
+      ".wem": "Game audio (Wwise)",
+      ".xnb": "Game content (XNA/MonoGame)",
+      ".rpa": "Ren'Py game archive",
+      ".rpyc": "Ren'Py compiled script",
+      ".rgss3a": "RPG Maker VX Ace game archive",
+      ".rvdata2": "RPG Maker VX Ace game data",
+      ".rpgsave": "Game save (RPG Maker MV)",
+      ".rmmzsave": "Game save (RPG Maker MZ)",
+      ".love": "LÖVE game",
+      ".ess": "Game save (Elder Scrolls)",
+      ".sl2": "Game save (FromSoftware)",
+      ".vtf": "Game texture (Valve Source)",
+      ".vmt": "Game material (Valve Source)"
     },
     "virtual-machine": {
       ".vhdx": "Virtual hard disk",

@@ -29,6 +29,14 @@ internal static class DetailsBuilder
         if (a is not null) AddUsage(e, a, ctx, Header, Add, Note);
 
         // ---------------- What it is
+        // ---------------- What its name and dates mean (TorrentZIP dates, ROM and camera names…)
+        var good = PuterScanny.Chat.KnownDetailsFinder.For(ctx.Db, kb, e, DateTime.UtcNow);
+        if (good.Count > 0)
+        {
+            Header("Good to know");
+            foreach (string g in good) Add("", g);
+        }
+
         Header("What it is");
         Add("Name", e.Depth == 0 ? e.Path : e.Name);
         if (e.IsDirectory)
