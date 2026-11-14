@@ -62,8 +62,11 @@ public sealed class LocalModel : IDisposable
         }
     }
 
-    /// <summary>Asks the model one question (system instructions + user message). Returns the raw answer.</summary>
-    public async Task<string> GenerateAsync(string system, string user, int maxTokens, CancellationToken ct)
+    /// <summary>
+    /// Asks the model one question (system instructions + user message). Returns the raw answer.
+    /// <paramref name="grammar"/> (GBNF) forces the shape of the reply, for answers a program reads.
+    /// </summary>
+    public async Task<string> GenerateAsync(string system, string user, int maxTokens, CancellationToken ct, string? grammar = null, float temperature = 0.2f)
     {
         await _gate.WaitAsync(ct);
         try
@@ -79,7 +82,14 @@ public sealed class LocalModel : IDisposable
             {
                 MaxTokens = maxTokens,
                 AntiPrompts = ["<|im_end|>", "<|endoftext|>", "<end_of_turn>", "\n\n\n"],
-                SamplingPipeline = new DefaultSamplingPipeline { Temperature = 0.2f, TopP = 0.9f, RepeatPenalty = 1.05f, Seed = 42 },
+                SamplingPipeline = new DefaultSamplingPipeline
+                {
+                    Temperature = temperature,
+                    TopP = 0.9f,
+                    RepeatPenalty = grammar is null ? 1.05f : 1f,
+                    Seed = 42,
+                    Grammar = grammar is null ? null : new Grammar(grammar, "root"),
+                },
             };
             var sb = new StringBuilder();
             await foreach (string piece in executor.InferAsync(prompt, inference, ct)) sb.Append(piece);

@@ -80,6 +80,47 @@
                 </StackPanel>
             </Border>
         </DataTemplate>
+        <DataTemplate x:Key="ChatItemTemplate" DataType="{x:Type vm:ChatItemRow}">
+            <Border Margin="0,4,0,0" Padding="10,6" CornerRadius="6" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock FontFamily="{StaticResource IconFont}" Text="{Binding Glyph}" VerticalAlignment="Top" Margin="0,3,10,0" />
+                    <StackPanel Grid.Column="1">
+                        <WrapPanel>
+                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" MaxWidth="520" Margin="0,0,10,0" ToolTip="{Binding Path}" />
+                            <TextBlock Text="{Binding SizeText}" Margin="0,0,10,0" />
+                            <Border CornerRadius="3" Padding="6,0" Margin="0,0,10,0" VerticalAlignment="Center"
+                                    Background="{Binding VerdictTag, Converter={StaticResource VerdictBrush}}"
+                                    Visibility="{Binding HasVerdict, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock Text="{Binding VerdictText}" FontSize="11" Foreground="White" />
+                            </Border>
+                            <TextBlock Text="{Binding Note}" FontSize="12" Style="{StaticResource Muted}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="420" />
+                        </WrapPanel>
+                        <TextBlock Text="{Binding Headline}" FontSize="12" TextWrapping="Wrap" Margin="0,2,0,0"
+                                   Visibility="{Binding Headline, Converter={StaticResource BoolToVisibility}}" />
+                        <TextBlock Text="{Binding Path}" FontSize="11" Style="{StaticResource Muted}" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                        <CheckBox Content="In clean-up basket" IsChecked="{Binding BasketRow.IsChecked}" Margin="0,0,10,0" MinWidth="0"
+                                  ToolTip="Ticks it in the Clean up tab. Nothing is removed until you press Clean up selected there and confirm."
+                                  Visibility="{Binding CanBasket, Converter={StaticResource BoolToVisibility}}" />
+                        <Button Content="Why?" Command="{Binding AskAboutCommand}" Margin="0,0,6,0" Padding="8,2" FontSize="12"
+                                ToolTip="Ask what this is and why PuterScanny recommends what it does" />
+                        <Button Content="Show in Folders" Command="{Binding ShowCommand}" Margin="0,0,6,0" Padding="8,2" FontSize="12"
+                                Visibility="{Binding CanShow, Converter={StaticResource BoolToVisibility}}" />
+                        <Button Command="{Binding RevealCommand}" Padding="6,2" ToolTip="Show in File Explorer" AutomationProperties.Name="Show in File Explorer"
+                                Visibility="{Binding CanReveal, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xEC50;" FontSize="12" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </DataTemplate>
         <DataTemplate x:Key="BarRowTemplate" DataType="{x:Type vm:BarRow}">
             <Grid Margin="0,0,0,8" ToolTip="{Binding Path}">
                 <Grid.RowDefinitions>
@@ -224,7 +265,7 @@
         </Border>
 
         <!-- Results -->
-        <TabControl Grid.Row="4" Visibility="{Binding HasResults, Converter={StaticResource BoolToVisibility}}">
+        <TabControl x:Name="ResultsTabs" Grid.Row="4" Visibility="{Binding HasResults, Converter={StaticResource BoolToVisibility}}">
             <TabItem Header="Overview">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,8,0,0">
                     <StackPanel Margin="0,0,8,16">
@@ -311,6 +352,115 @@
                 </ScrollViewer>
             </TabItem>
 
+            <TabItem x:Name="AskTabItem" Header="Ask" AutomationProperties.Name="Ask about this scan">
+                <Grid Margin="0,8,0,0" DataContext="{Binding Chat}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- What the questions are about -->
+                    <DockPanel Margin="0,0,0,8">
+                        <Button DockPanel.Dock="Right" Content="Clear chat" Command="{Binding ClearChatCommand}" Margin="8,0,0,0" />
+                        <Button DockPanel.Dock="Right" Content="Ask about the whole scan" Command="{Binding AskAboutWholeScanCommand}"
+                                Visibility="{Binding IsScoped, Converter={StaticResource BoolToVisibility}}" />
+                        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE8B7;" VerticalAlignment="Center" Margin="0,0,8,0" />
+                        <TextBlock VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
+                            <Run Text="Asking about" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            <Run Text="{Binding ScopeText, Mode=OneWay}" FontWeight="SemiBold" />
+                        </TextBlock>
+                    </DockPanel>
+
+                    <!-- The conversation -->
+                    <Border Grid.Row="1" Style="{StaticResource Card}" Padding="12,8">
+                        <ScrollViewer x:Name="ChatScroll" VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <StackPanel Margin="4,8,4,12" Visibility="{Binding HasMessages, Converter={StaticResource InverseBoolToVisibility}}">
+                                    <TextBlock Text="Ask about this scan" FontSize="18" FontWeight="SemiBold" />
+                                    <TextBlock TextWrapping="Wrap" Margin="0,4,0,0" Style="{StaticResource Muted}"
+                                               Text="Ask what's taking space, what can go, what something is, or why PuterScanny recommends what it does. Answers come from this scan, on this PC: nothing is sent anywhere, and nothing is deleted from here." />
+                                </StackPanel>
+                                <ItemsControl ItemsSource="{Binding Messages}" AutomationProperties.Name="Conversation">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type vm:ChatMessage}">
+                                            <StackPanel Margin="0,6">
+                                                <!-- The question -->
+                                                <Border HorizontalAlignment="Right" MaxWidth="640" CornerRadius="10" Padding="12,8"
+                                                        Background="{DynamicResource AccentFillColorDefaultBrush}"
+                                                        Visibility="{Binding IsUser, Converter={StaticResource BoolToVisibility}}">
+                                                    <TextBlock Text="{Binding Text}" TextWrapping="Wrap" Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+                                                </Border>
+                                                <!-- The answer -->
+                                                <Border HorizontalAlignment="Left" MaxWidth="1000" CornerRadius="10" Padding="12,10" BorderThickness="1"
+                                                        BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" Background="{DynamicResource SubtleFillColorSecondaryBrush}"
+                                                        Visibility="{Binding IsAnswer, Converter={StaticResource BoolToVisibility}}">
+                                                    <StackPanel>
+                                                        <TextBox Text="{Binding Text, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0"
+                                                                 Background="Transparent" Padding="0" MinHeight="0" AutomationProperties.Name="Answer"
+                                                                 Visibility="{Binding Text, Converter={StaticResource BoolToVisibility}}" />
+                                                        <StackPanel Visibility="{Binding IsWorking, Converter={StaticResource BoolToVisibility}}">
+                                                            <TextBlock Text="{Binding Status}" FontStyle="Italic" Style="{StaticResource Muted}" TextWrapping="Wrap" />
+                                                            <ProgressBar IsIndeterminate="True" Height="3" Margin="0,6,0,0" />
+                                                        </StackPanel>
+                                                        <ItemsControl ItemsSource="{Binding Items}" Margin="0,6,0,0" ItemTemplate="{StaticResource ChatItemTemplate}" />
+                                                        <TextBlock Text="{Binding Credit}" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0" Style="{StaticResource Muted}"
+                                                                   Visibility="{Binding Credit, Converter={StaticResource BoolToVisibility}}" />
+                                                    </StackPanel>
+                                                </Border>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- Suggested questions -->
+                    <ItemsControl Grid.Row="2" ItemsSource="{Binding Suggestions}" Margin="0,8,0,0" AutomationProperties.Name="Suggested questions">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Content="{Binding}" Margin="0,0,6,6" Padding="10,3" FontSize="12"
+                                        Command="{Binding DataContext.AskCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- The question box -->
+                    <DockPanel Grid.Row="3" Margin="0,2,0,0">
+                        <Button DockPanel.Dock="Right" Content="Stop" Command="{Binding StopCommand}" Margin="8,0,0,0"
+                                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}" />
+                        <Button DockPanel.Dock="Right" Command="{Binding AskCommand}" Margin="8,0,0,0" MinWidth="88"
+                                Style="{DynamicResource AccentButtonStyle}" AutomationProperties.Name="Ask">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE725;" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                <TextBlock Text="Ask" />
+                            </StackPanel>
+                        </Button>
+                        <TextBox x:Name="ChatInput" Text="{Binding Input, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"
+                                 AutomationProperties.Name="Your question">
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Enter" Command="{Binding AskCommand}" />
+                            </TextBox.InputBindings>
+                        </TextBox>
+                    </DockPanel>
+
+                    <DockPanel Grid.Row="4" Margin="0,6,0,0">
+                        <Button DockPanel.Dock="Right" Content="Set up local AI…" Click="OpenLocalAi_Click" Margin="8,0,0,0" FontSize="12"
+                                Visibility="{Binding ShowAiSetup, Converter={StaticResource BoolToVisibility}}" />
+                        <TextBlock Text="{Binding AiNote}" TextWrapping="Wrap" FontSize="12" Style="{StaticResource Muted}" VerticalAlignment="Center" />
+                    </DockPanel>
+                </Grid>
+            </TabItem>
+
             <TabItem Header="Treemap">
                 <Grid Margin="0,8,0,0">
                     <Grid.RowDefinitions>
@@ -367,9 +517,13 @@
                                 <TextBlock DockPanel.Dock="Top" Text="{Binding TreemapTitle}" TextWrapping="Wrap" FontWeight="SemiBold" Margin="0,0,0,4" />
                                 <TextBlock DockPanel.Dock="Top" Style="{StaticResource Muted}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,6"
                                            Text="Box size = space used. Click a box for details; double-click a folder to go inside." />
-                                <Button DockPanel.Dock="Bottom" Content="Explain with local AI" Command="{Binding TreemapAi.ExplainCommand}"
-                                        HorizontalAlignment="Left" Margin="0,8,0,0"
-                                        Visibility="{Binding TreemapAi.ShowAskButton, Converter={StaticResource BoolToVisibility}}" />
+                                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,8,0,0">
+                                    <Button Content="Ask about this" Command="{Binding AskAboutTreemapSelectedCommand}" Margin="0,0,8,0"
+                                            ToolTip="Opens the Ask tab with questions about this folder (or about this file)"
+                                            Visibility="{Binding TreemapSelected, Converter={StaticResource BoolToVisibility}}" />
+                                    <Button Content="Explain with local AI" Command="{Binding TreemapAi.ExplainCommand}"
+                                            Visibility="{Binding TreemapAi.ShowAskButton, Converter={StaticResource BoolToVisibility}}" />
+                                </StackPanel>
                                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                                     <StackPanel>
                                         <ContentControl Content="{Binding TreemapAi}" ContentTemplate="{StaticResource AiBlockTemplate}" Focusable="False" />
@@ -382,7 +536,7 @@
                 </Grid>
             </TabItem>
 
-            <TabItem Header="Folders">
+            <TabItem x:Name="FoldersTabItem" Header="Folders">
                 <Grid Margin="0,8,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" MinWidth="320" />
@@ -440,6 +594,8 @@
                             </StackPanel>
                             <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,8,0,0">
                                 <Button Content="Show in File Explorer" Command="{Binding OpenInExplorerCommand}" Margin="0,0,8,0" />
+                                <Button Content="Ask about this" Command="{Binding AskAboutSelectedCommand}" Margin="0,0,8,0"
+                                        ToolTip="Opens the Ask tab with questions about this folder (or about this file)" />
                                 <Button Content="Explain with local AI" Command="{Binding FolderAi.ExplainCommand}"
                                         Visibility="{Binding FolderAi.ShowAskButton, Converter={StaticResource BoolToVisibility}}" />
                             </StackPanel>

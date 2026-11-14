@@ -29,6 +29,7 @@ It also finds duplicate files (compared byte for byte), leftovers from uninstall
 - **Folders**: the full tree, biggest first, with a details panel explaining each item.
 - **Clean up**: delete, review, Windows tools, programs to uninstall, duplicates.
 - **Also**: largest files, programs, file types, usage history, "must keep", and everything that was skipped and why.
+- **Ask**: ask questions about the scan in plain English (see below).
 - **Export**: an HTML report, a CSV spreadsheet of every item, or JSON.
 
 ### Safe clean-up
@@ -50,6 +51,16 @@ Tick **Deep scan** and Windows asks for permission. PuterScanny then reads the d
 
 If you say no, it runs a normal scan and the report lists what it couldn't check.
 
+### Ask about your scan
+
+Ask questions about the scanned drive or folder and get answers from the scan itself, for example: *"What can I safely delete in Downloads?"*, *"Which videos haven't I watched in a year?"*, *"Are there any duplicates?"*, *"Why is OllamaSetup.exe marked for deletion?"* or *"What's taking the most space?"*. Press **Ask about this** in the Folders or Treemap tab to ask about one folder or file.
+
+- **Instant and exact:** common questions are recognised and answered straight from the scan, with exact sizes and counts and no AI involved.
+- **In your own words, with Local AI on:** other questions go to the local AI. It can only pick from a fixed set of read-only lookups in the scan, it writes the answer from their results, and every size, count and file name in its answer is checked against those results before it's shown. If its wording doesn't match the scan, you get the plain answer instead.
+- **Every answer lists the items it's based on.** From each one you can show it in Folders, open it in File Explorer, ask why it got its recommendation, or tick it into the clean-up basket.
+- **Keep or delete still comes only from PuterScanny's own checks.** The chat reports PuterScanny's recommendation and can't delete anything itself.
+- **Everything runs on this PC,** with no key, account or internet.
+
 ### Local AI explanations (optional, offline)
 
 For the few items its own rules can't identify, PuterScanny can use a **free AI model that runs entirely on your PC** to write a short plain-English guess at what each one is.
@@ -57,6 +68,7 @@ For the few items its own rules can't identify, PuterScanny can use a **free AI 
 - **Setup:** turn it on in **Local AI**. The model (Qwen3.5 4B, Apache-2.0, 2.6 GB) is downloaded once from Hugging Face and checked against a fixed fingerprint. A smaller 1.2 GB model is offered too, or you can use any GGUF model file you already have.
 - **Privacy:** after that it works offline. Nothing about your files leaves the PC, and there's no account, key or cost.
 - **Limits:** the AI only *explains*. It isn't told the recommendation, any advice it writes is removed, and every answer is labelled as AI-written. Keep-or-delete decisions always come from PuterScanny's own checks.
+- **Also used by Ask:** with Local AI on, the Ask tab understands questions in your own words (see above).
 
 ## Install
 
@@ -102,6 +114,7 @@ powershell -ExecutionPolicy Bypass -File build\release.ps1
 | `PuterScanny.Analysis` | The pipeline, the recommendation engine, duplicates, leftovers, reports |
 | `PuterScanny.Cleanup` | Recycle Bin, quarantine, undo, safety re-checks, restore points |
 | `PuterScanny.AI` | Optional offline explanations (LLamaSharp / llama.cpp), model downloads |
+| `PuterScanny.Chat` | "Ask about your scan": read-only lookups, question matching, and the local AI's checked answers |
 | `PuterScanny.App` | The WPF app |
 | `tests` | xUnit tests, including a safety suite that scans the real System32 and checks that nothing is ever recommended for deletion |
 

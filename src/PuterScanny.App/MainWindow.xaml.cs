@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -20,11 +20,54 @@ public partial class MainWindow : Window
             return dialog.ShowDialog() == true ? (dialog.Method, dialog.CreateRestorePoint) : null;
         };
         _vm.LoadHistory();
+        _vm.TabRequested += OnTabRequested;
+        _vm.Chat.AnswerAdded += (_, _) => Dispatcher.BeginInvoke(() => ChatScroll.ScrollToEnd(), System.Windows.Threading.DispatcherPriority.Background);
         if (_vm.IsElevated) Title = "PuterScanny (Administrator)";
         Loaded += async (_, _) =>
         {
             if (App.StartupRequest is { } request) await _vm.StartFromCommandLineAsync(request);
         };
+    }
+
+    private void OnTabRequested(object? sender, string tab)
+    {
+        if (tab == MainViewModel.AskTab)
+        {
+            ResultsTabs.SelectedItem = AskTabItem;
+            Dispatcher.BeginInvoke(() => ChatInput.Focus(), System.Windows.Threading.DispatcherPriority.Input);
+        }
+        else if (tab == MainViewModel.FoldersTab)
+        {
+            ResultsTabs.SelectedItem = FoldersTabItem;
+            // Scroll the selected item into view once the tree has made its rows.
+            Dispatcher.BeginInvoke(BringSelectedNodeIntoView, System.Windows.Threading.DispatcherPriority.Background);
+        }
+    }
+
+    private void BringSelectedNodeIntoView()
+    {
+        if (_vm.SelectedNode is not { } target) return;
+        FolderTree.UpdateLayout();
+        TreeViewItem? Find(ItemsControl parent)
+        {
+            foreach (var data in parent.Items)
+            {
+                if (parent.ItemContainerGenerator.ContainerFromItem(data) is not TreeViewItem item) continue;
+                if (ReferenceEquals(data, target)) return item;
+                if (item.IsExpanded)
+                {
+                    item.UpdateLayout();
+                    if (Find(item) is { } found) return found;
+                }
+            }
+            return null;
+        }
+        if (Find(FolderTree) is { } container)
+        {
+            container.IsSelected = true;
+            container.BringIntoView();
+            container.Focus();
+        }
     }
 
     private void FolderTree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e) =>

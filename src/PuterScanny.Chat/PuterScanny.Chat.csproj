@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\PuterScanny.Core\PuterScanny.Core.csproj" />
+    <ProjectReference Include="..\PuterScanny.Storage\PuterScanny.Storage.csproj" />
+    <ProjectReference Include="..\PuterScanny.Knowledge\PuterScanny.Knowledge.csproj" />
+    <ProjectReference Include="..\PuterScanny.Analysis\PuterScanny.Analysis.csproj" />
+    <ProjectReference Include="..\PuterScanny.AI\PuterScanny.AI.csproj" />
+  </ItemGroup>
+
+</Project>

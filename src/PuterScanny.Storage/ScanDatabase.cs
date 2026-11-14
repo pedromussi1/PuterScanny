@@ -9,7 +9,7 @@ namespace PuterScanny.Storage;
 /// One SQLite file per scan. Holds every entry, hidden stream and issue so results can be browsed,
 /// compared and exported later without rescanning.
 /// </summary>
-public sealed class ScanDatabase : IDisposable
+public sealed partial class ScanDatabase : IDisposable
 {
     public const int SchemaVersion = 7;
 

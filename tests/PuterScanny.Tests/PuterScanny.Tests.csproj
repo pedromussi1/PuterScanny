@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <IsPackable>false</IsPackable>
@@ -24,6 +24,7 @@
     <ProjectReference Include="..\..\src\PuterScanny.Signals\PuterScanny.Signals.csproj" />
     <ProjectReference Include="..\..\src\PuterScanny.Cleanup\PuterScanny.Cleanup.csproj" />
     <ProjectReference Include="..\..\src\PuterScanny.AI\PuterScanny.AI.csproj" />
+    <ProjectReference Include="..\..\src\PuterScanny.Chat\PuterScanny.Chat.csproj" />
   </ItemGroup>
 
 </Project>

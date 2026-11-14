@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
@@ -39,6 +39,7 @@ public sealed class VerdictTagBrushConverter : IValueConverter
     private static readonly System.Windows.Media.Brush Delete = Frozen(0x2E, 0x9E, 0x4A);
     private static readonly System.Windows.Media.Brush Review = Frozen(0xC7, 0x8A, 0x00);
     private static readonly System.Windows.Media.Brush Tool = Frozen(0x2B, 0x7C, 0xD3);
+    private static readonly System.Windows.Media.Brush Keep = Frozen(0x6E, 0x76, 0x81);
 
     private static System.Windows.Media.Brush Frozen(byte r, byte g, byte b)
     {
@@ -51,6 +52,7 @@ public sealed class VerdictTagBrushConverter : IValueConverter
     {
         "Delete" or "Can delete" => Delete,
         "Review" or "Uninstall?" => Review,
+        "Keep" => Keep,
         _ => Tool,
     };
 

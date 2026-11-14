@@ -20,6 +20,7 @@
     <ProjectReference Include="..\PuterScanny.Signals\PuterScanny.Signals.csproj" />
     <ProjectReference Include="..\PuterScanny.Cleanup\PuterScanny.Cleanup.csproj" />
     <ProjectReference Include="..\PuterScanny.AI\PuterScanny.AI.csproj" />
+    <ProjectReference Include="..\PuterScanny.Chat\PuterScanny.Chat.csproj" />
   </ItemGroup>
 
   <ItemGroup>

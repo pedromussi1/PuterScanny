@@ -133,6 +133,17 @@ public sealed class ExplanationService : IDisposable
         return result;
     }
 
+    /// <summary>
+    /// Runs the local model on any prompt (used by "Ask about this scan"). Loads the model first when needed.
+    /// </summary>
+    public async Task<string> GenerateAsync(string system, string user, int maxTokens, string? grammar, float temperature, CancellationToken ct, IProgress<float>? loadProgress = null)
+    {
+        if (_fakeGenerate is not null) return await _fakeGenerate(system, user, ct);
+        var resolved = ResolveModel() ?? throw new InvalidOperationException("The local AI isn't set up yet.");
+        var model = await EnsureLoadedAsync(resolved.Path, resolved.Name, loadProgress, ct);
+        return await Task.Run(() => model.GenerateAsync(system, user, maxTokens, ct, grammar, temperature), ct);
+    }
+
     private async Task<LocalModel> EnsureLoadedAsync(string path, string name, IProgress<float>? progress, CancellationToken ct)
     {
         if (_model is not null && _loadedPath == path) return _model;

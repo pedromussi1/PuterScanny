@@ -127,7 +127,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] public partial string StatusText { get; set; } = "Pick a drive or folder, then press Scan.";
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(OpenInExplorerCommand))]
+    [NotifyCanExecuteChangedFor(nameof(OpenInExplorerCommand), nameof(AskAboutSelectedCommand))]
     public partial TreeNodeViewModel? SelectedNode { get; set; }
 
     partial void OnSelectedDriveChanged(DriveOption? value)
@@ -464,6 +464,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         LoadDashboard(db, summary, root);
         InitTreemap(root);
         HasResults = true;
+        OpenChat();
         Ai.Refresh();
     }
 
@@ -558,6 +559,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ClearVisuals();
         FolderAi.Show(null);
         TreemapAi.Show(null);
+        _chat?.Close();
         _ctx?.Db.Dispose();
         _ctx = null;
         Ai.Refresh();
@@ -592,6 +594,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public void Dispose()
     {
         _cts?.Cancel();
+        _chat?.Dispose();
         Ai.Dispose();
         _ctx?.Db.Dispose();
     }

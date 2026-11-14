@@ -6,7 +6,7 @@
     <LangVersion>latest</LangVersion>
     <Company>PuterScanny</Company>
     <Product>PuterScanny</Product>
-    <Version>1.0.1</Version>
+    <Version>1.1.0</Version>
     <Authors>pedromussi1</Authors>
     <Copyright>Copyright (c) 2026 pedromussi1. MIT licence.</Copyright>
     <Description>PuterScanny: a free Windows disk scanner that explains every file and recommends what to keep or delete.</Description>
