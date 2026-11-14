@@ -31,6 +31,7 @@ It also finds duplicate files (compared byte for byte), leftovers from uninstall
 - **Also**: largest files, programs, file types, usage history, "must keep", and everything that was skipped and why.
 - **Ask**: ask questions about the scan in plain English (see below).
 - **Export**: an HTML report, a CSV spreadsheet of every item, or JSON.
+- **Dark mode**: the **Dark mode** button at the top right switches between light and dark. Until you use it, PuterScanny follows Windows' own setting.
 
 ### Safe clean-up
 
@@ -55,6 +56,7 @@ If you say no, it runs a normal scan and the report lists what it couldn't check
 
 Ask questions about the scanned drive or folder and get answers from the scan itself, for example: *"What can I safely delete in Downloads?"*, *"Which videos haven't I watched in a year?"*, *"Are there any duplicates?"*, *"Why is OllamaSetup.exe marked for deletion?"* or *"What's taking the most space?"*. Press **Ask about this** in the Folders or Treemap tab to ask about one folder or file.
 
+- **Ask what something is:** *"What is BmGame?"*, *"What are these files?"* or *"What is this folder?"* gets a full description: what's inside it (kinds of files, with example names), what it's part of (a program, a mod download, a game), what a readme next to it says, and PuterScanny's recommendation. With Local AI on, the AI writes that description and says what the facts add up to (for example, that a mod's Bink videos are the game's cutscenes). It takes 20 to 60 seconds and is checked like every other answer.
 - **Instant and exact:** common questions are recognised and answered straight from the scan, with exact sizes and counts and no AI involved.
 - **In your own words, with Local AI on:** other questions go to the local AI. It can only pick from a fixed set of read-only lookups in the scan, it writes the answer from their results, and every size, count and file name in its answer is checked against those results before it's shown. If its wording doesn't match the scan, you get the plain answer instead.
 - **Every answer lists the items it's based on.** From each one you can show it in Folders, open it in File Explorer, ask why it got its recommendation, or tick it into the clean-up basket.

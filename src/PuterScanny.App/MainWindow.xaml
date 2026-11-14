@@ -150,6 +150,13 @@
         <!-- Header -->
         <StackPanel Grid.Row="0" Margin="0,0,0,12">
             <DockPanel>
+                <ToggleButton x:Name="ThemeToggle" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="8,0,0,0" Padding="10,5"
+                              Click="ThemeToggle_Click" AutomationProperties.Name="Dark mode" ToolTip="Switch between light and dark">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="ThemeIcon" FontFamily="{StaticResource IconFont}" Text="&#xE708;" VerticalAlignment="Center" Margin="0,0,6,0" />
+                        <TextBlock Text="Dark mode" />
+                    </StackPanel>
+                </ToggleButton>
                 <Button DockPanel.Dock="Right" Click="OpenLocalAi_Click" VerticalAlignment="Center" AutomationProperties.Name="Local AI"
                         ToolTip="Free, offline AI that explains items PuterScanny's rules can't identify.">
                     <StackPanel Orientation="Horizontal">
@@ -157,7 +164,11 @@
                         <TextBlock Text="Local AI" />
                     </StackPanel>
                 </Button>
-                <TextBlock Text="PuterScanny" FontSize="26" FontWeight="SemiBold" />
+                <StackPanel Orientation="Horizontal">
+                    <Image Source="/Assets/PuterScanny.ico" Width="30" Height="30" Margin="0,2,10,0" VerticalAlignment="Center"
+                           RenderOptions.BitmapScalingMode="HighQuality" />
+                    <TextBlock Text="PuterScanny" FontSize="26" FontWeight="SemiBold" VerticalAlignment="Center" />
+                </StackPanel>
             </DockPanel>
             <TextBlock Style="{StaticResource Muted}"
                        Text="Scan a drive or folder and see everything in it: what each file is, which program it belongs to, and whether to keep it." />
@@ -383,7 +394,7 @@
                                     <TextBlock TextWrapping="Wrap" Margin="0,4,0,0" Style="{StaticResource Muted}"
                                                Text="Ask what's taking space, what can go, what something is, or why PuterScanny recommends what it does. Answers come from this scan, on this PC: nothing is sent anywhere, and nothing is deleted from here." />
                                 </StackPanel>
-                                <ItemsControl ItemsSource="{Binding Messages}" AutomationProperties.Name="Conversation">
+                                <ItemsControl x:Name="ChatMessages" ItemsSource="{Binding Messages}" AutomationProperties.Name="Conversation">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate DataType="{x:Type vm:ChatMessage}">
                                             <StackPanel Margin="0,6">

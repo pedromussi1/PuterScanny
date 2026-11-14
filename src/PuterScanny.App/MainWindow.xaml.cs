@@ -21,8 +21,10 @@ public partial class MainWindow : Window
         };
         _vm.LoadHistory();
         _vm.TabRequested += OnTabRequested;
-        _vm.Chat.AnswerAdded += (_, _) => Dispatcher.BeginInvoke(() => ChatScroll.ScrollToEnd(), System.Windows.Threading.DispatcherPriority.Background);
+        _vm.Chat.QuestionAsked += (_, question) => Dispatcher.BeginInvoke(() => ScrollToQuestion(question), System.Windows.Threading.DispatcherPriority.Loaded);
         if (_vm.IsElevated) Title = "PuterScanny (Administrator)";
+        ShowTheme();
+        AppTheme.Changed += (_, _) => ShowTheme();
         Loaded += async (_, _) =>
         {
             if (App.StartupRequest is { } request) await _vm.StartFromCommandLineAsync(request);
@@ -42,6 +44,26 @@ public partial class MainWindow : Window
             // Scroll the selected item into view once the tree has made its rows.
             Dispatcher.BeginInvoke(BringSelectedNodeIntoView, System.Windows.Threading.DispatcherPriority.Background);
         }
+    }
+
+    /// <summary>Puts the question just asked at the top of the conversation, so its answer reads from the start
+    /// (scrolling to the bottom would show only the end of a long answer, or look like nothing happened).</summary>
+    private void ScrollToQuestion(ChatMessage question)
+    {
+        ChatScroll.UpdateLayout();
+        if (ChatMessages.ItemContainerGenerator.ContainerFromItem(question) is not FrameworkElement container) { ChatScroll.ScrollToEnd(); return; }
+        double top = container.TranslatePoint(new Point(0, 0), ChatScroll).Y + ChatScroll.VerticalOffset;
+        ChatScroll.ScrollToVerticalOffset(Math.Max(0, top - 4));
+    }
+
+    private void ThemeToggle_Click(object sender, RoutedEventArgs e) => AppTheme.Set(ThemeToggle.IsChecked == true);
+
+    private void ShowTheme()
+    {
+        bool dark = AppTheme.IsDark;
+        ThemeToggle.IsChecked = dark;
+        ThemeIcon.Text = dark ? "" : ""; // sun / moon
+        ThemeToggle.ToolTip = dark ? "Switch to light mode" : "Switch to dark mode";
     }
 
     private void BringSelectedNodeIntoView()

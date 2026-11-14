@@ -14,10 +14,29 @@ public static partial class AnswerChecker
         You are PuterScanny's assistant. You answer the user's question about their PC using only the lookup results you are given.
         Rules:
         - Use names, sizes, counts and dates exactly as they are written in the results. Don't add up, estimate or invent numbers.
-        - Whether to keep or delete something is decided by PuterScanny, not by you. Say what PuterScanny recommends, using its label from the results (for example "Recommended to delete", "Review", "Keep", "No reason to remove"). Never give your own advice.
+        - Whether to keep or delete something is decided by the app's checks, not by you. Report the recommendation using its label from the results (for example "it's marked Review", "Recommended to delete", "No reason to remove"). Never give your own advice.
+        - Don't refer to the app by name ("PuterScanny"); just say what is recommended.
         - Don't guess why files are there, what they were used for, or whether the user still needs them; say only what the results show.
         - If the results don't answer the question, say so and say what they do show.
         - Write 2 to 5 short sentences of plain text. No lists, headings or markdown: the items are shown under your answer.
+        """;
+
+    /// <summary>For "what is this?": explain what the item is and what it's for, from everything the scan found about it.</summary>
+    public const string DescribeSystem = """
+        You are PuterScanny's assistant. The user asked what a file or folder on their PC is. Explain it using only the facts you are given.
+        Cover, in this order:
+        1. What it is and what it's part of (a program, a game, a mod, a download, the user's own files...).
+        2. For a folder, what's inside it: the kinds of files and a few example names, and what they are for.
+        3. What any readme or program details say about it, briefly.
+        4. The recommendation, with its label exactly as written (for example "it's marked Review", "Keep (your file)", "Recommended to delete") and its main reason.
+        Rules:
+        - Use names, sizes, counts and dates exactly as they are written in the facts. Don't add up, estimate or invent numbers or names.
+        - You may state what the facts clearly add up to (for example: Bink game videos with scene names like "Joker_escapes" are the game's cutscenes; a readme saying to copy a folder into the game means it's an install copy). Say "probably" or "looks like" when you do.
+        - Keep or delete is decided by the app's checks, not by you. Never give your own advice.
+        - Don't refer to the app by name ("PuterScanny"), and don't explain how recommendations work in general: say what this item is and what is recommended for it.
+        - For the recommendation, give the label and the reasons listed in the facts. Don't add reasons of your own (age, use, size) that the facts don't give as reasons, and don't mention percentages.
+        - Talk to the user as "you". Every sentence must add something new: no filler, no repeating, no summary at the end.
+        - Write 3 to 6 short sentences of plain text. No lists, headings or markdown.
         """;
 
     public static string User(string question, IEnumerable<LookupResult> results) =>
@@ -37,6 +56,7 @@ public static partial class AnswerChecker
         {
             string? advice = AdviceProblem(sentence, items);
             if (advice is not null) { problems.Add(advice); continue; }
+            if (RecommendationProblem(sentence, facts) is { } misreported) { problems.Add(misreported); continue; }
             kept.Add(sentence);
         }
         text = string.Join(" ", kept).Trim();
@@ -97,6 +117,39 @@ public static partial class AnswerChecker
         return null;
     }
 
+    /// <summary>
+    /// "PuterScanny recommends keeping it" when the recommendation in the facts is Review: a sentence reporting
+    /// PuterScanny's recommendation must name the one the facts give.
+    /// </summary>
+    private static string? RecommendationProblem(string sentence, string facts)
+    {
+        var given = Regex.Matches(facts, @"^(?:PuterScanny's )?[Rr]ecommendation[^:\n]*: (?<v>[^(\n,]+)", RegexOptions.Multiline)
+            .Select(m => Kind(m.Groups["v"].Value)).Where(k => k is not null).ToHashSet();
+        if (given.Count == 0) return null;
+        if (!Regex.IsMatch(sentence, @"\b(recommend\w*|marks?|marked|label\w*|rated)\b", RegexOptions.IgnoreCase))
+            return null;
+        // Only the claim itself, not the reasons after it ("…Review, because you might keep…").
+        string claim = Regex.Split(sentence, @"\b(?:because|since|as it|noting|although|but|if|unless|so that|once|until)\b|[,;:—–]", RegexOptions.IgnoreCase)[0];
+        // "PuterScanny never suggests deleting your files on its own" isn't a recommendation.
+        if (Regex.IsMatch(claim, @"\b(never|not|no|nothing)\b|n't\b", RegexOptions.IgnoreCase)) return null;
+        var claimed = new List<string>();
+        if (Regex.IsMatch(claim, @"\b(keep|keeping|kept)\b", RegexOptions.IgnoreCase)) claimed.Add("keep");
+        if (Regex.IsMatch(claim, @"\b(review|reviewing)\b", RegexOptions.IgnoreCase)) claimed.Add("review");
+        if (Regex.IsMatch(claim, @"\b(delete|deleting|deletion|remove|removing|removal)\b", RegexOptions.IgnoreCase)) claimed.Add("delete");
+        if (Regex.IsMatch(claim, @"\brequired\b", RegexOptions.IgnoreCase)) claimed.Add("required");
+        return claimed.Any(c => !given.Contains(c)) ? $"recommendation misreported: {sentence}" : null;
+    }
+
+    private static string? Kind(string label)
+    {
+        string l = label.Trim().ToLowerInvariant();
+        return l.StartsWith("required", StringComparison.Ordinal) ? "required"
+            : l.StartsWith("keep", StringComparison.Ordinal) || l.StartsWith("no reason", StringComparison.Ordinal) ? "keep"
+            : l.StartsWith("review", StringComparison.Ordinal) ? "review"
+            : l.Contains("delete", StringComparison.Ordinal) ? "delete"
+            : null;
+    }
+
     // ---------------------------------------------------------------- parsing
 
     private static string Clean(string raw)
@@ -106,6 +159,7 @@ public static partial class AnswerChecker
         s = Regex.Replace(s, @"(?m)^\s{0,3}#{1,6}\s+", "");
         s = Regex.Replace(s, @"(?m)^\s*(?:[-*•]|\d+[.)])\s+", "");
         s = s.Replace("**", "").Replace("__", "").Replace("`", "");
+        s = Regex.Replace(s, @"(?<![\w*])\*(?=\S)([^*\n]+?)(?<=\S)\*(?![\w*])", "$1");
         return Regex.Replace(s, @"\s+", " ").Trim();
     }
 
@@ -167,7 +221,7 @@ public static partial class AnswerChecker
     [GeneratedRegex(@"(?<=[.!?])\s+(?=[A-Z""“(])")]
     private static partial Regex SentenceRx();
 
-    [GeneratedRegex(@"\b((you|i|we) (can|could|should|may|might want to|ought to)( safely| probably| definitely)? (delete|remove|get rid of|trash|clean up|uninstall|free up)|(safe|ok|okay|fine) to (delete|remove|get rid of)|can (safely )?be (deleted|removed)|recommend(ed|s)? (deleting|removing|that you delete)|no longer (needed|necessary)|consider (deleting|removing))\b", RegexOptions.IgnoreCase)]
+    [GeneratedRegex(@"\b((you|i|we) (can|could|should|may|might want to|ought to)( safely| probably| definitely| only| just| also| then| still)? (delete|remove|get rid of|trash|clean up|uninstall|free up)|(safe|ok|okay|fine) to (delete|remove|get rid of)|can (safely )?be (deleted|removed)|recommend(ed|s)? (deleting|removing|that you delete)|no longer (needed|necessary)|consider (deleting|removing))\b", RegexOptions.IgnoreCase)]
     private static partial Regex DeleteAdviceRx();
 
     [GeneratedRegex(@"\b((you|i|we) (should|must|need to|ought to) keep|(don'?t|do not|never|shouldn'?t|should not) (delete|remove|touch)|(must|should) (be kept|stay|not be (deleted|removed)))\b", RegexOptions.IgnoreCase)]

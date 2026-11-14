@@ -72,12 +72,12 @@ public sealed partial class MainViewModel
         if (e.IsDirectory)
         {
             Chat.SetScope(e.Path);
-            await Chat.AskWithLookupAsync($"Tell me about {name}", new LookupRequest { Kind = LookupKind.Overview });
+            await Chat.AskWithLookupAsync($"What is {name}?", new LookupRequest { Kind = LookupKind.Item, Explain = true });
         }
         else
         {
             if (System.IO.Path.GetDirectoryName(e.Path) is { } parent) Chat.SetScope(parent);
-            await Chat.AskWithLookupAsync($"What is {name}?", new LookupRequest { Kind = LookupKind.Item, Name = e.Path });
+            await Chat.AskWithLookupAsync($"What is {name}?", new LookupRequest { Kind = LookupKind.Item, Name = e.Path, Explain = true });
         }
     }
 }

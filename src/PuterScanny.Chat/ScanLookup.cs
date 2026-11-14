@@ -102,14 +102,25 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
 
         var sb = new StringBuilder();
         sb.Append($"{name} holds {ChatText.Size(folder.TotalSize)} in {ChatText.Count(folder.FileCount, "file", "files")} and {ChatText.Count(folder.DirectoryCount, "folder", "folders")}.");
+        // What the folder itself is, before what's inside it ("a mod download PuterScanny marks Review").
+        string self = "";
+        if (folder.Depth > 0 && folder.Analysis is { } fa && RecommendationExplainer.Explain(db, kb, folder) is { } own)
+        {
+            if (Profiler.PartOf(folder) is { } part && part.Entry.Analysis is { } pa && RecommendationExplainer.Explain(db, kb, part.Entry) is { } prec &&
+                prec.Verdict is Verdict.Review or Verdict.SafeToDelete or Verdict.RecommendDelete)
+                self = $"It's part of {part.Entry.Name}, {part.What}, marked {ChatText.Verdict(prec.Verdict, pa.Facts)} ({prec.Headline.TrimEnd('.')}).";
+            else if (!own.NoEvidence)
+                self = $"The folder itself is marked {ChatText.Verdict(own.Verdict, fa.Facts)} ({own.Headline.TrimEnd('.')}).";
+            if (self.Length > 0) sb.Append(' ').Append(self);
+        }
         var free = new List<string>();
         if (recommend > 0) free.Add($"{ChatText.Size(recommend)} is recommended to delete");
         if (safe > 0) free.Add($"{ChatText.Size(safe)} is safe to delete");
         if (review > 0) free.Add($"{ChatText.Size(review)} is worth reviewing");
         if (tool > 0) free.Add($"{ChatText.Size(tool)} can be freed with Windows tools");
         sb.Append(free.Count > 0
-            ? $" According to PuterScanny, {ChatText.Join(free)}."
-            : " PuterScanny found nothing here that's clearly safe to remove.");
+            ? $" {Sentence(ChatText.Join(free))}."
+            : " Nothing here is clearly safe to remove.");
         var kept = new List<string>();
         if (keep > 0) kept.Add($"{ChatText.Size(keep)} to keep");
         if (personal > 0) kept.Add($"{ChatText.Size(personal)} of your own files");
@@ -122,6 +133,7 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
         var facts = new StringBuilder();
         facts.AppendLine($"Lookup: overview of {scope}");
         facts.AppendLine($"Total: {ChatText.Size(folder.TotalSize)}, {ChatText.Count(folder.FileCount, "file", "files")}, {ChatText.Count(folder.DirectoryCount, "folder", "folders")}");
+        if (self.Length > 0) facts.AppendLine(self);
         facts.AppendLine($"Recommended to delete: {ChatText.Size(recommend)}; Safe to delete: {ChatText.Size(safe)}; Review: {ChatText.Size(review)}; Freeable with Windows tools: {ChatText.Size(tool)}");
         facts.AppendLine($"Keep: {ChatText.Size(keep)}; Keep (your file): {ChatText.Size(personal)}; Required by Windows: {ChatText.Size(required)}; No reason to remove: {ChatText.Size(noReason)}");
         facts.AppendLine("Biggest items inside:");
@@ -206,14 +218,14 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
         if (items.Count == 0)
         {
             sb.Append($"I found no {Describe(req, scope, withSort: false)}.");
-            if (req.Filter == ListFilter.Delete) sb.Append(" PuterScanny didn't find anything here that's clearly safe to remove.");
+            if (req.Filter == ListFilter.Delete) sb.Append(" Nothing here is clearly safe to remove.");
         }
         else
         {
             string top = ChatText.Join(items.Take(3).Select(i => $"{i.Name} ({i.SizeText}{(i.VerdictText.Length > 0 ? ", " + i.VerdictText : "")})").ToList());
             if (req.Filter == ListFilter.Delete && files > 0)
             {
-                sb.Append($"PuterScanny says {ChatText.Size(bytes)} in {ChatText.FolderName(scope)} can be deleted ({ChatText.Count(files, countWord, countWords)}). The biggest: {top}.");
+                sb.Append($"{ChatText.Size(bytes)} in {ChatText.FolderName(scope)} can be deleted ({ChatText.Count(files, countWord, countWords)}). The biggest: {top}.");
             }
             else
             {
@@ -262,9 +274,9 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
         parts.Add(noun);
         switch (req.Filter)
         {
-            case ListFilter.Delete: parts.Add("PuterScanny says can be deleted"); break;
+            case ListFilter.Delete: parts.Add("that can be deleted"); break;
             case ListFilter.Review: parts.Add("worth reviewing"); break;
-            case ListFilter.Keep: parts.Add("PuterScanny says to keep"); break;
+            case ListFilter.Keep: parts.Add("to keep"); break;
             case ListFilter.Required: parts.Add("required by Windows"); break;
             case ListFilter.NoReason: parts.Add("with no reason to remove"); break;
         }
@@ -296,7 +308,11 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
         if (req.UnusedDays is not null || req.OlderDays is not null || req.Sort is EntrySort.Oldest or EntrySort.Newest)
         {
             var changed = a?.ContainedLastModifiedUtc ?? e.ModifiedUtc;
-            if (changed != default) parts.Add($"changed {ChatText.Ago(changed, _now)}");
+            // The date it arrived counts too (and a TorrentZIP placeholder date says nothing).
+            if (e.CreatedUtc > changed && e.CreatedUtc <= _now || !e.IsDirectory && FileDates.IsTorrentZipDate(e.ModifiedUtc))
+                parts.Add($"added {ChatText.Ago(e.CreatedUtc, _now)}");
+            else if (changed != default)
+                parts.Add($"changed {ChatText.Ago(changed, _now)}");
         }
         return string.Join(" · ", parts);
     }
@@ -321,10 +337,23 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
             // A short word ("iso") inside other names ("isObject.js") isn't what was meant.
             if (name.Length < 4) continue;
             if (matches.Count == 1) return (matches[0], []);
+            // A folder and what's inside it, all matching ("Pokemon - Emerald Version" the folder and its .gba): one thing.
+            // When the folder holds just that one file, the file is what was meant; otherwise the folder.
+            foreach (var folder in matches.Where(m => m.IsDirectory).OrderBy(m => m.Depth))
+            {
+                string prefix = folder.Path.TrimEnd('\\') + "\\";
+                var inside = matches.Where(m => m != folder && m.Path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)).ToList();
+                if (inside.Count != matches.Count - 1) continue;
+                var onlyFile = folder.FileCount == 1 ? inside.FirstOrDefault(m => !m.IsDirectory) : null;
+                return (onlyFile ?? folder, []);
+            }
             return (null, matches);
         }
         return (null, []);
     }
+
+    private ItemProfiler? _profiler;
+    private ItemProfiler Profiler => _profiler ??= new ItemProfiler(db);
 
     private LookupResult Item(LookupRequest req, string scope)
     {
@@ -354,85 +383,241 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
         }
 
         var a = e.Analysis;
-        var item = ToItem(e, scope);
+        var p = Profiler.Build(e);
+        var items = new List<ChatItem> { ToItem(e, scope) };
         var lines = new List<string>();
-        var answer = new StringBuilder();
+        var paras = new List<string>();
+        var s = new StringBuilder();
 
+        // 1. What it is, and what it's part of.
         string what = e.IsDirectory
-            ? $"a folder with {ChatText.Count(e.FileCount, "file", "files")} and {ChatText.Count(e.DirectoryCount, "folder", "folders")} ({ChatText.Size(e.TotalSize)})"
-            : $"{Article(a?.TypeLabel ?? "file")} ({ChatText.Size(e.Size)})";
-        answer.Append($"{e.Name} is {what}");
+            ? $"a folder holding {ChatText.Count(e.FileCount, "file", "files")}{(e.DirectoryCount > 0 ? $" and {ChatText.Count(e.DirectoryCount, "subfolder", "subfolders")}" : "")} ({ChatText.Size(e.TotalSize)})"
+            : $"{Article(Lower(a?.TypeLabel ?? "file"))} ({ChatText.Size(e.Size)})";
+        if (e.Depth == 0)
+            what = "the folder this scan is about";
+        s.Append($"{e.Name} is {what}");
+        lines.Add($"Item: {e.Name} ({(e.IsDirectory ? "folder" : "file")})");
         lines.Add($"What it is: {what}");
         lines.Add($"Location: {e.Path}");
-        if (a?.OwnerAppName is { } owner)
+        if (a?.OwnerAppName is { } owner && !owner.Equals(e.Name, StringComparison.OrdinalIgnoreCase))
         {
-            answer.Append($", part of {owner}");
+            s.Append($", part of {owner}");
             lines.Add($"Belongs to: {owner}");
         }
-        else if (kb.GetRule(a?.LocationRuleId) is { } rule)
+        else if (kb.GetRule(a?.LocationRuleId) is { } rule && e.Depth > 0 &&
+                 !string.Equals(rule.Name, ChatText.FolderName(db.GetRoot()?.Path ?? ""), StringComparison.OrdinalIgnoreCase))
         {
-            answer.Append($", in a known location: {rule.Name}");
+            s.Append($", in {rule.Name}");
             lines.Add($"Known location: {rule.Name}: {rule.Description}");
         }
-        answer.Append('.');
-
-        if (a is not null && RecommendationExplainer.Explain(db, kb, e) is { } rec)
+        s.Append('.');
+        if (!e.IsDirectory && p.Parent is { Depth: > 0 } parent)
         {
-            string verdict = ChatText.Verdict(rec.Verdict, a.Facts);
-            answer.Append($" PuterScanny's recommendation: {verdict} ({rec.Confidence}% sure), because: {rec.Headline.TrimEnd('.')}.");
-            lines.Add($"PuterScanny's recommendation: {verdict} ({rec.Confidence}% sure): {rec.Headline}");
-            var reasons = rec.Evidence.Select(ev => (ev.Weight > 0 ? "For removing: " : "For keeping: ") + ev.Text.TrimEnd('.')).ToList();
-            if (reasons.Count > 0)
-            {
-                answer.Append(' ').Append(string.Join(". ", reasons.Take(4))).Append('.');
-                lines.AddRange(reasons);
-            }
-            string todo = ActionText(rec.Action);
-            if (todo.Length > 0) { answer.Append(' ').Append(todo); lines.Add("What to do: " + todo); }
+            s.Append(parent.FileCount == 1 ? $" It's the only file in the folder {parent.Name}." : $" It's in the folder {parent.Name}.");
+            lines.Add(parent.FileCount == 1 ? $"The only file in the folder {parent.Name}" : $"In the folder {parent.Name}");
+        }
+        if (p.Program is { } pe && (pe.ProductName ?? pe.FileDescription) is { Length: > 0 } product)
+        {
+            string desc = pe.FileDescription is { Length: > 0 } fd && !fd.Trim().Equals(product.Trim(), StringComparison.OrdinalIgnoreCase) ? $" ({fd.Trim()})" : "";
+            string? version = pe.ProductVersion ?? pe.FileVersion;
+            string ver = version is { Length: > 0 } ? $" {version.Trim()}" : "";
+            string by = pe.CompanyName is { Length: > 0 } co ? $" by {co.Trim()}" : "";
+            s.Append($" The program inside identifies itself as {product.Trim()}{ver}{by}{desc}.");
+            lines.Add($"Program details: {product.Trim()}{ver}{by}{desc}");
+        }
+        if (p.Mod is { } mod)
+        {
+            s.Append($" It's a mod downloaded from Nexus Mods ({mod.Name}, version {mod.Version}).");
+            lines.Add($"Mod download (Nexus Mods): {ItemProfiler.ModText(mod)}");
+        }
+        Recommendation? containerRec = null;
+        if (p.PartOf is { } part)
+        {
+            var c = part.Entry;
+            containerRec = c.Analysis is not null ? RecommendationExplainer.Explain(db, kb, c) : null;
+            string cv = containerRec is not null ? $", marked {ChatText.Verdict(containerRec.Verdict, c.Analysis!.Facts)}" : "";
+            s.Append($" It's part of {c.Name}, {part.What}{cv}.");
+            lines.Add($"Part of: {c.Name} ({c.Path}): {part.What}{(part.Detail is { } d2 ? $": {d2}" : "")}{cv}");
+            items.Add(ToItem(c, scope));
+        }
+        paras.Add(s.ToString());
+
+        // 2. What's inside (folders): one line per kind of file, so it's easy to scan.
+        if (p.Kinds.Count > 0)
+        {
+            s.Clear();
+            // "game video (Bink, .bik)", "Game Boy Advance ROM (.gba)"
+            static string Kind(KindOfFiles k) =>
+                k.Extension.Length == 0 ? Sentence(Lower(k.Label))
+                : k.Label.EndsWith(')') ? $"{Sentence(Lower(k.Label))[..^1]}, {k.Extension})"
+                : $"{Sentence(Lower(k.Label))} ({k.Extension})";
+            static string Examples(KindOfFiles k, int n) => k.Examples.Count == 0 ? "" : (k.Files == 1 ? ": " : ", e.g. ") + string.Join(", ", k.Examples.Take(n));
+            s.Append("Inside:");
+            foreach (var k in p.Kinds.Take(4))
+                s.Append($"\n• {Kind(k)}: {ChatText.Count(k.Files, "file", "files")}, {ChatText.Size(k.Bytes)}{Examples(k, p.Kinds.Count == 1 ? 3 : 2)}");
+            if (p.Kinds.Count > 4) s.Append($"\n• …and {ChatText.Count(p.Kinds.Count - 4, "other kind", "other kinds")} of file");
+            if (p.Subfolders.Count == 1 && p.Subfolders[0].TotalSize >= e.TotalSize * 0.9)
+                s.Append($"\n{(p.Subfolders[0].TotalSize == e.TotalSize ? "All" : "Nearly all")} of it is in the folder {p.Subfolders[0].Name}.");
+            else if (p.Subfolders.Count > 0)
+                s.Append($"\nBiggest folders: {string.Join(", ", p.Subfolders.Take(3).Select(f => $"{f.Name} ({ChatText.Size(f.TotalSize)})"))}.");
+            paras.Add(s.ToString());
+            foreach (var k in p.Kinds)
+                lines.Add($"Inside: {Kind(k)}: {ChatText.Count(k.Files, "file", "files")}, {ChatText.Size(k.Bytes)}{(k.Examples.Count > 0 ? "; for example " + string.Join(", ", k.Examples) : "")}");
+            if (p.Subfolders.Count > 0)
+                lines.Add("Folders inside: " + string.Join(", ", p.Subfolders.Select(f => $"{f.Name} ({ChatText.Size(f.TotalSize)}, {ChatText.Count(f.FileCount, "file", "files")})")));
+        }
+
+        // 3. What a readme next to it says.
+        if (p.Readme is { } readme)
+        {
+            paras.Add($"Its {readme.Name}{(readme.Folder == e.Name ? "" : $" (in {readme.Folder})")} says: “{readme.Text}”");
+            lines.Add($"Text of {readme.Name} (in {readme.Folder}): {readme.Text}");
+        }
+
+        // 4. The recommendation: the label, the main reason, and only the reasons that add something.
+        s.Clear();
+        var own = a is not null && e.Depth > 0 ? RecommendationExplainer.Explain(db, kb, e) : null;
+        bool inheritsContainer = containerRec is not null && p.PartOf is not null &&
+                                 containerRec.Verdict is Verdict.Review or Verdict.SafeToDelete or Verdict.RecommendDelete &&
+                                 (own is null || own.Verdict is Verdict.Keep or Verdict.KeepPersonal);
+        var rec = inheritsContainer ? containerRec : own;
+        if (rec is not null)
+        {
+            var recFacts = inheritsContainer ? p.PartOf!.Entry.Analysis!.Facts : a!.Facts;
+            string verdict = ChatText.Verdict(rec.Verdict, recFacts);
+            string forWhat = inheritsContainer ? $", for all of {p.PartOf!.Entry.Name}" : "";
+            s.Append($"Recommendation: {verdict}{forWhat}. {Sentence(rec.Headline.TrimEnd('.'))}.");
+            var reasons = UsefulReasons(rec).ToList();
+            foreach (var reason in reasons.Take(4)) s.Append($"\n• {reason}.");
+            string todo = rec.IsDeletable || rec.Verdict == Verdict.Review ? ActionText(rec.Action) : "";
+            if (todo.Length > 0) s.Append('\n').Append(todo);
+            // For the AI: one recommendation only (the one that applies), so it can't mix two up.
+            lines.Add($"Recommendation: {verdict}{(inheritsContainer ? $", made for the whole of {p.PartOf!.Entry.Name}, which {e.Name} is part of" : "")}: {rec.Headline}");
+            lines.AddRange(reasons.Select(r => "Reason: " + r));
+            if (todo.Length > 0) lines.Add("What to do: " + todo);
+        }
+        else if (e.Depth > 0)
+        {
+            s.Append("There's no recommendation for it (its files weren't checked in this scan).");
+        }
+        if (e.Depth == 0)
+        {
+            // The scanned folder itself: what can be freed in it, as on the Overview tab.
+            var overview = Overview(req, e.Path);
+            paras.Add(overview.Answer);
+            lines.Add(overview.FactsText.Trim());
+        }
+        if (e.IsDirectory && e.Depth > 0 && a is not null && (a.ReclaimBytes > 0 || a.ReviewBytes > 0))
+        {
+            var inside = new List<string>();
+            if (a.ReclaimBytes > 0) inside.Add($"{ChatText.Size(a.ReclaimBytes)} can be deleted");
+            if (a.ReviewBytes > 0) inside.Add($"{ChatText.Size(a.ReviewBytes)} is worth reviewing");
+            string text = $"Inside it, {ChatText.Join(inside)}.";
+            s.Append(s.Length > 0 ? "\n" : "").Append(text);
+            lines.Add(text);
+        }
+        if (a is { Protection: > Protection.None })
+            lines.Add($"Protection: {ReportData.ProtectionName(a.Protection)}");
+        int recommendationAt = -1;
+        if (s.Length > 0) { recommendationAt = paras.Count; paras.Add(s.ToString()); }
+
+        // 5. History: opened, changed (or arrived, when the file's own date is a placeholder), copies.
+        s.Clear();
+        var usedAt = a?.LastUsedUtc ?? a?.ContainedLastUsedUtc;
+        s.Append(usedAt is { } u
+            ? $"Last opened {ChatText.Ago(u, _now)}{(a?.UseCount > 0 ? $" ({ChatText.Count(a.UseCount, "time", "times")} recorded)" : "")}"
+            : "Never opened, as far as Windows' records go");
+        lines.Add($"Last opened: {(usedAt is { } u2 ? ChatText.Ago(u2, _now) : "no record")}");
+        var changedAt = a?.ContainedLastModifiedUtc ?? e.ModifiedUtc;
+        bool arrived = e.CreatedUtc != default && e.CreatedUtc <= _now;
+        if (!e.IsDirectory && FileDates.IsTorrentZipDate(e.ModifiedUtc))
+        {
+            if (arrived) s.Append($"; added to this PC {ChatText.Ago(e.CreatedUtc, _now)}");
+            s.Append(". Its file date, 24 Dec 1996, is the fixed date TorrentZIP gives ROM and emulator files, so it doesn't show when the file was made or changed.");
+            lines.Add("File date: 24 Dec 1996 23:32, the fixed TorrentZIP date used on ROM sets (not a real change date)");
+            if (arrived) lines.Add($"Added to this PC: {ChatText.Ago(e.CreatedUtc, _now)}");
         }
         else
         {
-            answer.Append(" This scan has no recommendation for it (its files weren't checked).");
+            if (changedAt != default) s.Append($"; last changed {ChatText.Ago(changedAt, _now)}");
+            s.Append('.');
+            if (changedAt != default) lines.Add($"Last changed: {ChatText.Ago(changedAt, _now)}");
+            if (arrived) lines.Add($"Added to this PC: {ChatText.Ago(e.CreatedUtc, _now)}");
         }
-
-        if (a is { Protection: > Protection.None })
-            lines.Add($"Protection: {ReportData.ProtectionName(a.Protection)}");
-
-        var usedAt = a?.LastUsedUtc ?? a?.ContainedLastUsedUtc;
-        string used = usedAt is { } u
-            ? $"It was last opened {ChatText.Ago(u, _now)}{(a?.UseCount > 0 ? $" ({ChatText.Count(a.UseCount, "time", "times")} recorded)" : "")}"
-            : "Windows has no record of it being opened";
-        var changedAt = a?.ContainedLastModifiedUtc ?? e.ModifiedUtc;
-        string changed = changedAt != default ? $" and it was last changed {ChatText.Ago(changedAt, _now)}" : "";
-        answer.Append($" {used}{changed}.");
-        lines.Add($"Last opened: {(usedAt is { } u2 ? ChatText.Ago(u2, _now) : "no record")}");
-        if (changedAt != default) lines.Add($"Last changed: {ChatText.Ago(changedAt, _now)}");
 
         if (db.GetDuplicateInfo(e.Id) is { } dup)
         {
             string d = dup.IsKeeper
-                ? $"It has {ChatText.Count(dup.Copies - 1, "identical copy", "identical copies")} elsewhere; this is the copy to keep."
-                : $"It's one of {dup.Copies} identical copies; the copy to keep is {dup.KeeperPath}.";
-            answer.Append(' ').Append(d);
+                ? $"It has {ChatText.Count(dup.Copies - 1, "identical copy", "identical copies")} elsewhere; this is the one to keep."
+                : $"It's one of {dup.Copies} identical copies; the one to keep is {dup.KeeperPath}.";
+            s.Append(' ').Append(d);
             lines.Add(d);
         }
         if (others.Count > 0)
         {
             string more = $"{ChatText.Count(others.Count, "other item has", "other items have")} the same name.";
-            answer.Append(' ').Append(more);
+            s.Append(' ').Append(more);
             lines.Add(more);
         }
+        if (e.Depth > 0 || others.Count > 0) paras.Add(s.ToString());
+        // "Can I delete it?": the recommendation first, then what it is.
+        if (!req.Explain && recommendationAt > 0)
+        {
+            string first = paras[recommendationAt];
+            paras.RemoveAt(recommendationAt);
+            paras.Insert(0, first);
+        }
+
+        // The biggest things inside come after the item itself, so the list shows what the answer talks about.
+        if (e.IsDirectory)
+            items.AddRange(db.GetChildren(e.Id, 12).Where(c => c.TotalSize > 0).Take(8).Select(c => ToItem(c, scope)));
+        items.AddRange(others.Select(o => ToItem(o, scope)));
 
         return new LookupResult
         {
             Request = req,
             ScopePath = scope,
-            Answer = answer.ToString(),
-            Items = [item, .. others.Select(o => ToItem(o, scope))],
+            Answer = string.Join("\n\n", paras),
+            Items = items.GroupBy(i => i.Path, StringComparer.OrdinalIgnoreCase).Select(g => g.First()).ToList(),
             FactsText = $"Lookup: details of {e.Name}\n{string.Join("\n", lines)}\n",
             Description = $"details of {e.Name}",
         };
     }
+
+    private static string Sentence(string text) => ChatText.Sentence(text);
+
+    /// <summary>The reasons worth showing: not the ones that only repeat the headline ("Your own file" / "It looks like
+    /// your own file") or say something general about how recommendations work.</summary>
+    private static IEnumerable<string> UsefulReasons(Recommendation rec)
+    {
+        static string Words(string t) => System.Text.RegularExpressions.Regex.Replace(t.ToLowerInvariant(),
+            @"\b(it|this|that|looks|look|seems|like|is|a|an|the|appears|to|be)\b|[^a-z0-9 ]", " ").Trim();
+        string headline = System.Text.RegularExpressions.Regex.Replace(Words(rec.Headline), @"\s+", " ");
+        foreach (var ev in rec.Evidence)
+        {
+            string text = ev.Text.Trim().TrimEnd('.');
+            if (text.Length == 0) continue;
+            if (System.Text.RegularExpressions.Regex.IsMatch(text, @"never suggests deleting|on its own\.?$", System.Text.RegularExpressions.RegexOptions.IgnoreCase)) continue;
+            if (System.Text.RegularExpressions.Regex.Replace(Words(text), @"\s+", " ") == headline) continue;
+            yield return text.Replace("PuterScanny ", "", StringComparison.Ordinal);
+        }
+    }
+
+    /// <summary>"Game video (Bink)" → "game video (Bink)", but "PDF document" stays.</summary>
+    private static string Lower(string label)
+    {
+        var words = label.Split(' ');
+        return words.Length >= 2 && GenericWords.Contains(words[0]) && (char.IsLower(words[1][0]) || words[1][0] == '(')
+            ? char.ToLowerInvariant(label[0]) + label[1..]
+            : label;
+    }
+
+    private static readonly HashSet<string> GenericWords = new(StringComparer.Ordinal)
+    {
+        "Game", "Text", "Disc", "Disk", "Video", "Audio", "Image", "Archive", "Font", "File", "Folder", "Log", "Temporary", "Backup",
+        "Shortcut", "Document", "Database", "Configuration", "Settings", "Data", "Cache", "Crash", "Partial", "Compressed", "Unidentified",
+        "Installer", "Program", "Library", "Script", "Source", "Web", "Vector", "Raw", "Virtual", "Spreadsheet", "Presentation", "Music",
+    };
 
     private static string Article(string label) =>
         label.Length > 0 && "aeiouAEIOU".Contains(label[0]) ? "an " + label : "a " + label;
@@ -454,7 +639,7 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
         var (sets, copies, bytes) = db.GetDuplicateStats(scope);
         string name = ChatText.FolderName(scope);
         if (sets == 0)
-            return Empty(req, scope, $"duplicates in {name}", $"PuterScanny found no identical copies of files in {name}. (Files are compared byte for byte; very small files are skipped.)");
+            return Empty(req, scope, $"duplicates in {name}", $"There are no identical copies of files in {name}. (Files are compared byte for byte; very small files are skipped.)");
 
         var items = new List<ChatItem>();
         foreach (var e in db.GetDuplicateCopies(scope, req.Count))
@@ -465,7 +650,7 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
         string answer =
             $"{name} has {ChatText.Count(sets, "set", "sets")} of identical files. The extra copies ({ChatText.Count(copies, "file", "files")}) take {ChatText.Size(bytes)}." +
             (items.Count > 0 ? $" The biggest extra copies are {ChatText.Join(items.Take(3).Select(i => $"{i.Name} ({i.SizeText})").ToList())}." : "") +
-            " In each set PuterScanny keeps one copy and only offers the others.";
+            " In each set, one copy is kept and only the others are offered for removal.";
         var facts = new StringBuilder($"Lookup: duplicates in {scope}\nSets: {sets:N0}; extra copies: {copies:N0} files, {ChatText.Size(bytes)}\nBiggest extra copies:\n");
         AppendItems(facts, items);
         return new LookupResult { Request = req, ScopePath = scope, Answer = answer, Items = items, FactsText = facts.ToString(), Description = $"duplicates in {name}" };
@@ -490,7 +675,7 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
         if (req.Filter == ListFilter.Delete)
         {
             apps = apps.Where(a => a.UninstallConfidence > 0).ToList();
-            what = $"programs{where} PuterScanny suggests uninstalling";
+            what = $"programs{where} worth uninstalling";
         }
         else if (req.UnusedDays is int days)
         {
@@ -540,14 +725,14 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
             string list = ChatText.Join(items.Take(3).Select(i => $"{i.Name} ({i.SizeText}, {i.Note.Split(" · ")[0]})").ToList());
             string howMany = ChatText.Count(apps.Count, "program", "programs");
             answer = req.Filter == ListFilter.Delete
-                ? $"PuterScanny suggests uninstalling {howMany}{where}: {list}."
+                ? $"{Sentence(howMany)}{where} {(apps.Count == 1 ? "is" : "are")} worth uninstalling: {list}."
                 : req.UnusedDays is int unusedDays
                     ? $"{howMany}{where} {(apps.Count == 1 ? "hasn't" : "haven't")} been used in {ChatText.Period(unusedDays)}, as far as Windows' records show: {list}."
                     : $"There are {howMany}{where}. {(req.Sort == EntrySort.Size ? "The biggest" : "First")}: {list}.";
             if (req.Filter == ListFilter.Delete) answer += " Programs are removed by uninstalling them from Settings > Apps, never by deleting their files.";
         }
         if (req.UnusedDays is not null && noRecord > 0)
-            answer += $" {ChatText.Count(noRecord, "other program has", "other programs have")} no usage record at all, so PuterScanny can't tell when {(noRecord == 1 ? "it was" : "they were")} last used (some programs never leave one).";
+            answer += $" {ChatText.Count(noRecord, "other program has", "other programs have")} no usage record at all, so there's no telling when {(noRecord == 1 ? "it was" : "they were")} last used (some programs never leave one).";
         var facts = new StringBuilder($"Lookup: {what}\nMatching: {apps.Count:N0} programs\n");
         AppendItems(facts, items);
         return new LookupResult { Request = req, ScopePath = scope, Answer = answer, Items = items, FactsText = facts.ToString(), Description = what };
@@ -613,7 +798,7 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
               .Append(it.IsFolder ? " (folder)" : "").Append(" — ").Append(it.SizeText);
             if (it.VerdictText.Length > 0)
             {
-                sb.Append(" — PuterScanny: ").Append(it.VerdictText);
+                sb.Append(" — marked: ").Append(it.VerdictText);
                 if (it.Headline.Length > 0) sb.Append(" (").Append(it.Headline.TrimEnd('.')).Append(')');
             }
             if (it.Note.Length > 0) sb.Append(" — ").Append(it.Note);

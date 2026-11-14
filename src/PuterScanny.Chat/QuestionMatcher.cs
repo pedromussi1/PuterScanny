@@ -64,8 +64,25 @@ public sealed partial class QuestionMatcher(ScanLookup lookup)
             folder = phrase.Path;
             rest = q.Remove(phrase.Index, phrase.Length);
         }
-        rest = Regex.Replace(rest, @"\b(this|the|my|current) (folder|drive|directory)\b", "", Opts).Trim();
+        bool thisFolder = Regex.IsMatch(rest, @"\b(this|the|current) (folder|directory|place)\b|\b(in )?here\b", Opts);
+        rest = Regex.Replace(rest, @"\b(this|the|my|current) (folder|drive|directory|place)\b", "", Opts);
+        rest = Regex.Replace(rest, @"\s+", " ").Trim();
         string low = rest.ToLowerInvariant();
+
+        // "what are these files?", "what's in here?", "list the files in SNES Games": describe the folder and what's in it.
+        if (ContentsRx().IsMatch(low) || ContentsRx().IsMatch(Regex.Replace(low, @"\s*\bhere\b", "").Trim()))
+            return new LookupRequest { Kind = LookupKind.Item, Name = folder, Explain = true };
+
+        // "what is this folder?", "tell me about Downloads", "what is it for?": the folder itself (or the item asked about just before).
+        if (DescribeRx().IsMatch(low) && (folder is not null || thisFolder || Regex.IsMatch(low, @"\b(it|this)\b")))
+        {
+            if (folder is null && !thisFolder && previous is { Kind: LookupKind.Item })
+                return previous with { Explain = true };
+            return new LookupRequest { Kind = LookupKind.Item, Name = folder, Explain = true };
+        }
+        // "can I delete this folder?", "is it safe to delete?", "why is this folder marked Review?"
+        if ((folder is not null || thisFolder) && SelfVerdictRx().IsMatch(low))
+            return new LookupRequest { Kind = LookupKind.Item, Name = folder };
 
         // 2. Modifiers.
         long? minBytes = MinSize(low);
@@ -85,8 +102,8 @@ public sealed partial class QuestionMatcher(ScanLookup lookup)
 
         if (Regex.IsMatch(low, @"^(hi|hello|hey|thanks|thank you|ok|okay|help|\?)$"))
             return null;
-        // "tell me about Downloads", "what's in Downloads?"
-        if (folder is not null && Regex.IsMatch(low, @"^(tell me( more)?( about)?|what about|how about|about|explain|describe|summari[sz]e|overview( of)?|what'?s|what is|whats|show me|how big is|how much space is|how much is)$"))
+        // "summary of Downloads", "how big is Downloads?"
+        if (folder is not null && Regex.IsMatch(low, @"^(what about|how about|summari[sz]e|summary( of)?|overview( of)?|how big is|how large is|how much space (is|does)( it)?( take| use)?|how much is)$"))
             return new LookupRequest { Kind = LookupKind.Overview, Folder = folder };
 
         // 3. What is being asked.
@@ -211,7 +228,7 @@ public sealed partial class QuestionMatcher(ScanLookup lookup)
                 // "can I delete it?" right after asking about an item: the same item.
                 if (Regex.IsMatch(name, @"^(it|this|that|this one|that one|this folder|the folder)$", Opts) || name.Length == 0)
                 {
-                    if (previous is { Kind: LookupKind.Item }) return previous with { };
+                    if (previous is { Kind: LookupKind.Item }) return previous with { Explain = Regex.IsMatch(q, @"^(?:what|what'?s|whats|tell me|explain|describe)\b", Opts) };
                     if (Regex.IsMatch(q, @"\b(this|the) folder\b", Opts) || name is "this" or "it" && Regex.IsMatch(q, @"^(can|should|could|is) ", Opts))
                         return new LookupRequest { Kind = LookupKind.Item, Name = null };
                 }
@@ -221,12 +238,15 @@ public sealed partial class QuestionMatcher(ScanLookup lookup)
                 Regex.IsMatch(name, $@"^(?:all |any |old |big |the |my |these |those )*(?:{CategoryWords.First(c => c.Category == cat).Pattern})$", Opts))
                 return new LookupRequest { Kind = LookupKind.List, Category = cat, ItemKind = EntryKind.File };
             var (entry, others) = lookup.FindItem(name, scopePath);
+            // Part of a name is fine too ("the minish cap"), as long as it's specific enough to mean something.
+            bool specific = LooksLikeName(name) || name.Length >= 4 && !IsGenericName(name);
+            bool explain = Regex.IsMatch(q, @"^(?:what|what'?s|whats|tell me|explain|talk|details|info|information|who)\b", Opts);
             if (entry is not null && (string.Equals(entry.Name, name, StringComparison.OrdinalIgnoreCase) ||
                                       string.Equals(Path.GetFileNameWithoutExtension(entry.Name), name, StringComparison.OrdinalIgnoreCase) ||
-                                      LooksLikeName(name)))
-                return new LookupRequest { Kind = LookupKind.Item, Name = name };
-            if (entry is null && others.Count > 0 && LooksLikeName(name))
-                return new LookupRequest { Kind = LookupKind.Item, Name = name };
+                                      specific))
+                return new LookupRequest { Kind = LookupKind.Item, Name = name, Explain = explain };
+            if (entry is null && others.Count > 0 && specific)
+                return new LookupRequest { Kind = LookupKind.Item, Name = name, Explain = explain };
         }
         return null;
     }
@@ -357,4 +377,25 @@ public sealed partial class QuestionMatcher(ScanLookup lookup)
 
     [GeneratedRegex(@"^(and|also|what about|how about|only|just|now|same|then|but)\b|\b(those|these|them|of them|that list|the same|ones)\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex FollowUpRx();
+
+    /// <summary>Asking what a folder holds (after "this folder" / the folder's name were taken out of the question).</summary>
+    [GeneratedRegex(@"^(?:so )?(?:what|which) (?:are|r|is) (?:these|those|the|they|all (?:the|these|of these))(?: (?:files|things|items|folders|files and folders|files here))?(?: in(?:side)?(?: it| there)?)?$" +
+                    @"|^what (?:files|things|items|stuff) (?:are|is|do i have)(?: (?:in|inside|there|in it|in there|inside it))?$" +
+                    @"|^(?:list|show(?: me)?|give me|tell me) (?:all )?(?:of )?(?:the )?(?:files|contents|items|everything|what'?s (?:in|inside))(?: (?:in|inside)(?: it)?)?$" +
+                    @"|^(?:what'?s|whats|what is|what are) (?:in|inside)(?: (?:it|there))?$|^what does (?:it|this) (?:contain|hold|have(?: in it)?)$|^(?:the )?contents$",
+                    RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex ContentsRx();
+
+    /// <summary>Asking what a folder (or the item just discussed) is: "what is this?", "tell me about it", "what is it for?".</summary>
+    [GeneratedRegex(@"^(?:so |and |ok |okay )?(?:what|what'?s|whats|what is|tell me(?: more)?(?: about)?|describe|explain|about|info(?:rmation)?(?: on| about)?|details(?: of| on| about)?)(?: (?:it|this|that))?(?: (?:for|used for|about|do|doing here|there for|here for))?$" +
+                    @"|^what (?:does|do) (?:it|this) (?:do|mean)$|^what(?:'s| is) (?:the )?(?:purpose|point|use) of(?: it| this)?$|^why is (?:it|this) here$|^where (?:does|did) (?:it|this) come from$",
+                    RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex DescribeRx();
+
+    /// <summary>Asking for the recommendation of the folder itself: "can I delete this folder?", "is it safe to delete?".</summary>
+    [GeneratedRegex(@"^(?:can|should|could|may|must|do) i (?:safely |really |just )?(?:delete|remove|get rid of|trash|keep|clean up|clean)(?: (?:it|this|everything|all of it|all))?$" +
+                    @"|^(?:is|are) (?:(?:it|this|they) )?(?:safe|ok|okay|fine|needed|required|important|junk|necessary|deletable|removable|used|in use)(?: to (?:delete|remove|keep))?$" +
+                    @"|^why (?:is|was) (?:it |this )?(?:marked|recommended|flagged|kept|listed|labell?ed|shown|considered|safe|important)\b.*$|^do i (?:need|use)(?: it| this)?$",
+                    RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex SelfVerdictRx();
 }

@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Threading;
 
 namespace PuterScanny.App;
@@ -12,6 +12,7 @@ public partial class App : Application
     {
         DispatcherUnhandledException += OnUnhandledException;
         StartupRequest = Elevation.Parse(e.Args);
+        AppTheme.Load();
         base.OnStartup(e);
     }
 

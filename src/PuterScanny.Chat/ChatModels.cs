@@ -82,6 +82,10 @@ public sealed record LookupRequest
     public long? MinBytes { get; init; }
     public EntrySort Sort { get; init; }
     public int Count { get; init; } = 10;
+
+    /// <summary>The user wants to know what something is ("what is X?", "what's in here?"), not just a figure:
+    /// with the local AI on, it writes a description from the facts (slower, but more helpful).</summary>
+    public bool Explain { get; init; }
 }
 
 /// <summary>A file, folder or program an answer is based on (shown as a row under the answer).</summary>

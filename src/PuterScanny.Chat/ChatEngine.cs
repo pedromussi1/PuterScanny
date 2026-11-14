@@ -56,6 +56,34 @@ public sealed class ChatEngine(ScanLookup lookup, IChatModel? model)
         {
             var result = await Task.Run(() => lookup.Run(matched, scope), ct);
             Remember(question, matched, result);
+            // "What is this?": with the local AI on, it explains what the item is from all the facts gathered (slower,
+            // but it can say what the facts add up to). Its answer is checked like any other; if it fails, the facts are shown.
+            if (matched.Explain && result.Description.StartsWith("details of ", StringComparison.Ordinal) && model is { IsAvailable: true })
+            {
+                progress?.Report(new ChatProgress($"Found it. Writing a description ({model.Name}, on this PC)…", result.Items));
+                var described = await DescribeAsync(question, result, progress, ct);
+                if (described is not null)
+                {
+                    return new ChatAnswer
+                    {
+                        Text = described,
+                        Items = result.Items,
+                        Source = AnswerSource.LocalAi,
+                        Lookups = [result.Description],
+                        ModelName = model.Name,
+                        Elapsed = clock.Elapsed,
+                    };
+                }
+                return new ChatAnswer
+                {
+                    Text = result.Answer,
+                    Items = result.Items,
+                    Source = AnswerSource.LocalAiFallback,
+                    Lookups = [result.Description],
+                    ModelName = model.Name,
+                    Elapsed = clock.Elapsed,
+                };
+            }
             return new ChatAnswer
             {
                 Text = result.Answer,
@@ -119,11 +147,29 @@ public sealed class ChatEngine(ScanLookup lookup, IChatModel? model)
         };
     }
 
+    /// <summary>The AI's description of one item, checked against the facts; null when it didn't pass twice.</summary>
+    private async Task<string?> DescribeAsync(string question, LookupResult result, IProgress<ChatProgress>? progress, CancellationToken ct)
+    {
+        string user = AnswerChecker.User(question, [result]);
+        for (int attempt = 0; attempt < 2; attempt++)
+        {
+            string raw = await model!.GenerateAsync(AnswerChecker.DescribeSystem, user, 450, null, attempt == 0 ? 0.2f : 0f, ct);
+            var outcome = AnswerChecker.Check(raw, question, [result]);
+            if (outcome.Ok) return outcome.Text;
+            if (attempt == 0)
+            {
+                progress?.Report(new ChatProgress($"Checking the description against the scan… rewriting it ({model.Name})…", result.Items));
+                user += "\n\nUse only names, sizes and numbers that appear in the facts above, written exactly the same way.";
+            }
+        }
+        return null;
+    }
+
     private string? SmallTalk(string question)
     {
         string q = question.Trim().TrimEnd('!', '.', '?', ' ').ToLowerInvariant();
         if (System.Text.RegularExpressions.Regex.IsMatch(q, @"^(hi|hello|hey|hiya|good (morning|afternoon|evening)|yo)( there)?$"))
-            return $"Hi! Ask me anything about this scan of {ChatText.FolderName(_scope)}: what's taking space, what can go, what something is, or why PuterScanny recommends what it does.";
+            return $"Hi! Ask me anything about this scan of {ChatText.FolderName(_scope)}: what's taking space, what can go, what something is, or why something is recommended.";
         if (System.Text.RegularExpressions.Regex.IsMatch(q, @"^(thanks|thank you|thx|ty|cheers|great|perfect|cool|nice|ok|okay|got it)( (so much|a lot))?$"))
             return "You're welcome. Ask again any time.";
         if (System.Text.RegularExpressions.Regex.IsMatch(q, @"^(help|what can (you|i) (do|ask)|how does this work)$"))
@@ -133,7 +179,12 @@ public sealed class ChatEngine(ScanLookup lookup, IChatModel? model)
 
     private void Remember(string question, LookupRequest request, LookupResult result)
     {
-        _previous = request with { Folder = result.ScopePath };
+        // After describing a folder, "and which of those…" means the things inside that folder.
+        string folder = request.Kind == LookupKind.Item && result.Description.StartsWith("details of ", StringComparison.Ordinal) &&
+                        result.Items is [{ IsFolder: true } described, ..]
+            ? described.Path
+            : result.ScopePath;
+        _previous = request with { Folder = folder };
         _history.Add((question, result.Description));
         if (_history.Count > 6) _history.RemoveAt(0);
     }

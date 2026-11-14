@@ -41,7 +41,7 @@ public sealed partial class ChatItemRow(ChatItem item, ChatViewModel owner, Clea
 
     [RelayCommand]
     private Task AskAbout() => Item.EntryId is not null
-        ? owner.AskWithLookupAsync($"What is {Item.Name}?", new LookupRequest { Kind = LookupKind.Item, Name = Item.Path })
+        ? owner.AskWithLookupAsync($"What is {Item.Name}?", new LookupRequest { Kind = LookupKind.Item, Name = Item.Path, Explain = true })
         : owner.AskCommand.ExecuteAsync($"What is {Item.Name}?");
 }
 
@@ -86,8 +86,8 @@ public sealed partial class ChatViewModel : ObservableObject, IDisposable
     public Action<ChatItem>? ShowInFolders { get; set; }
     public Action<string>? Reveal { get; set; }
 
-    /// <summary>Raised when an answer arrives, so the view can scroll to it.</summary>
-    public event EventHandler? AnswerAdded;
+    /// <summary>Raised when a question is asked, so the view can bring it to the top with its answer below.</summary>
+    public event EventHandler<ChatMessage>? QuestionAsked;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AskCommand))]
@@ -190,11 +190,12 @@ public sealed partial class ChatViewModel : ObservableObject, IDisposable
     private async Task RunCoreAsync(ChatEngine engine, string question, LookupRequest? request)
     {
 
-        Messages.Add(new ChatMessage { IsUser = true, Text = question });
+        var asked = new ChatMessage { IsUser = true, Text = question };
+        Messages.Add(asked);
         var answer = new ChatMessage { IsWorking = true, Status = "Looking it up in the scan…" };
         Messages.Add(answer);
         OnPropertyChanged(nameof(HasMessages));
-        AnswerAdded?.Invoke(this, EventArgs.Empty);
+        QuestionAsked?.Invoke(this, asked);
 
         IsBusy = true;
         _cts = new CancellationTokenSource();
@@ -204,7 +205,6 @@ public sealed partial class ChatViewModel : ObservableObject, IDisposable
             {
                 answer.Status = p.Status;
                 if (p.Items is { } items && answer.Items.Count == 0) AddItems(answer, items);
-                AnswerAdded?.Invoke(this, EventArgs.Empty);
             });
             var result = await engine.AskAsync(question, progress, _cts.Token, request);
             answer.Text = result.Text;
@@ -227,7 +227,6 @@ public sealed partial class ChatViewModel : ObservableObject, IDisposable
             IsBusy = false;
             _cts.Dispose();
             _cts = null;
-            AnswerAdded?.Invoke(this, EventArgs.Empty);
             _ai.Refresh();
         }
     }

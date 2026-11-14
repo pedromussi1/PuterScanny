@@ -68,3 +68,6 @@ public sealed record EntryQuery
 
     public int Limit { get; init; } = 10;
 }
+
+/// <summary>Files of one kind inside a folder: PuterScanny's label for them ("" when unknown), their category, count and size.</summary>
+public sealed record TypeStat(string Label, string Category, long Files, long Bytes);

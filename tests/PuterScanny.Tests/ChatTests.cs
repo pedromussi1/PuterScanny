@@ -45,6 +45,16 @@ public sealed class ChatScanFixture : IDisposable
         Directory.CreateDirectory(Path.Combine(_tree.Root, dl, "Backup"));
         System.IO.File.Copy(Path.Combine(_tree.Root, dl, @"Photos\cat.jpg"), Path.Combine(_tree.Root, dl, @"Backup\cat (copy).jpg"));
         System.IO.File.SetLastWriteTimeUtc(Path.Combine(_tree.Root, dl, @"Backup\cat (copy).jpg"), DateTime.UtcNow.AddDays(-700));
+        // A game in a folder of its own, and an unpacked mod download with a readme.
+        File(@"Gba\Legend of Zelda, The - The Minish Cap (USA)\Legend of Zelda, The - The Minish Cap (USA).gba", 3000, 500);
+        // ROM sets packed with TorrentZIP all carry the same date, 24 Dec 1996 23:32 (local time once unpacked).
+        System.IO.File.SetLastWriteTime(Path.Combine(_tree.Root, dl, @"Gba\Legend of Zelda, The - The Minish Cap (USA)\Legend of Zelda, The - The Minish Cap (USA).gba"),
+            new DateTime(1996, 12, 24, 23, 32, 0, DateTimeKind.Local));
+        File(Mod + @"\BmGame\Movies\101_Batmobile_Intro.bik", 5000, 500);
+        File(Mod + @"\BmGame\Movies\213_Bane_intro.bik", 4000, 500);
+        System.IO.File.WriteAllText(Path.Combine(_tree.Root, dl, Mod, "readme.txt"),
+            "Thanks for using Asylum 4K ->REMASTERED<- !\r\n\r\nMod created by\r\nhttps://example.com/someone\r\n\r\nInstallation:\r\n" +
+            "Just drag the BmGame folder into the main folder of the game.\r\nOverwrite existing files.\r\n");
 
         DbPath = Path.Combine(_out.Root, "scan.db");
         var tokens = new PathTokens(new Dictionary<string, string> { ["users"] = Path.Combine(_tree.Root, "Users") });
@@ -57,6 +67,8 @@ public sealed class ChatScanFixture : IDisposable
         Downloads = Path.Combine(_tree.Root, dl).TrimEnd('\\');
         Db = ScanDatabase.Open(DbPath);
     }
+
+    public const string Mod = "Asylum 4K - REMASTERED (Part 1)-36-2-0-1669218064";
 
     public static readonly KnowledgeBase Kb = KnowledgeBase.LoadDefault();
     public string DbPath { get; }
@@ -126,7 +138,12 @@ public sealed class ChatTests(ChatScanFixture scan) : IClassFixture<ChatScanFixt
         Assert.Equal(3, r.Count);
 
         // "Games" is a folder; "Games2" must not be mistaken for it.
+        // "What's in Games?" describes that folder and what it holds.
         r = matcher.Match("what's in Games", Dl)!;
+        Assert.Equal(LookupKind.Item, r.Kind);
+        Assert.True(r.Explain);
+        Assert.Equal(Path.Combine(Dl, "Games"), r.Name, ignoreCase: true);
+        r = matcher.Match("how much space is in Games", Dl)!;
         Assert.Equal(LookupKind.Overview, r.Kind);
         Assert.Equal(Path.Combine(Dl, "Games"), r.Folder, ignoreCase: true);
     }
@@ -178,7 +195,7 @@ public sealed class ChatTests(ChatScanFixture scan) : IClassFixture<ChatScanFixt
         var answer = await Ask(engine, "can I delete Viva Pinata (Disc 1).iso?");
         var iso = scan.All().Single(e => e.Name == "Viva Pinata (Disc 1).iso");
         Assert.Equal(AnswerSource.Scan, answer.Source);
-        Assert.Contains("PuterScanny's recommendation: Keep", answer.Text);
+        Assert.StartsWith("Recommendation: Keep", answer.Text);
         Assert.Contains("retip", answer.Text);
         Assert.Equal(iso.Id, answer.Items[0].EntryId);
         Assert.False(answer.Items[0].IsDeletable);
@@ -236,6 +253,7 @@ public sealed class ChatTests(ChatScanFixture scan) : IClassFixture<ChatScanFixt
                  {
                      "What can I delete?", "What's taking the most space?", "summary", "what kinds of files are here", "any duplicates?",
                      "what is OllamaSetup.exe", "Which programs don't I use?", "what should I review", "oldest files", "biggest folders",
+                     "what is BmGame", "what is the minish cap", "what's in Videos", "what is " + ChatScanFixture.Mod,
                  })
         {
             var request = matcher.Match(q, Dl)!;
@@ -244,6 +262,115 @@ public sealed class ChatTests(ChatScanFixture scan) : IClassFixture<ChatScanFixt
             Assert.True(outcome.Ok, $"{q}: {string.Join("; ", outcome.Problems)}");
         }
         await Task.CompletedTask;
+    }
+
+    // ---------------------------------------------------------------- describing one folder or file
+
+    [Theory]
+    [InlineData("What is this folder?", true)]
+    [InlineData("what is this", true)]
+    [InlineData("tell me about this folder", true)]
+    [InlineData("What are these files in this folder?", true)]
+    [InlineData("what files are in here", true)]
+    [InlineData("list the files", true)]
+    [InlineData("what's in here", true)]
+    [InlineData("what are these", true)]
+    [InlineData("can I delete this folder?", false)]
+    [InlineData("is it safe to delete?", false)]
+    public void Questions_about_this_folder_mean_the_folder_being_asked_about(string question, bool explain)
+    {
+        var matcher = new QuestionMatcher(new ScanLookup(scan.Db, ChatScanFixture.Kb));
+        var r = matcher.Match(question, Path.Combine(Dl, ChatScanFixture.Mod))!;
+        Assert.Equal(LookupKind.Item, r.Kind);
+        Assert.Null(r.Name); // = the folder the chat is about, never a file whose name happens to contain "about" or "folder"
+        Assert.Equal(explain, r.Explain);
+    }
+
+    [Fact]
+    public async Task Describing_a_folder_says_what_is_inside_what_it_is_part_of_and_what_its_readme_says()
+    {
+        var engine = scan.Engine();
+        var answer = await Ask(engine, "What is BmGame?");
+        Assert.Equal("BmGame", answer.Items[0].Name);
+        Assert.Contains($"part of {ChatScanFixture.Mod}, a mod download", answer.Text);
+        Assert.Contains("Review", answer.Text); // the mod download's recommendation applies to what's in it
+        Assert.Contains("Bink", answer.Text);
+        Assert.Contains("213_Bane_intro.bik", answer.Text);
+        Assert.Contains("in the folder Movies", answer.Text);
+        Assert.Contains("Just drag the BmGame folder into the main folder of the game.", answer.Text);
+        Assert.DoesNotContain("https://", answer.Text);
+        Assert.Contains(answer.Items, i => i.Name == ChatScanFixture.Mod);
+    }
+
+    [Fact]
+    public async Task Part_of_a_name_finds_the_item_and_a_one_game_folder_means_the_game()
+    {
+        var engine = scan.Engine();
+        var answer = await Ask(engine, "what is the minish cap");
+        Assert.StartsWith("Legend of Zelda, The - The Minish Cap (USA).gba is a Game Boy Advance ROM", answer.Text);
+        Assert.Contains("It's the only file in the folder Legend of Zelda, The - The Minish Cap (USA).", answer.Text);
+        // Its 1996 date is TorrentZIP's, not a real change: say when it arrived instead.
+        Assert.Contains("TorrentZIP", answer.Text);
+        Assert.Contains("added to this PC ", answer.Text);
+        Assert.DoesNotContain("29.", answer.Text);
+    }
+
+    [Fact]
+    public async Task Answers_about_one_item_are_plain_and_free_of_boilerplate()
+    {
+        var engine = scan.Engine();
+        foreach (string q in new[] { "What is BmGame?", "what is the minish cap", "what is OllamaSetup.exe", "what is retip.exe", "what is mystery.qqz" })
+        {
+            var answer = await Ask(engine, q);
+            Assert.DoesNotContain("PuterScanny", answer.Text);
+            Assert.DoesNotContain("never suggests", answer.Text);
+            Assert.Contains("Recommendation: ", answer.Text);
+        }
+    }
+
+    [Fact]
+    public void The_TorrentZIP_date_is_recognised_in_any_time_zone_and_nothing_else_is()
+    {
+        Assert.True(FileDates.IsTorrentZipDate(new DateTime(1996, 12, 24, 23, 32, 0, DateTimeKind.Local).ToUniversalTime()));
+        Assert.True(FileDates.IsTorrentZipDate(new DateTime(1996, 12, 24, 22, 32, 0, DateTimeKind.Utc)));
+        Assert.False(FileDates.IsTorrentZipDate(new DateTime(1996, 12, 24, 23, 31, 0, DateTimeKind.Local).ToUniversalTime()));
+        Assert.False(FileDates.IsTorrentZipDate(new DateTime(2024, 12, 24, 23, 32, 0, DateTimeKind.Local).ToUniversalTime()));
+        Assert.False(FileDates.IsTorrentZipDate(default));
+    }
+
+    [Fact]
+    public async Task Can_I_delete_it_after_asking_what_something_is_puts_the_recommendation_first()
+    {
+        var engine = scan.Engine();
+        await Ask(engine, "what is OllamaSetup.exe");
+        var answer = await Ask(engine, "can I delete it?");
+        Assert.StartsWith("Recommendation: ", answer.Text);
+    }
+
+    [Fact]
+    public async Task A_follow_up_after_describing_a_folder_narrows_to_that_folder()
+    {
+        var engine = scan.Engine();
+        await Ask(engine, "what's in Videos");
+        var answer = await Ask(engine, "which of those are older than 2 years?");
+        Assert.Equal(["holiday.mp4"], answer.Items.Select(i => i.Name));
+    }
+
+    [Fact]
+    public async Task With_the_AI_on_a_description_is_written_by_it_but_a_misreported_recommendation_is_not_shown()
+    {
+        // The mod download is marked Review: a description saying PuterScanny recommends keeping it must not be shown.
+        var wrong = new FakeModel($"BmGame holds game videos. PuterScanny recommends keeping this folder.");
+        var answer = await Ask(scan.Engine(wrong), "What is BmGame?");
+        Assert.Equal(AnswerSource.LocalAiFallback, answer.Source);
+        Assert.Contains("Just drag the BmGame folder", answer.Text);
+        Assert.Equal(2, wrong.Calls.Count);
+        Assert.Equal(AnswerChecker.DescribeSystem, wrong.Calls[0].System);
+
+        var right = new FakeModel($"BmGame is part of the mod download {ChatScanFixture.Mod}. It holds Bink videos such as 213_Bane_intro.bik, probably the game's cutscenes. PuterScanny marks the mod download Review.");
+        answer = await Ask(scan.Engine(right), "What is BmGame?");
+        Assert.Equal(AnswerSource.LocalAi, answer.Source);
+        Assert.Contains("probably the game's cutscenes", answer.Text);
     }
 
     [Fact]
@@ -306,7 +433,7 @@ public sealed class ChatTests(ChatScanFixture scan) : IClassFixture<ChatScanFixt
 
         Assert.Equal(AnswerSource.LocalAiFallback, answer.Source);
         Assert.DoesNotContain("42 GB", answer.Text);
-        Assert.StartsWith("PuterScanny says", answer.Text);
+        Assert.Contains("in Downloads can be deleted", answer.Text);
     }
 
     [Fact]

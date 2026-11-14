@@ -58,8 +58,8 @@ public sealed partial class ScanDatabase
         string where = BuildWhere(cmd, q, forListing: true);
         string order = q.Sort switch
         {
-            EntrySort.Oldest => "COALESCE(a.contained_last_modified, e.modified_utc) ASC, e.total_size DESC",
-            EntrySort.Newest => "COALESCE(a.contained_last_modified, e.modified_utc) DESC, e.total_size DESC",
+            EntrySort.Oldest => "MAX(COALESCE(a.contained_last_modified, e.modified_utc), e.created_utc) ASC, e.total_size DESC",
+            EntrySort.Newest => "MAX(COALESCE(a.contained_last_modified, e.modified_utc), e.created_utc) DESC, e.total_size DESC",
             EntrySort.LeastRecentlyUsed => "COALESCE(a.last_used, a.contained_last_used, 0) ASC, e.total_size DESC",
             _ => "e.total_size DESC, e.name",
         };
@@ -138,6 +138,40 @@ public sealed partial class ScanDatabase
         var list = new List<CategoryStat>();
         while (r.Read()) list.Add(new CategoryStat(r.GetString(0), r.GetInt64(1), r.GetInt64(2)));
         return list;
+    }
+
+    /// <summary>Files per kind (as PuterScanny labels them, e.g. "Game video (Bink)") inside a folder, biggest first.</summary>
+    public IReadOnlyList<TypeStat> GetTypeStats(string scope, int limit = 8)
+    {
+        using var cmd = _connection.CreateCommand();
+        string scopeSql = ScopeClause(cmd, scope);
+        cmd.CommandText = $"""
+            SELECT COALESCE(NULLIF(a.type_label, ''), ''), MAX(COALESCE(a.category, 'other')), COUNT(*), COALESCE(SUM(e.size), 0)
+            FROM entry e LEFT JOIN analysis a ON a.entry_id = e.id
+            WHERE e.is_dir = 0 {scopeSql} AND e.id NOT IN (SELECT entry_id FROM removed)
+            GROUP BY 1 ORDER BY 4 DESC, 3 DESC LIMIT $limit
+            """;
+        cmd.Parameters.AddWithValue("$limit", limit);
+        using var r = cmd.ExecuteReader();
+        var list = new List<TypeStat>();
+        while (r.Read()) list.Add(new TypeStat(r.GetString(0), r.GetString(1), r.GetInt64(2), r.GetInt64(3)));
+        return list;
+    }
+
+    /// <summary>The biggest files of one kind (see <see cref="GetTypeStats"/>) inside a folder.</summary>
+    public IReadOnlyList<FileSystemEntry> GetFilesOfType(string scope, string typeLabel, int limit)
+    {
+        using var cmd = _connection.CreateCommand();
+        string scopeSql = ScopeClause(cmd, scope);
+        cmd.CommandText = $"""
+            {EntrySelect}
+            WHERE e.is_dir = 0 {scopeSql} AND COALESCE(NULLIF(a.type_label, ''), '') = $label
+              AND e.id NOT IN (SELECT entry_id FROM removed)
+            ORDER BY e.size DESC, e.name LIMIT $limit
+            """;
+        cmd.Parameters.AddWithValue("$label", typeLabel);
+        cmd.Parameters.AddWithValue("$limit", limit);
+        return ReadEntries(cmd);
     }
 
     /// <summary>Extra copies of duplicate files inside the folder (never the copy to keep), biggest first.</summary>
@@ -232,12 +266,12 @@ public sealed partial class ScanDatabase
         }
         if (q.NotUsedSinceUtc is { } since)
         {
-            sb.Append(" AND COALESCE(a.last_used, a.contained_last_used, 0) < $since AND COALESCE(a.contained_last_modified, e.modified_utc) < $since");
+            sb.Append(" AND COALESCE(a.last_used, a.contained_last_used, 0) < $since AND MAX(COALESCE(a.contained_last_modified, e.modified_utc), e.created_utc) < $since");
             cmd.Parameters.AddWithValue("$since", since.Ticks);
         }
         if (q.ModifiedBeforeUtc is { } before)
         {
-            sb.Append(" AND COALESCE(a.contained_last_modified, e.modified_utc) < $before");
+            sb.Append(" AND MAX(COALESCE(a.contained_last_modified, e.modified_utc), e.created_utc) < $before");
             cmd.Parameters.AddWithValue("$before", before.Ticks);
         }
         if (q.MinBytes > 0)
