@@ -159,8 +159,8 @@ public sealed partial class ChatViewModel : ObservableObject, IDisposable
         bool ai = _ai.Service.IsAvailable;
         ShowAiSetup = !ai;
         AiNote = ai
-            ? $"Questions PuterScanny recognises are answered instantly from the scan. Others are worked out by {_ai.ModelName} on this PC, from exact lookups in the scan, and checked against them before they're shown."
-            : "Answers come straight from this scan, instantly. Turn on Local AI to ask in your own words too: it's free and runs on this PC.";
+            ? $"Answers come straight from the scan. When a question isn't clear, {_ai.ModelName} on this PC works out what you mean (as much as this PC can comfortably run), and anything it writes is checked against the scan."
+            : "Answers come straight from this scan, instantly. Set up Local AI to also ask in your own words: it's free, runs on this PC, and is only used when it helps.";
     }
 
     // ---------------------------------------------------------------- asking
@@ -211,10 +211,30 @@ public sealed partial class ChatViewModel : ObservableObject, IDisposable
             answer.Items.Clear();
             AddItems(answer, result.Items);
             answer.Credit = Credit(result);
+
+            // The facts are shown; on a fast PC the local AI can add a short summary on top. Stop leaves the facts as they are.
+            if (result.Summary is { } summarize)
+            {
+                answer.IsWorking = true;
+                answer.Status = $"Adding a short summary ({result.ModelName}, on this PC)…";
+                var clock = System.Diagnostics.Stopwatch.StartNew();
+                try
+                {
+                    string? summary = await summarize(progress, _cts.Token);
+                    answer.Credit = Credit(result) + (summary is not null
+                        ? $" The summary on top was written by {result.ModelName} on this PC ({clock.Elapsed.TotalSeconds:0} s) and checked against the scan."
+                        : $" {result.ModelName}'s summary didn't match the scan exactly, so it isn't shown.");
+                    if (summary is not null) answer.Text = summary + "\n\n" + answer.Text;
+                }
+                catch (OperationCanceledException)
+                {
+                    answer.Credit = Credit(result) + " The summary was stopped.";
+                }
+            }
         }
         catch (OperationCanceledException)
         {
-            answer.Text = "Stopped.";
+            if (answer.Text.Length == 0) answer.Text = "Stopped.";
         }
         catch (Exception ex) when (ex is InvalidOperationException or IOException or Microsoft.Data.Sqlite.SqliteException)
         {
@@ -241,13 +261,16 @@ public sealed partial class ChatViewModel : ObservableObject, IDisposable
     {
         string looked = a.Lookups.Count > 0 ? $"Looked up: {string.Join("; ", a.Lookups)}. " : "";
         string time = a.Elapsed.TotalSeconds >= 1 ? $" ({a.Elapsed.TotalSeconds:0} s)" : "";
-        return a.Source switch
+        string credit = a.Source switch
         {
             AnswerSource.Scan => $"{looked}Answered straight from the scan{time}.",
-            AnswerSource.LocalAi => $"{looked}Worded by {a.ModelName} on this PC and checked against the scan{time}. Recommendations are PuterScanny's own.",
+            AnswerSource.ScanUnsure => $"{looked}Answered straight from the scan{time}.",
+            AnswerSource.AiUnderstood => $"{looked}{a.ModelName} worked out what you meant, on this PC{time}; the answer itself comes straight from the scan.",
+            AnswerSource.LocalAi => $"{looked}Worded by {a.ModelName} on this PC and checked against the scan{time}.",
             AnswerSource.LocalAiFallback => $"{looked}{a.ModelName}'s wording didn't match the scan exactly, so this is the plain answer from the scan{time}.",
             _ => "",
         };
+        return a.Note is { Length: > 0 } note ? (credit + " " + note).Trim() : credit;
     }
 
     private bool CanStop() => IsBusy;

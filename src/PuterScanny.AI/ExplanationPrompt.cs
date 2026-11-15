@@ -149,8 +149,8 @@ public static partial class ExplanationCleaner
           | (?:do\s+not|don't|never|avoid)\s+(?:delete|deleting|remove|removing|touch|touching|uninstall)
           | (?:should|must|can|could|may|might)\s+(?:not\s+)?(?:safely\s+)?(?:be\s+)?(?:safely\s+)?(?:kept|deleted|removed|uninstalled|cleaned|cleared|erased|discarded)
           | (?:no\s+longer|not|isn't|is\s+not|aren't|are\s+not)\s+(?:really\s+)?(?:needed|necessary|required|useful)
-          | unnecessary
-          | harmless\s+to\s+(?:delete|remove)
+          | \bunnecessary\b
+          | \bharmless\s+to\s+(?:delete|remove)
           | (?:consider|try)\s+(?:deleting|removing|uninstalling|keeping|cleaning)
           | (?:deleting|removing)\s+(?:it|this|them|the\s+\w+)\s+(?:is|would|will|could|may|might|should)
         )

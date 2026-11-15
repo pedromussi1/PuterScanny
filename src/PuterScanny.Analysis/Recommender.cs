@@ -32,6 +32,9 @@ public sealed record EntryFacts
     public UninstallSuggestion? OwnerUninstall { get; init; }
 
     public DateTime NowUtc { get; init; } = DateTime.UtcNow;
+
+    /// <summary>For items inside a mod download: the mod's name.</summary>
+    public string? ModDownloadName { get; init; }
 }
 
 /// <summary>
@@ -142,6 +145,13 @@ public static class Recommender
                          "Once a mod is installed into its game, the downloaded copy is only a spare, and it can be downloaded again from Nexus Mods."),
                  new(-20, "Keep it if you haven't installed the mod yet, or if a mod manager (Vortex, Mod Organizer) uses it to reinstall the mod.")]);
         }
+        else if (f.Flags.HasFlag(FactFlags.InsideModDownload))
+        {
+            string modName = f.ModDownloadName ?? "a mod download";
+            decided = new(Verdict.Review, 60, CleanupAction.None, $"Part of a mod download ({modName})",
+                [new(20, $"It's inside the download of the mod \"{modName}\" from Nexus Mods, so it belongs to the mod rather than being your own file. " +
+                         "Decide about the mod download as a whole.")]);
+        }
         else if (f.Flags.HasFlag(FactFlags.EmptyFolder))
         {
             decided = InAppArea(e.Path)
@@ -170,7 +180,9 @@ public static class Recommender
             int quiet = Math.Min(age, usedDaysAgo);
             if (quiet >= 90)
                 decided = new(Verdict.Review, 60, CleanupAction.Delete, "Old download you may not need any more",
-                    [new(35, $"A downloaded {(a.Category == "archive" ? "archive" : "disk image")} that hasn't been changed or opened for {Days(quiet)}. Archives are usually extracted, and disk images used, soon after downloading."),
+                    [new(35, a.Category == "archive"
+                        ? $"A downloaded archive that hasn't been changed or opened for {Days(quiet)}. Archives are usually extracted soon after downloading."
+                        : $"A downloaded disk image that hasn't been changed or opened for {Days(quiet)}. Disk images are usually used soon after downloading."),
                      new(-15, "Check you've kept what was inside before deleting it; it can usually be downloaded again.")]);
         }
 

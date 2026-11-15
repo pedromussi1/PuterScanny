@@ -57,9 +57,11 @@ If you say no, it runs a normal scan and the report lists what it couldn't check
 
 Ask questions about the scanned drive or folder and get answers from the scan itself, for example: *"What can I safely delete in Downloads?"*, *"Which videos haven't I watched in a year?"*, *"Are there any duplicates?"*, *"Why is OllamaSetup.exe marked for deletion?"* or *"What's taking the most space?"*. Press **Ask about this** in the Folders or Treemap tab to ask about one folder or file.
 
-- **Ask what something is:** *"What is BmGame?"*, *"What are these files?"* or *"What is this folder?"* gets a full description: what's inside it (kinds of files, with example names), what it's part of (a program, a mod download, a game), what a readme next to it says, and PuterScanny's recommendation. With Local AI on, the AI writes that description and says what the facts add up to (for example, that a mod's Bink videos are the game's cutscenes). It takes 20 to 60 seconds and is checked like every other answer.
-- **Instant and exact:** common questions are recognised and answered straight from the scan, with exact sizes and counts and no AI involved.
-- **In your own words, with Local AI on:** other questions go to the local AI. It can only pick from a fixed set of read-only lookups in the scan, it writes the answer from their results, and every size, count and file name in its answer is checked against those results before it's shown. If its wording doesn't match the scan, you get the plain answer instead.
+- **Ask what something is:** *"What is BmGame?"*, *"What are these files?"* or *"What is this folder?"* gets a full description: what's inside it (kinds of files, with example names), what it's part of (a program, a mod download, a game), what a readme next to it says, and PuterScanny's recommendation. The facts show at once. On a PC fast enough for it, the local AI then adds a short summary on top saying what they add up to (for example, that a mod's Bink videos are the game's cutscenes), checked like every other answer.
+- **Topics:** *"Any files from a Mac?"*, *"Do I have any AI models?"*, *"Which folders are code projects?"*, *"Any screenshots?"*, *"Which of these are Game Boy games?"* look things up by the known conventions, file types and project files (a `.git` folder, `package.json`…), not by guessing.
+- **Instant and exact:** questions the app reads with confidence are answered straight from the scan, with exact sizes and counts and no AI involved.
+- **When it isn't sure, it says so, or asks the local AI.** If some words of a question don't fit how it was read ("Batman" in *"is it safe to remove the Batman mod files?"*), the answer says how it was read. With Local AI set up, the AI works out what the question means and picks the lookups instead; the answer still comes from the scan, so a wrong choice shows as what was looked up rather than as a wrong fact. Questions the app doesn't understand at all go the same way.
+- **Checked:** anything the AI writes (summaries) must match the scan: every size, count, year, file name and recommendation. It can't say something doesn't exist unless a lookup actually searched for it. If it doesn't pass, it isn't shown.
 - **Every answer lists the items it's based on.** From each one you can show it in Folders, open it in File Explorer, ask why it got its recommendation, or tick it into the clean-up basket.
 - **Keep or delete still comes only from PuterScanny's own checks.** The chat reports PuterScanny's recommendation and can't delete anything itself.
 - **Everything runs on this PC,** with no key, account or internet.
@@ -68,10 +70,11 @@ Ask questions about the scanned drive or folder and get answers from the scan it
 
 For the few items its own rules can't identify, PuterScanny can use a **free AI model that runs entirely on your PC** to write a short plain-English guess at what each one is.
 
-- **Setup:** turn it on in **Local AI**. The model (Qwen3.5 4B, Apache-2.0, 2.6 GB) is downloaded once from Hugging Face and checked against a fixed fingerprint. A smaller 1.2 GB model is offered too, or you can use any GGUF model file you already have.
+- **Setup:** download a model in **Local AI** (Qwen3.5 4B, Apache-2.0, 2.6 GB, from Hugging Face, checked against a fixed fingerprint). A smaller 1.2 GB model is offered too, or you can use any GGUF model file you already have.
+- **Automatic:** once a model is there, it's used only when it helps, and only as much as the PC can comfortably run. PuterScanny checks free memory, the processor, whether a laptop is on battery and how fast the model has actually been running: on a fast PC it can add summaries; on a slower one it only works out questions; with too little free memory it isn't used, and the answer says why. You can also turn it off completely.
 - **Privacy:** after that it works offline. Nothing about your files leaves the PC, and there's no account, key or cost.
 - **Limits:** the AI only *explains*. It isn't told the recommendation, any advice it writes is removed, and every answer is labelled as AI-written. Keep-or-delete decisions always come from PuterScanny's own checks.
-- **Also used by Ask:** with Local AI on, the Ask tab understands questions in your own words (see above).
+- **Also used by Ask:** the Ask tab uses it to understand questions in your own words (see above).
 
 ## Install
 

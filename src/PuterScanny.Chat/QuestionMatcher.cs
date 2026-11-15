@@ -43,7 +43,38 @@ public sealed partial class QuestionMatcher(ScanLookup lookup)
         (@"source code|code files?", "code"),
         (@"exes?|executables?|programs? files?", "executable"),
         (@"databases?", "database"),
+        (@"game files?|games? data|game saves?|save files?|roms?|rom files?", "game"),
     ];
+
+    /// <summary>Game platforms: how people say them, and the type labels that are that platform's games.</summary>
+    private static readonly (string Words, string Name, string Labels)[] Platforms =
+    [
+        (@"game ?boy advance|\bgba\b", "Game Boy Advance games", @"^Game Boy Advance"),
+        (@"game ?boy|\bgbc?\b", "Game Boy games", @"^Game Boy"),
+        (@"\bsnes\b|super nintendo|super nes", "SNES games", @"^SNES "),
+        (@"(?<!s)\bnes\b|nintendo entertainment system", "NES games", @"^NES "),
+        (@"\bn64\b|nintendo 64", "Nintendo 64 games", @"^Nintendo 64"),
+        (@"\b3ds\b", "Nintendo 3DS games", @"3DS"),
+        (@"nintendo ds|\bnds\b|\bds (?:games?|roms?)", "Nintendo DS games", @"^Nintendo DS"),
+        (@"nintendo switch|\bswitch (?:games?|roms?)", "Nintendo Switch games", @"Switch"),
+        (@"\bwii u\b", "Wii U games", @"Wii U"),
+        (@"gamecube|game cube", "GameCube games", @"GameCube"),
+        (@"\bwii\b", "Wii games", @"\bWii\b"),
+        (@"dreamcast", "Dreamcast games", @"Dreamcast"),
+        (@"playstation|\bps[12p]\b|\bpsx\b", "PlayStation files", @"PlayStation"),
+        (@"xbox", "Xbox files", @"Xbox"),
+    ];
+
+    private (string Name, IReadOnlyList<string> Labels)? Platform(string low)
+    {
+        foreach (var (words, name, labels) in Platforms)
+        {
+            if (!Regex.IsMatch(low, words, Opts)) continue;
+            var found = lookup.Kb.Types.Select(t => t.Description).Where(l => Regex.IsMatch(l, labels)).Distinct().ToList();
+            if (found.Count > 0) return (name, found);
+        }
+        return null;
+    }
 
     public LookupRequest? Match(string question, string scopePath, LookupRequest? previous = null)
     {
@@ -89,10 +120,12 @@ public sealed partial class QuestionMatcher(ScanLookup lookup)
         int? days = Period(low);
         int? count = Count(low);
         string? category = Category(low);
+        var platform = Platform(low);
+        if (platform is not null) category = null;
         EntryKind kind = Regex.IsMatch(low, @"\b(folders|directories|folder|directory)\b") ? EntryKind.Folder
             : Regex.IsMatch(low, @"\bfiles?\b") ? EntryKind.File : EntryKind.Any;
         EntrySort? sort = Regex.IsMatch(low, @"\boldest\b") ? EntrySort.Oldest
-            : Regex.IsMatch(low, @"\b(newest|latest|most recent|recently (added|changed|downloaded))\b") ? EntrySort.Newest
+            : Regex.IsMatch(low, @"\b(newest|latest|most recent|recently (added|changed|downloaded|saved))\b|\b(download(ed)?|got|added|saved|grabbed) (most |more )?recently\b|\blast (thing|file|things|files)? ?(i )?(downloaded|added|saved)\b") ? EntrySort.Newest
             : Regex.IsMatch(low, @"\bleast (recently )?used\b") ? EntrySort.LeastRecentlyUsed
             : null;
         bool unused = UnusedRx().IsMatch(low);
@@ -106,10 +139,14 @@ public sealed partial class QuestionMatcher(ScanLookup lookup)
         if (folder is not null && Regex.IsMatch(low, @"^(what about|how about|summari[sz]e|summary( of)?|overview( of)?|how big is|how large is|how much space (is|does)( it)?( take| use)?|how much is)$"))
             return new LookupRequest { Kind = LookupKind.Overview, Folder = folder };
 
-        // 3. What is being asked.
-        LookupRequest? request = ItemQuestion(rest, folder ?? scopePath, previous) ?? Intent(low, unused, days);
+        // 3. What is being asked: one item ("what is __MACOSX?") first, then a topic from the known details ("any files from
+        // a Mac?", "which folders are code projects?"), then the common intents.
+        LookupRequest? request = ItemQuestion(rest, folder ?? scopePath, previous);
+        if (request is null && lookup.Kb.Details.TopicFor(q) is { } topic)
+            return new LookupRequest { Kind = LookupKind.Topic, Topic = topic.Id, Folder = folder ?? (followUp ? previous?.Folder : null), Count = count ?? 10 };
+        request ??= Intent(low, unused, days, platform is not null);
 
-        bool modifiers = category is not null || minBytes is not null || unused || older || sort is not null || Regex.IsMatch(low, @"\bold\b");
+        bool modifiers = category is not null || platform is not null || minBytes is not null || unused || older || sort is not null || Regex.IsMatch(low, @"\bold\b");
         if (request is null && modifiers)
             request = followUp && previous!.Kind is LookupKind.List or LookupKind.Programs ? previous with { } : new LookupRequest { Kind = LookupKind.List };
         if (request is null && followUp)
@@ -145,8 +182,17 @@ public sealed partial class QuestionMatcher(ScanLookup lookup)
             request = request with
             {
                 Category = category ?? request.Category,
+                TypeLabels = platform?.Labels ?? request.TypeLabels,
+                // A new kind of file ("…which of these are Game Boy games?") replaces a finding about places (mod downloads…).
+                Filter = (category is not null || platform is not null) &&
+                         request.Filter is ListFilter.Mods or ListFilter.Leftovers or ListFilter.EmptyFolders or ListFilter.BrokenShortcuts or ListFilter.PartialDownloads
+                    ? ListFilter.Any : request.Filter,
+                TypeName = platform?.Name ?? request.TypeName,
                 MinBytes = minBytes ?? request.MinBytes,
-                ItemKind = category is not null ? EntryKind.File : kind != EntryKind.Any ? kind : request.ItemKind,
+                ItemKind = category is not null || platform is not null ? EntryKind.File
+                    // Mod downloads, leftovers and empty folders are places: "mod files" still means the unpacked folders too.
+                    : request.Filter is ListFilter.Mods or ListFilter.Leftovers or ListFilter.EmptyFolders ? request.ItemKind
+                    : kind != EntryKind.Any ? kind : request.ItemKind,
                 Sort = sort ?? request.Sort,
                 UnusedDays = unused ? days ?? request.UnusedDays ?? 365 : request.UnusedDays,
                 OlderDays = older && !unused ? days ?? 365 : request.OlderDays,
@@ -161,7 +207,7 @@ public sealed partial class QuestionMatcher(ScanLookup lookup)
 
     // ---------------------------------------------------------------- intents
 
-    private static LookupRequest? Intent(string low, bool unused, int? days)
+    private static LookupRequest? Intent(string low, bool unused, int? days, bool aboutGameFiles = false)
     {
         if (Regex.IsMatch(low, @"\b(duplicates?|duplicated|identical|same files?|copies of|double copies|twice)\b"))
             return new LookupRequest { Kind = LookupKind.Duplicates };
@@ -177,7 +223,8 @@ public sealed partial class QuestionMatcher(ScanLookup lookup)
         if (Regex.IsMatch(low, @"\b(unfinished|partial|incomplete|failed|interrupted) downloads?\b"))
             return new LookupRequest { Kind = LookupKind.List, Filter = ListFilter.PartialDownloads };
 
-        bool programs = Regex.IsMatch(low, @"\b(programs?|apps?|applications?|software|games?)\b") &&
+        bool programs = !aboutGameFiles && !Regex.IsMatch(low, @"\b(roms?|game files?|game saves?|save files?)\b") &&
+                        Regex.IsMatch(low, @"\b(programs?|apps?|applications?|software|games?)\b") &&
                         !Regex.IsMatch(low, @"\b(program|app|game) (files?|saves?|clips?|recordings?|data|folders?)\b|\bfiles\b");
         if (programs)
         {
@@ -226,7 +273,10 @@ public sealed partial class QuestionMatcher(ScanLookup lookup)
             if (name.Length == 0 || IsGenericName(name))
             {
                 // "can I delete it?" right after asking about an item: the same item.
-                if (Regex.IsMatch(name, @"^(it|this|that|this one|that one|this folder|the folder)$", Opts) || name.Length == 0)
+                // …but not "is it safe to remove the Batman mod files?", where "it" stands for what comes after.
+                string after = q[(m.Index + m.Length)..];
+                bool nothingElse = Regex.IsMatch(after, @"^\s*(?:to\s+)?(?:delete|remove|get rid of|keep|trash|uninstall|clean(?: up)?)?\s*(?:it|this|that|now|safely|anymore|for now)?\s*$", Opts);
+                if ((Regex.IsMatch(name, @"^(it|this|that|this one|that one|this folder|the folder)$", Opts) || name.Length == 0) && nothingElse)
                 {
                     if (previous is { Kind: LookupKind.Item }) return previous with { Explain = Regex.IsMatch(q, @"^(?:what|what'?s|whats|tell me|explain|describe)\b", Opts) };
                     if (Regex.IsMatch(q, @"\b(this|the) folder\b", Opts) || name is "this" or "it" && Regex.IsMatch(q, @"^(can|should|could|is) ", Opts))

@@ -62,6 +62,7 @@ public sealed class RecommendPass(KnowledgeBase kb, PathTokens tokens, AnalysisO
         var summary = db.GetSummary()!;
         long total = summary.FileCount + summary.DirectoryCount + 1, done = 0;
         var dirs = new Dictionary<long, (string? Rule, string Path, long Files, bool RuleHere)>();
+        var modOf = new Dictionary<long, string>(); // folders that are, or are inside, a mod download -> the mod's name
         var clock = Stopwatch.StartNew();
         TimeSpan last = TimeSpan.Zero;
         var now = DateTime.UtcNow;
@@ -81,11 +82,22 @@ public sealed class RecommendPass(KnowledgeBase kb, PathTokens tokens, AnalysisO
                     var flags = FactFlags.None;
                     string? shortcutTarget = null, keeper = null;
                     int copies = 0;
+                    string? modName = null;
+                    if (a.OwnerAppId is null && entry.ParentId is long mp && modOf.TryGetValue(mp, out var inMod))
+                    {
+                        flags |= FactFlags.InsideModDownload;
+                        modName = inMod;
+                    }
 
                     if (entry.IsDirectory)
                     {
                         dirs[entry.Id] = (a.LocationRuleId, entry.Path, entry.FileCount, matchedHere);
-                        if (a.OwnerAppId is null && ModDownloads.TryParse(entry.Name, isFolder: true, out _)) flags |= FactFlags.ModDownload;
+                        if (a.OwnerAppId is null && modName is null && ModDownloads.TryParse(entry.Name, isFolder: true, out var folderMod))
+                        {
+                            flags |= FactFlags.ModDownload;
+                            modOf[entry.Id] = folderMod.Name;
+                        }
+                        else if (modName is not null) modOf[entry.Id] = modName;
                         bool parentHasFiles = entry.ParentId is long pp && dirs.TryGetValue(pp, out var pd) && pd.Files > 0;
                         if (entry.FileCount == 0 && entry.Depth > 0 && parentHasFiles && !entry.Flags.HasFlag(EntryFlags.EnumerationFailed)) flags |= FactFlags.EmptyFolder;
                         if (a.OwnerAppId is null && !matchedHere && entry.Path.LastIndexOf('\\') is int cut and > 0
@@ -107,7 +119,7 @@ public sealed class RecommendPass(KnowledgeBase kb, PathTokens tokens, AnalysisO
                             flags |= FactFlags.InstallerInDownloads;
                             if (MatchesInstalled(entry.Name, appTokens)) flags |= FactFlags.MatchesInstalledProgram;
                         }
-                        if (a.OwnerAppId is null && ModDownloads.TryParse(entry.Name, isFolder: false, out _)) flags |= FactFlags.ModDownload;
+                        if (a.OwnerAppId is null && modName is null && ModDownloads.TryParse(entry.Name, isFolder: false, out _)) flags |= FactFlags.ModDownload;
                         if (duplicates.TryGetValue(entry.Id, out var dup))
                         {
                             flags |= FactFlags.Duplicate;
@@ -131,6 +143,7 @@ public sealed class RecommendPass(KnowledgeBase kb, PathTokens tokens, AnalysisO
                         ContainedLastModifiedUtc = a.ContainedLastModifiedUtc,
                         OwnerUninstall = owner is not null && uninstall.TryGetValue(owner.Id, out var u) ? u : null,
                         NowUtc = now,
+                        ModDownloadName = modName,
                     };
                     var verdict = Recommender.Evaluate(facts);
                     writer.SetRecommendation(entry.Id, verdict, verdict.NoEvidence ? flags | FactFlags.NoEvidence : flags);

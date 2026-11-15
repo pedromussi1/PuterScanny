@@ -7,6 +7,10 @@ namespace PuterScanny.Knowledge;
 /// <summary>One thing worth knowing about an item: a placeholder date, a naming convention…</summary>
 public sealed record KnownDetail(string Id, string Text);
 
+/// <summary>Something people ask about ("files from a Mac", "code projects"): the entries and file types that make it up,
+/// or for folders, the marker files that show what a folder is (.git, package.json…).</summary>
+public sealed record KnownTopic(string Id, string Name, Regex Phrases, IReadOnlySet<string> Details, IReadOnlySet<string> Extensions, IReadOnlyList<string> Markers);
+
 /// <summary>
 /// Small, well-documented facts about how files get their names and dates (known-details.json): TorrentZIP's fixed
 /// 1996 date, No-Intro ROM names, camera file names, browsers' "(1)" copies… so answers explain them instead of
@@ -24,14 +28,29 @@ public sealed partial class KnownDetails
     private readonly List<NameRule> _names;
     private readonly string _futureDate;
 
-    private KnownDetails(List<DateRule> dates, List<NameRule> names, string futureDate)
+    private KnownDetails(List<DateRule> dates, List<NameRule> names, string futureDate, List<KnownTopic> topics)
     {
         _dates = dates;
         _names = names;
         _futureDate = futureDate;
+        Topics = topics;
     }
 
-    public static KnownDetails Empty { get; } = new([], [], "");
+    public static KnownDetails Empty { get; } = new([], [], "", []);
+
+    public IReadOnlyList<KnownTopic> Topics { get; }
+
+    public KnownTopic? GetTopic(string? id) => Topics.FirstOrDefault(t => string.Equals(t.Id, id, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>The topic a question is about ("any files from a Mac?" → mac), or null.</summary>
+    public KnownTopic? TopicFor(string question) => Topics.FirstOrDefault(t => t.Phrases.IsMatch(question));
+
+    /// <summary>True when a file or folder belongs to the topic by its name or file type (marker-based topics are found by the scan lookup).</summary>
+    public bool IsInTopic(KnownTopic topic, string name, bool isFolder, long size)
+    {
+        if (!isFolder && topic.Extensions.Count > 0 && topic.Extensions.Contains(Path.GetExtension(name).ToLowerInvariant())) return true;
+        return topic.Details.Count > 0 && ForName(name, isFolder, size).Any(d => topic.Details.Contains(d.Id));
+    }
 
     public int Count => _dates.Count + _names.Count;
 
@@ -234,6 +253,22 @@ public sealed partial class KnownDetails
                     n.TryGetProperty("suppresses", out var sup) ? sup.EnumerateArray().Select(x => x.GetString() ?? "").ToHashSet() : []));
             }
         }
-        return new KnownDetails(dates, names, S(root, "futureDate") ?? "");
+        var topics = new List<KnownTopic>();
+        if (root.TryGetProperty("topics", out var ts))
+        {
+            static List<string> Strings(JsonElement e, string name) =>
+                e.TryGetProperty(name, out var a) ? a.EnumerateArray().Select(x => x.GetString() ?? "").Where(x => x.Length > 0).ToList() : [];
+            foreach (var t in ts.EnumerateArray())
+            {
+                topics.Add(new KnownTopic(
+                    S(t, "id") ?? "",
+                    S(t, "name") ?? "",
+                    new Regex(S(t, "phrases") ?? "$^", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(200)),
+                    Strings(t, "details").ToHashSet(StringComparer.Ordinal),
+                    Strings(t, "extensions").Select(x => x.ToLowerInvariant()).ToHashSet(),
+                    Strings(t, "markers")));
+            }
+        }
+        return new KnownDetails(dates, names, S(root, "futureDate") ?? "", topics);
     }
 }

@@ -17,26 +17,29 @@ public static partial class AnswerChecker
         - Whether to keep or delete something is decided by the app's checks, not by you. Report the recommendation using its label from the results (for example "it's marked Review", "Recommended to delete", "No reason to remove"). Never give your own advice.
         - Don't refer to the app by name ("PuterScanny"); just say what is recommended.
         - Don't guess why files are there, what they were used for, or whether the user still needs them; say only what the results show.
-        - If the results don't answer the question, say so and say what they do show.
-        - Write 2 to 5 short sentences of plain text. No lists, headings or markdown: the items are shown under your answer.
+        - If the results don't answer the question, say so and say what they do show. Never conclude that something doesn't exist because it isn't in these results: say what was looked up instead.
+        - If part of the question can't be answered from the results (for example which photos are from a holiday, or what happened last summer), say plainly that the scan can't tell that, then say what the results do show. Never assume the items are what the question hoped for.
+        - Refer to items by their names, never by position ("the first item", "the third one").
+        - Give a reason for an item only when the results state it (its label and the reason in brackets). Don't sum items up with reasons of your own, like "old downloads".
+        - Talk about the user's files themselves, not about "the results", "the lookup" or "the data".
+        - Write 1 to 3 short sentences that answer the question directly. The exact results and items are shown under your answer, so don't list them all. Plain text, no lists, headings or markdown.
         """;
 
-    /// <summary>For "what is this?": explain what the item is and what it's for, from everything the scan found about it.</summary>
+    /// <summary>For "what is this?": a short summary of what the item is and what it's for. The exact facts (sizes,
+    /// contents, recommendation, dates) are shown under it, so the summary doesn't repeat them.</summary>
     public const string DescribeSystem = """
-        You are PuterScanny's assistant. The user asked what a file or folder on their PC is. Explain it using only the facts you are given.
-        Cover, in this order:
-        1. What it is and what it's part of (a program, a game, a mod, a download, the user's own files...).
-        2. For a folder, what's inside it: the kinds of files and a few example names, and what they are for.
-        3. What any readme or program details say about it, briefly.
-        4. The recommendation, with its label exactly as written (for example "it's marked Review", "Keep (your file)", "Recommended to delete") and its main reason.
+        You are PuterScanny's assistant. The user asked what a file or folder on their PC is. Write a short summary, using only the facts you are given:
+        what it is, what it's part of (a program, a game, a mod, a dataset, a download, the user's own files...), and what it's for.
+        The exact details (sizes, file counts, dates, the recommendation) are shown to the user right under your summary, so don't repeat numbers, dates or the recommendation.
         Rules:
         - Use names, sizes, counts and dates exactly as they are written in the facts. Don't add up, estimate or invent numbers or names.
         - You may state what the facts clearly add up to (for example: Bink game videos with scene names like "Joker_escapes" are the game's cutscenes; a readme saying to copy a folder into the game means it's an install copy). Say "probably" or "looks like" when you do.
         - Keep or delete is decided by the app's checks, not by you. Never give your own advice.
         - Don't refer to the app by name ("PuterScanny"), and don't explain how recommendations work in general: say what this item is and what is recommended for it.
         - For the recommendation, give the label and the reasons listed in the facts. Don't add reasons of your own (age, use, size) that the facts don't give as reasons, and don't mention percentages.
-        - Talk to the user as "you". Every sentence must add something new: no filler, no repeating, no summary at the end.
-        - Write 3 to 6 short sentences of plain text. No lists, headings or markdown.
+        - Talk to the user as "you", about the item itself, not about "the facts" or "the data" you were given.
+        - Every sentence must add something new: no filler, no repeating, no summary at the end.
+        - Write 2 or 3 short sentences of plain text. No lists, headings or markdown.
         """;
 
     public static string User(string question, IEnumerable<LookupResult> results) =>
@@ -54,9 +57,11 @@ public static partial class AnswerChecker
         var kept = new List<string>();
         foreach (string sentence in Sentences(text))
         {
-            string? advice = AdviceProblem(sentence, items);
+            string? advice = AdviceProblem(sentence, items, facts);
             if (advice is not null) { problems.Add(advice); continue; }
             if (RecommendationProblem(sentence, facts) is { } misreported) { problems.Add(misreported); continue; }
+            // "The results only show that…": talk about the files, not the lookup. Such a sentence is dropped.
+            if (MetaRx().IsMatch(sentence)) { problems.Add($"meta: {sentence}"); continue; }
             kept.Add(sentence);
         }
         text = string.Join(" ", kept).Trim();
@@ -77,6 +82,16 @@ public static partial class AnswerChecker
         }
 
         string haystack = (facts + "\n" + question).ToLowerInvariant();
+        foreach (Match m in YearRx().Matches(text))
+            if (!haystack.Contains(m.Value, StringComparison.Ordinal)) problems.Add($"year not in the results: {m.Value}");
+        // "There are no ML models": only when a lookup really searched and came back empty.
+        bool searchedAndEmpty = results.Any(r => r.Items.Count == 0 && r.Request.Kind is not (LookupKind.Overview or LookupKind.Types or LookupKind.Item));
+        if (!searchedAndEmpty)
+            foreach (string sentence in Sentences(text))
+                if (AbsenceRx().IsMatch(sentence) &&
+                    // "No reason found to remove it", "no record of it being opened" are facts about one item, not a search.
+                    !Regex.IsMatch(sentence, @"\b(?:no|any|without) (?:reason|record|usage|recommendation|sign)s?\b|nothing found says", RegexOptions.IgnoreCase))
+                    problems.Add($"says something isn't there, but no lookup searched for it: {sentence}");
         foreach (Match m in FileNameRx().Matches(text))
         {
             if (m.Value.Length < 5 || Regex.IsMatch(m.Value, @"^(e\.g|i\.e|etc|vs)\b", RegexOptions.IgnoreCase)) continue;
@@ -88,7 +103,7 @@ public static partial class AnswerChecker
             if (q.Length >= 3 && !haystack.Contains(q.ToLowerInvariant())) problems.Add($"quote not in the results: \"{q}\"");
         }
 
-        bool sizeOrNameProblem = problems.Any(p => !p.StartsWith("advice", StringComparison.Ordinal));
+        bool sizeOrNameProblem = problems.Any(p => !p.StartsWith("advice", StringComparison.Ordinal) && !p.StartsWith("meta", StringComparison.Ordinal));
         bool usable = !sizeOrNameProblem && text.Count(char.IsLetter) >= 20;
         return new Outcome(usable, text, problems);
     }
@@ -96,17 +111,33 @@ public static partial class AnswerChecker
     // ---------------------------------------------------------------- advice
 
     /// <summary>A sentence telling the user to delete or keep something must agree with PuterScanny's recommendation for what it names.</summary>
-    private static string? AdviceProblem(string sentence, IReadOnlyList<ChatItem> items)
+    private static string? AdviceProblem(string sentence, IReadOnlyList<ChatItem> items, string facts)
     {
         bool delete = DeleteAdviceRx().IsMatch(sentence);
         bool keep = KeepAdviceRx().IsMatch(sentence);
         if (!delete && !keep) return null;
+        // "X is recommended to delete, while Y is yours to keep": each part is judged with the items it names.
+        string[] clauses = Regex.Split(sentence, @"[;,]\s+|\s+(?:while|whereas)\s+");
+        if (clauses.Length > 1)
+            return clauses.Any(c => AdviceProblem(c, items, facts) is not null) ? $"advice disagrees with the recommendations: {sentence}" : null;
 
         var named = items.Where(i => i.Name.Length >= 3 && sentence.Contains(i.Name, StringComparison.OrdinalIgnoreCase)).ToList();
         if (named.Count == 0)
         {
             // General statements are fine when they report PuterScanny's own labels ("PuterScanny recommends deleting…").
-            return Regex.IsMatch(sentence, @"PuterScanny|recommended to delete|safe to delete|marked|labell?ed|recommendation", RegexOptions.IgnoreCase)
+            // General statements are fine when they report the recommendations ("…can be deleted here", "marked Review").
+            bool resultsSayDeletable = Regex.IsMatch(facts, @"can be deleted|Recommended to delete|Safe to delete", RegexOptions.IgnoreCase);
+            // "It is safe to remove them because they're marked Review": "safe" needs a Safe/Recommended label, whatever else it says.
+            if (Regex.IsMatch(sentence, @"\b(safe|ok|okay|fine) to (delete|remove|get rid of)\b", RegexOptions.IgnoreCase) &&
+                !Regex.IsMatch(facts, @"Recommended to delete|Safe to delete", RegexOptions.IgnoreCase))
+                return $"advice not backed by the recommendations: {sentence}";
+            // "It is recommended to delete this item": only when that label is really there.
+            if (Regex.IsMatch(sentence, @"\brecommend(?:ed|s)?(?: to)? (?:delet|remov)\w*", RegexOptions.IgnoreCase) &&
+                !Regex.IsMatch(sentence, @"\b(not|isn't|aren't|never|no)\b", RegexOptions.IgnoreCase) &&
+                !Regex.IsMatch(facts, @"Recommended to delete", RegexOptions.IgnoreCase))
+                return $"advice not backed by the recommendations: {sentence}";
+            return resultsSayDeletable && Regex.IsMatch(sentence, @"\bcan be (deleted|removed)\b", RegexOptions.IgnoreCase) ||
+                   Regex.IsMatch(sentence, @"PuterScanny|recommended to delete|safe to delete|marked|labell?ed|recommendation", RegexOptions.IgnoreCase)
                 ? null
                 : $"advice not backed by PuterScanny: {sentence}";
         }
@@ -212,6 +243,12 @@ public static partial class AnswerChecker
     [GeneratedRegex(@"\d[\d,. ]*")]
     private static partial Regex NumberRx();
 
+    [GeneratedRegex(@"\b(?:1[5-9]\d\d|20\d\d)\b")]
+    private static partial Regex YearRx();
+
+    [GeneratedRegex(@"\b(?:no|none of|not any|zero)\b[^.]*\b(?:found|were found|was found|in (?:your|the|this)|exist|on (?:your|this) pc)\b|\b(?:found|there (?:are|is)|you have|i see) (?:no|none|nothing|not any)\b|\bnothing (?:like that|matching)\b", RegexOptions.IgnoreCase)]
+    private static partial Regex AbsenceRx();
+
     [GeneratedRegex(@"[\w\-()\[\]]+(?:\.[\w\-()\[\]]+)*\.[A-Za-z][A-Za-z0-9]{1,4}\b")]
     private static partial Regex FileNameRx();
 
@@ -221,9 +258,13 @@ public static partial class AnswerChecker
     [GeneratedRegex(@"(?<=[.!?])\s+(?=[A-Z""“(])")]
     private static partial Regex SentenceRx();
 
-    [GeneratedRegex(@"\b((you|i|we) (can|could|should|may|might want to|ought to)( safely| probably| definitely| only| just| also| then| still)? (delete|remove|get rid of|trash|clean up|uninstall|free up)|(safe|ok|okay|fine) to (delete|remove|get rid of)|can (safely )?be (deleted|removed)|recommend(ed|s)? (deleting|removing|that you delete)|no longer (needed|necessary)|consider (deleting|removing))\b", RegexOptions.IgnoreCase)]
+    [GeneratedRegex(@"\b((you|i|we) (can|could|should|may|might want to|ought to)( safely| probably| definitely| only| just| also| then| still)? (delete|remove|get rid of|trash|clean up|uninstall|free up)|(safe|ok|okay|fine) to (delete|remove|get rid of)|can (safely )?be (deleted|removed)|recommend(ed|s)? (to )?(deleting|removing|delete|remove|that you delete)|no longer (needed|necessary)|consider (deleting|removing))\b", RegexOptions.IgnoreCase)]
     private static partial Regex DeleteAdviceRx();
 
     [GeneratedRegex(@"\b((you|i|we) (should|must|need to|ought to) keep|(don'?t|do not|never|shouldn'?t|should not) (delete|remove|touch)|(must|should) (be kept|stay|not be (deleted|removed)))\b", RegexOptions.IgnoreCase)]
     private static partial Regex KeepAdviceRx();
+
+    /// <summary>Sentences about the lookup rather than the files: "the results show…", "according to the facts…".</summary>
+    [GeneratedRegex(@"\b(?:the|these|those) (?:lookup )?(?:results?|lookups?|facts(?: given| provided)?|data(?: given| provided)?)\b(?! (?:folder|file))|\baccording to the (?:scan )?(?:results|facts|data)\b", RegexOptions.IgnoreCase)]
+    private static partial Regex MetaRx();
 }

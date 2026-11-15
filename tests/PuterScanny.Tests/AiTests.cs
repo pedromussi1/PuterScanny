@@ -174,7 +174,7 @@ public sealed class ExplanationServiceTests
         Assert.False(loaded.AutoExplain);
         Assert.Equal("x", loaded.ModelId);
         File.WriteAllText(paths.Settings, "{ not json");
-        Assert.False(AiSettings.Load(paths).Enabled);
+        Assert.True(AiSettings.Load(paths).Enabled); // unreadable settings: back to the default, automatic (it still needs a model)
     }
 }
 

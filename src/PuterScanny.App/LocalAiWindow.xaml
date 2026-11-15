@@ -1,4 +1,4 @@
-<Window x:Class="PuterScanny.App.LocalAiWindow"
+﻿<Window x:Class="PuterScanny.App.LocalAiWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:PuterScanny.App.ViewModels"
@@ -23,20 +23,34 @@
     <DockPanel Margin="20,16,20,16">
         <Button DockPanel.Dock="Bottom" Content="Close" IsCancel="True" HorizontalAlignment="Right" MinWidth="90" Margin="0,8,0,0" Click="Close_Click" />
         <ScrollViewer VerticalScrollBarVisibility="Auto">
-            <StackPanel>
-                <TextBlock Text="Local AI explanations" FontSize="22" FontWeight="SemiBold" />
-                <TextBlock Style="{StaticResource Muted}" Margin="0,4,0,12"
-                           Text="For items PuterScanny's own rules can't identify, a free AI model running on this PC writes a short plain-English guess at what they are. It's downloaded once, then works offline: nothing about your files is sent anywhere, and there's no account, key or cost. The AI only explains. It never decides what's safe to delete; that stays with PuterScanny's own checks." />
+            <StackPanel Margin="0,0,14,0">
+                <TextBlock Text="Local AI" FontSize="22" FontWeight="SemiBold" />
+                <TextBlock Style="{StaticResource Muted}" Margin="0,4,0,4"
+                           Text="A free AI model that runs on this PC. It's downloaded once, then works offline: nothing about your files is sent anywhere, and there's no account, key or cost." />
+                <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,12" TextWrapping="Wrap">
+                    <Run Text="It's used for three things:" /><LineBreak />
+                    <Run Text="•  working out questions in Ask that the app can't read on its own" /><LineBreak />
+                    <Run Text="•  adding a short summary on top of an answer" /><LineBreak />
+                    <Run Text="•  explaining files the app's own rules can't identify" /><LineBreak />
+                    <Run Text="It never decides what's safe to delete: recommendations always come from the scan." />
+                </TextBlock>
 
                 <!-- On/off and status -->
                 <Border Style="{StaticResource Card}">
                     <StackPanel>
-                        <CheckBox IsChecked="{Binding Enabled}" Content="Use the local AI" FontWeight="SemiBold" AutomationProperties.Name="Use the local AI" />
-                        <TextBlock Text="{Binding StatusText}" Margin="0,6,0,0" TextWrapping="Wrap" />
-                        <CheckBox IsChecked="{Binding AutoExplain}" Margin="0,10,0,0" IsEnabled="{Binding Enabled}"
+                        <CheckBox IsChecked="{Binding Enabled}" Content="Use the local AI automatically, only when it helps" FontWeight="SemiBold"
+                                  AutomationProperties.Name="Use the local AI automatically" />
+                        <TextBlock Style="{StaticResource Muted}" FontSize="12" Margin="28,2,0,0" TextWrapping="Wrap"
+                                   Text="Questions the app reads with confidence are answered straight from the scan. The AI steps in only to work out questions the app isn't sure about, and, on a fast enough PC, to add a short checked summary. How much it's used depends on this PC's free memory, speed and power." />
+                        <TextBlock Text="{Binding StatusText}" Margin="0,8,0,0" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding CapacityText}" Margin="0,4,0,0" TextWrapping="Wrap" FontSize="12" Style="{StaticResource Muted}"
+                                   Visibility="{Binding CapacityText, Converter={StaticResource BoolToVisibility}}" />
+                        <TextBlock Style="{StaticResource Muted}" FontSize="12" Margin="0,4,0,0"
+                                   Text="It runs on the processor, not the graphics card: a quarter of it with &quot;Go easy on this PC&quot; ticked, otherwise half. The model needs about 4 GB of free memory while loaded." />
+                        <CheckBox IsChecked="{Binding AutoExplain}" Margin="0,12,0,0" IsEnabled="{Binding Enabled}"
                                   Content="Explain unidentified items automatically when I select them" />
-                        <TextBlock Style="{StaticResource Muted}" FontSize="12" Margin="0,8,0,0"
-                                   Text="It uses the processor, not the graphics card. With &quot;Go easy on this PC&quot; ticked it uses a quarter of the processor, otherwise half. The model needs about 4 GB of free memory while loaded." />
+                        <TextBlock Style="{StaticResource Muted}" FontSize="12" Margin="28,2,0,0"
+                                   Text="Only on a PC fast enough for it. Otherwise use the item's &quot;Explain with local AI&quot; button." />
                         <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                             <Button Content="Free its memory now" Command="{Binding FreeMemoryCommand}" Margin="0,0,8,0"
                                     ToolTip="Unloads the model. It loads again the next time an explanation is needed." />
@@ -110,7 +124,7 @@
                     <StackPanel>
                         <TextBlock Text="Explain the current scan" FontWeight="SemiBold" />
                         <TextBlock Style="{StaticResource Muted}" FontSize="12" Margin="0,2,0,0"
-                                   Text="Writes explanations for the 50 biggest items (over 1 MB) that PuterScanny couldn't identify, so they're ready when you look. Each takes a few seconds to half a minute." />
+                                   Text="Writes explanations for the 50 biggest items (over 1 MB) that the scan couldn't identify, so they're ready when you look. Each takes a few seconds to half a minute." />
                         <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                             <Button Content="Explain the biggest unidentified items" Command="{Binding ExplainBiggestCommand}" Margin="0,0,8,0" />
                             <Button Content="Stop" Command="{Binding StopBatchCommand}"

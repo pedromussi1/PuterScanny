@@ -141,7 +141,37 @@ public sealed class ExplanationService : IDisposable
         if (_fakeGenerate is not null) return await _fakeGenerate(system, user, ct);
         var resolved = ResolveModel() ?? throw new InvalidOperationException("The local AI isn't set up yet.");
         var model = await EnsureLoadedAsync(resolved.Path, resolved.Name, loadProgress, ct);
-        return await Task.Run(() => model.GenerateAsync(system, user, maxTokens, ct, grammar, temperature), ct);
+        string text = await Task.Run(() => model.GenerateAsync(system, user, maxTokens, ct, grammar, temperature), ct);
+        // Writing speed, after the prompt is read: what decides how long a summary takes. (Forced-shape replies, used to
+        // pick lookups, write more slowly; they're short, so they aren't counted.)
+        var (tokens, promptSeconds, seconds) = model.LastRun;
+        if (grammar is null && tokens >= 10 && seconds - promptSeconds > 0.2)
+        {
+            double speed = (tokens - 1) / (seconds - promptSeconds);
+            MeasuredTokensPerSecond = MeasuredTokensPerSecond is double old ? old * 0.6 + speed * 0.4 : speed;
+        }
+        return text;
+    }
+
+    /// <summary>How fast the model really writes on this PC (words, roughly tokens, a second), from recent written
+    /// answers; null until it has written one this session.</summary>
+    public double? MeasuredTokensPerSecond { get; private set; }
+
+    /// <summary>How much the AI can be used right now, on this PC, and why.</summary>
+    public AiCapacity Capacity()
+    {
+        if (_fakeGenerate is not null) return Settings.Enabled ? AiCapacity.Unlimited : AiCapacity.Unavailable("the local AI is turned off");
+        switch (Status)
+        {
+            case AiStatus.NotSetUp:
+                return AiCapacity.Unavailable(Settings.Enabled ? "the local AI isn't set up (no model downloaded)" : "the local AI is turned off");
+            case AiStatus.Failed:
+                return AiCapacity.Unavailable(Problem ?? "the AI model couldn't be loaded");
+        }
+        long size = 0;
+        try { if (ResolveModel() is { } m) size = new FileInfo(m.Path).Length; }
+        catch (IOException) { }
+        return PcPower.Assess(size, _model is not null, MeasuredTokensPerSecond, LocalModel.SuggestedThreads(GentleOnPc));
     }
 
     private async Task<LocalModel> EnsureLoadedAsync(string path, string name, IProgress<float>? progress, CancellationToken ct)

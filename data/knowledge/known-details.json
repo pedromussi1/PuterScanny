@@ -3,6 +3,8 @@
   // Each entry only applies on an exact match. Text placeholders: {group} = a named group of the pattern;
   // {date} = groups y, mo, d (and h, mi); {languages} = the "langs" group as language names; {lookup:group} = the
   // matching "lookups" text for that group. Corrections and additions are welcome.
+  // "topics" group entries (and file types, or marker files for folders) so questions like "any files from a Mac?" can be
+  // looked up. "phrases" is how people ask about the topic.
   "dates": [
     {
       "id": "torrentzip",
@@ -1278,6 +1280,187 @@
       "files": true,
       "pattern": "^ER0000\\.sl2(?<bak>\\.bak)?$",
       "text": "{?bak:The game's own backup of }Elden Ring's save file (the game keeps it in AppData\\Roaming\\EldenRing, in a folder named after the Steam account ID)."
+    }
+  ],
+  "topics": [
+    {
+      "id": "mac",
+      "name": "files from a Mac",
+      "phrases": "\\b(?:from|made on|copied from|left by) (?:a |an |my )?(?:mac|macbook|macos|apple computer)\\b|\\bmac (?:files|leftovers|junk)\\b|\\bmacos (?:files|leftovers)\\b|\\b__macosx\\b|\\.ds_store\\b",
+      "details": [
+        "ds-store",
+        "appledouble",
+        "macosx-folder"
+      ]
+    },
+    {
+      "id": "ai-models",
+      "name": "AI and machine-learning models",
+      "phrases": "\\b(?:ai|ml|machine[- ]learning|deep[- ]learning|neural(?: network)?|language|llm|llms|tensorflow|pytorch|onnx|hugging ?face|gguf)\\s*(?:models?|checkpoints?|weights)\\b|\\bmodel (?:files|weights|checkpoints?)\\b|\\bllms?\\b",
+      "details": [
+        "tf-checkpoint-data",
+        "model-shard",
+        "hf-cache-repo",
+        "hf-incomplete"
+      ],
+      "extensions": [
+        ".safetensors",
+        ".gguf",
+        ".ggml",
+        ".onnx",
+        ".pt",
+        ".pth",
+        ".ckpt",
+        ".pb",
+        ".tflite",
+        ".keras",
+        ".mlmodel"
+      ]
+    },
+    {
+      "id": "code-projects",
+      "name": "code projects",
+      "phrases": "\\b(?:coding|code|programming|software|dev|development|git|github|node|python|unity|unreal)\\s+(?:projects?|repos?|repositories)\\b|\\brepositor(?:y|ies)\\b|\\bgit repos?\\b",
+      "markers": [
+        ".git",
+        "package.json",
+        "pyproject.toml",
+        "requirements.txt",
+        "setup.py",
+        "Cargo.toml",
+        "go.mod",
+        "pom.xml",
+        "build.gradle",
+        "CMakeLists.txt",
+        "composer.json",
+        "Gemfile",
+        "*.sln",
+        "*.csproj",
+        "*.uproject"
+      ]
+    },
+    {
+      "id": "repeat-downloads",
+      "name": "repeat downloads and copies",
+      "phrases": "\\b(?:repeat(?:ed)?|duplicate|double|twice)[- ](?:downloads?|downloaded)\\b|\\bdownloaded (?:twice|more than once|again)\\b|\\bconflict(?:ed)? cop(?:y|ies)\\b|\\b\\(1\\) files\\b",
+      "details": [
+        "browser-copy",
+        "windows-copy",
+        "onedrive-conflict",
+        "dropbox-conflicted-copy",
+        "dropbox-case-conflict"
+      ]
+    },
+    {
+      "id": "phone-media",
+      "name": "photos and videos from phones and cameras",
+      "phrases": "\\b(?:phone|iphone|android|pixel|camera|gopro|insta360|whatsapp|telegram|signal)\\s+(?:photos?|pictures?|pics|videos?|media|images?|footage)\\b|\\bphotos? (?:from|taken (?:with|on)) (?:my |a )?(?:phone|camera|iphone)\\b",
+      "details": [
+        "android-camera",
+        "pixel-camera",
+        "camera-numbering",
+        "gopro-chapter",
+        "gopro-old-chapter",
+        "insta360",
+        "iphone-edited",
+        "whatsapp",
+        "telegram-desktop",
+        "signal-desktop",
+        "dcim",
+        "dcf-folder",
+        "google-photos-year"
+      ]
+    },
+    {
+      "id": "screenshots",
+      "name": "screenshots",
+      "phrases": "\\bscreen ?shots?\\b|\\bscreen captures?\\b|\\bprint ?screens?\\b",
+      "details": [
+        "snipping-tool",
+        "android-screenshot",
+        "printscreen",
+        "mac-screenshot",
+        "steam-screenshot"
+      ]
+    },
+    {
+      "id": "recordings",
+      "name": "screen, game and meeting recordings",
+      "phrases": "\\b(?:screen|game|gameplay|meeting|zoom|teams|obs|shadowplay|nvidia)\\s+(?:recordings?|captures?|clips?)\\b|\\brecorded (?:meetings?|calls?|games?|gameplay)\\b",
+      "details": [
+        "obs-recording",
+        "nvidia-shadowplay",
+        "zoom-cloud",
+        "zoom-local",
+        "zoom-unconverted",
+        "teams-recording"
+      ]
+    },
+    {
+      "id": "emulation",
+      "name": "emulator files (ROMs, BIOS, saves)",
+      "phrases": "\\bemulat(?:or|ors|ion)\\b|\\bbios (?:files?|dumps?)\\b|\\bsave states?\\b|\\bmemory cards?\\b",
+      "details": [
+        "no-intro",
+        "tosec",
+        "goodtools",
+        "dump-status",
+        "ps1-bios",
+        "ps1-bios-alt",
+        "gb-bios",
+        "nds-bios",
+        "dreamcast-bios",
+        "gamecube-ipl",
+        "pce-cd-bios",
+        "sega-cd-bios",
+        "switch-keys",
+        "switch-title-id",
+        "retroarch-state",
+        "dolphin-state",
+        "dolphin-memcard",
+        "pcsx2-state",
+        "pcsx2-memcard",
+        "duckstation-memcard"
+      ]
+    },
+    {
+      "id": "lock-temp",
+      "name": "lock, temporary and recovered files",
+      "phrases": "\\block files?\\b|\\b(?:recovered|chkdsk) (?:files?|fragments?)\\b|\\bswap files?\\b|\\bleft-?over (?:lock|temp) files?\\b",
+      "details": [
+        "office-owner",
+        "libreoffice-lock",
+        "vim-swap",
+        "chkdsk-chk",
+        "chkdsk-found-folder",
+        "merge-orig",
+        "git-mergetool-temp",
+        "chrome-unconfirmed"
+      ]
+    },
+    {
+      "id": "split-archives",
+      "name": "split archives and checksum files",
+      "phrases": "\\bsplit (?:archives?|zips?|rars?|files?)\\b|\\bmulti-?part (?:archives?|zips?|rars?|downloads?)\\b|\\bchecksums?\\b|\\barchive parts?\\b",
+      "details": [
+        "split-numbered-part",
+        "split-rar-part",
+        "split-rar-old",
+        "split-zip",
+        "checksum-sidecar"
+      ]
+    },
+    {
+      "id": "dev-caches",
+      "name": "rebuildable developer folders",
+      "phrases": "\\bnode_modules\\b|\\bnode modules\\b|\\b__?pycache__?\\b|\\bvirtual ?env(?:ironment)?s?\\b|\\bvenvs?\\b|\\bbuild caches?\\b|\\bdependency folders?\\b",
+      "details": [
+        "node-modules",
+        "pycache",
+        "python-venv",
+        "gradle-cache",
+        "unreal-ddc"
+      ]
     }
   ]
 }

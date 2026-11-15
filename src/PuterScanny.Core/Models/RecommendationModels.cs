@@ -60,6 +60,9 @@ public enum FactFlags
 
     /// <summary>Kept only because nothing pointed either way (shown as "No reason to remove", not as a real keep).</summary>
     NoEvidence = 1 << 9,
+
+    /// <summary>Inside a folder that is a mod download (its files belong to the mod, not to the user).</summary>
+    InsideModDownload = 1 << 10,
 }
 
 /// <summary>One piece of evidence. Positive weight points toward deleting, negative toward keeping.</summary>

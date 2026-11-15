@@ -19,6 +19,10 @@ public sealed class LocalModel : IDisposable
 
     public string Name { get; }
 
+    /// <summary>The last answer: its length (pieces, roughly tokens), how long reading the prompt took (until the first
+    /// piece), and how long the whole answer took.</summary>
+    public (int Tokens, double PromptSeconds, double Seconds) LastRun { get; private set; }
+
     private LocalModel(LLamaWeights weights, ModelParams parameters, string name)
     {
         _weights = weights;
@@ -92,7 +96,16 @@ public sealed class LocalModel : IDisposable
                 },
             };
             var sb = new StringBuilder();
-            await foreach (string piece in executor.InferAsync(prompt, inference, ct)) sb.Append(piece);
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            int pieces = 0;
+            double first = 0;
+            await foreach (string piece in executor.InferAsync(prompt, inference, ct))
+            {
+                if (pieces == 0) first = clock.Elapsed.TotalSeconds;
+                sb.Append(piece);
+                pieces++;
+            }
+            LastRun = (pieces, first, clock.Elapsed.TotalSeconds);
             return sb.ToString();
         }
         finally

@@ -55,8 +55,11 @@ public sealed class AiPaths
 /// <summary>The user's local-AI choices.</summary>
 public sealed class AiSettings
 {
-    /// <summary>Off until the user turns it on (it needs a large one-time download).</summary>
-    public bool Enabled { get; set; }
+    /// <summary>
+    /// Use the local AI automatically, only when it helps (on by default; nothing happens until a model is downloaded,
+    /// which is the user's choice). False = never.
+    /// </summary>
+    public bool Enabled { get; set; } = true;
 
     public string ModelId { get; set; } = ModelCatalog.Default.Id;
 

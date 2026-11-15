@@ -20,6 +20,9 @@ public enum LookupKind
 
     /// <summary>Space used per kind of file.</summary>
     Types,
+
+    /// <summary>Items about one topic from the known details ("files from a Mac", "code projects").</summary>
+    Topic,
 }
 
 public enum ListFilter
@@ -80,6 +83,18 @@ public sealed record LookupRequest
     public int? OlderDays { get; init; }
 
     public long? MinBytes { get; init; }
+
+    /// <summary>Only files with these type labels ("Game Boy ROM"…), described as <see cref="TypeName"/> ("Game Boy games").</summary>
+    public IReadOnlyList<string>? TypeLabels { get; init; }
+
+    /// <summary>Names must contain one of these: words the files of something asked about by name are likely to carry
+    /// (chosen by the local AI: "Batman" → arkham, asylum, joker…). Matching is by name only.</summary>
+    public IReadOnlyList<string>? Terms { get; init; }
+    public string? TypeName { get; init; }
+
+    /// <summary>A known-details topic id (for <see cref="LookupKind.Topic"/>).</summary>
+    public string? Topic { get; init; }
+
     public EntrySort Sort { get; init; }
     public int Count { get; init; } = 10;
 
@@ -148,6 +163,12 @@ public enum AnswerSource
 
     /// <summary>Not understood.</summary>
     Help,
+
+    /// <summary>Answered straight from the scan, but some words of the question didn't fit how it was read (says so).</summary>
+    ScanUnsure,
+
+    /// <summary>The local AI worked out what the question means and chose the lookups; the answer itself is the scan's.</summary>
+    AiUnderstood,
 }
 
 public sealed record ChatAnswer
@@ -161,6 +182,13 @@ public sealed record ChatAnswer
 
     public string? ModelName { get; init; }
     public TimeSpan Elapsed { get; init; }
+
+    /// <summary>Said under the answer: how the question was read when unsure, or why the local AI wasn't used.</summary>
+    public string? Note { get; init; }
+
+    /// <summary>A short summary the local AI can add on top once the facts are shown (null = none). Returns null when
+    /// it didn't pass the fact check.</summary>
+    public Func<IProgress<ChatProgress>?, CancellationToken, Task<string?>>? Summary { get; init; }
 }
 
 /// <summary>A language model that runs on this PC (tests use a fake).</summary>
@@ -171,4 +199,7 @@ public interface IChatModel
 
     /// <summary>One system + user prompt; <paramref name="grammar"/> (GBNF) forces the shape of the reply.</summary>
     Task<string> GenerateAsync(string system, string user, int maxTokens, string? grammar, float temperature, CancellationToken ct);
+
+    /// <summary>How much it can be used on this PC right now (memory, speed, power).</summary>
+    PuterScanny.AI.AiCapacity Capacity => PuterScanny.AI.AiCapacity.Unlimited;
 }

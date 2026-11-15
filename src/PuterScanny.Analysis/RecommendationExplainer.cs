@@ -32,8 +32,10 @@ public static class RecommendationExplainer
             ContainedLastModifiedUtc = a.ContainedLastModifiedUtc,
             OwnerUninstall = owner is { UninstallConfidence: > 0 } ? new UninstallSuggestion(owner.Id, owner.UninstallConfidence, owner.UninstallReason ?? "") : null,
             NowUtc = db.GetSummary()?.CompletedUtc ?? DateTime.UtcNow,
+            ModDownloadName = a.Facts.HasFlag(FactFlags.InsideModDownload) ? ModName(db, parent) : null,
         };
         var own = Recommender.Evaluate(facts);
+
 
         // Folders can be re-judged from their contents; the stored verdict is the final word.
         return own with
@@ -43,5 +45,16 @@ public static class RecommendationExplainer
             Action = a.Action,
             Headline = a.Headline ?? own.Headline,
         };
+    }
+
+    /// <summary>The name of the mod download a folder is (or is inside).</summary>
+    private static string? ModName(ScanDatabase db, FileSystemEntry? folder)
+    {
+        for (int hops = 0; folder is not null && hops < 64; hops++)
+        {
+            if (ModDownloads.TryParse(folder.Name, isFolder: true, out var mod)) return mod.Name;
+            folder = folder.ParentId is long p ? db.GetEntry(p) : null;
+        }
+        return null;
     }
 }

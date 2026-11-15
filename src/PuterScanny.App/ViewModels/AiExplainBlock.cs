@@ -56,7 +56,8 @@ public sealed partial class AiExplainBlock : ObservableObject
 
         if (entry is not null && _results() is { } ctx && _ai.IsAvailable && _ai.GetCached(entry, ctx) is { } cached)
             SetResult(cached);
-        else if (autoStart && IsUnidentified && _ai.IsAvailable && _ai.AutoExplain)
+        // Only on its own when this PC can run the AI comfortably right now (otherwise the button is still there).
+        else if (autoStart && IsUnidentified && _ai.IsAvailable && _ai.AutoExplain && _ai.Service.Capacity().Summaries)
             _ = ExplainAsync();
         Update();
     }

@@ -55,6 +55,12 @@ public sealed class ChatScanFixture : IDisposable
         System.IO.File.WriteAllText(Path.Combine(_tree.Root, dl, Mod, "readme.txt"),
             "Thanks for using Asylum 4K ->REMASTERED<- !\r\n\r\nMod created by\r\nhttps://example.com/someone\r\n\r\nInstallation:\r\n" +
             "Just drag the BmGame folder into the main folder of the game.\r\nOverwrite existing files.\r\n");
+        // Leftovers from a Mac, and a code project (whose node_modules packages are not projects of their own).
+        File(@"Wallpapers\__MACOSX\._beach.jpg", 120, 500);
+        File(@"Projects\bot\package.json", 300, 50);
+        File(@"Projects\bot\index.js", 900, 50);
+        File(@"Projects\bot\.git\HEAD", 30, 50);
+        File(@"Projects\bot\node_modules\left-pad\package.json", 200, 50);
 
         DbPath = Path.Combine(_out.Root, "scan.db");
         var tokens = new PathTokens(new Dictionary<string, string> { ["users"] = Path.Combine(_tree.Root, "Users") });
@@ -195,7 +201,8 @@ public sealed class ChatTests(ChatScanFixture scan) : IClassFixture<ChatScanFixt
         var answer = await Ask(engine, "can I delete Viva Pinata (Disc 1).iso?");
         var iso = scan.All().Single(e => e.Name == "Viva Pinata (Disc 1).iso");
         Assert.Equal(AnswerSource.Scan, answer.Source);
-        Assert.StartsWith("Recommendation: Keep", answer.Text);
+        Assert.StartsWith("Viva Pinata (Disc 1).iso: Keep", answer.Text); // the item first, so it's clear what the verdict is about
+        Assert.Contains("It's a disc image", answer.Text);
         Assert.Contains("retip", answer.Text);
         Assert.Equal(iso.Id, answer.Items[0].EntryId);
         Assert.False(answer.Items[0].IsDeletable);
@@ -328,13 +335,78 @@ public sealed class ChatTests(ChatScanFixture scan) : IClassFixture<ChatScanFixt
         }
     }
 
+    [Theory]
+    [InlineData("Which of these are Game Boy games?", LookupKind.List, null)]
+    [InlineData("How much space do my game files take up?", LookupKind.List, null)]
+    [InlineData("Is it safe to remove the Skyrim mod files?", LookupKind.List, null)]
+    [InlineData("What did I download most recently?", LookupKind.List, null)]
+    [InlineData("Are there any files from a Mac?", LookupKind.Topic, "mac")]
+    [InlineData("Do I have any machine learning models in here?", LookupKind.Topic, "ai-models")]
+    [InlineData("Which folders look like coding projects?", LookupKind.Topic, "code-projects")]
+    [InlineData("any screenshots?", LookupKind.Topic, "screenshots")]
+    public void Questions_about_games_topics_and_recent_downloads_are_read_correctly(string question, LookupKind kind, string? topic)
+    {
+        var r = new QuestionMatcher(new ScanLookup(scan.Db, ChatScanFixture.Kb)).Match(question, Dl)!;
+        Assert.Equal(kind, r.Kind);
+        Assert.Equal(topic, r.Topic);
+        switch (question)
+        {
+            case "Which of these are Game Boy games?":
+                Assert.Equal("Game Boy games", r.TypeName);
+                Assert.Contains("Game Boy Advance ROM", r.TypeLabels!);
+                break;
+            case "How much space do my game files take up?":
+                Assert.Equal("game", r.Category);
+                break;
+            case "Is it safe to remove the Skyrim mod files?":
+                Assert.Equal(ListFilter.Mods, r.Filter);
+                Assert.Equal(EntryKind.Any, r.ItemKind); // the unpacked mod folders count too
+                break;
+            case "What did I download most recently?":
+                Assert.Equal(EntrySort.Newest, r.Sort);
+                break;
+        }
+    }
+
+    [Fact]
+    public async Task Topic_lookups_find_Mac_leftovers_and_code_projects_but_not_packages()
+    {
+        var engine = scan.Engine();
+        var mac = await Ask(engine, "Are there any files from a Mac?");
+        Assert.Equal(["__MACOSX"], mac.Items.Select(i => i.Name));
+
+        var projects = await Ask(engine, "Which folders look like coding projects?");
+        Assert.Equal(["bot"], projects.Items.Select(i => i.Name)); // not left-pad, a package inside node_modules
+
+        var games = await Ask(engine, "Which of these are Game Boy games?");
+        Assert.Equal(["Legend of Zelda, The - The Minish Cap (USA).gba"], games.Items.Select(i => i.Name));
+
+        var none = await Ask(engine, "any screenshots?");
+        Assert.Empty(none.Items);
+        Assert.StartsWith("I looked for screenshots in Downloads and found none.", none.Text);
+    }
+
+    [Fact]
+    public async Task Files_inside_a_mod_download_are_part_of_the_mod_not_your_own()
+    {
+        var video = scan.All().Single(e => e.Name == "213_Bane_intro.bik");
+        Assert.Equal(Verdict.Review, video.Analysis!.Verdict);
+        Assert.Equal("Part of a mod download (Asylum 4K - REMASTERED (Part 1))", video.Analysis.Headline);
+        Assert.Equal(CleanupAction.None, video.Analysis.Action); // decided for the mod download as a whole
+        var folder = scan.All().Single(e => e.Name == "BmGame");
+        Assert.NotEqual(Verdict.KeepPersonal, folder.Analysis!.Verdict);
+
+        var answer = await Ask(scan.Engine(), "can I delete BmGame?");
+        Assert.StartsWith("BmGame: Review, for all of " + ChatScanFixture.Mod, answer.Text);
+    }
+
     [Fact]
     public async Task Can_I_delete_it_after_asking_what_something_is_puts_the_recommendation_first()
     {
         var engine = scan.Engine();
         await Ask(engine, "what is OllamaSetup.exe");
         var answer = await Ask(engine, "can I delete it?");
-        Assert.StartsWith("Recommendation: ", answer.Text);
+        Assert.StartsWith("OllamaSetup.exe: ", answer.Text);
     }
 
     [Fact]
@@ -344,23 +416,6 @@ public sealed class ChatTests(ChatScanFixture scan) : IClassFixture<ChatScanFixt
         await Ask(engine, "what's in Videos");
         var answer = await Ask(engine, "which of those are older than 2 years?");
         Assert.Equal(["holiday.mp4"], answer.Items.Select(i => i.Name));
-    }
-
-    [Fact]
-    public async Task With_the_AI_on_a_description_is_written_by_it_but_a_misreported_recommendation_is_not_shown()
-    {
-        // The mod download is marked Review: a description saying PuterScanny recommends keeping it must not be shown.
-        var wrong = new FakeModel($"BmGame holds game videos. PuterScanny recommends keeping this folder.");
-        var answer = await Ask(scan.Engine(wrong), "What is BmGame?");
-        Assert.Equal(AnswerSource.LocalAiFallback, answer.Source);
-        Assert.Contains("Just drag the BmGame folder", answer.Text);
-        Assert.Equal(2, wrong.Calls.Count);
-        Assert.Equal(AnswerChecker.DescribeSystem, wrong.Calls[0].System);
-
-        var right = new FakeModel($"BmGame is part of the mod download {ChatScanFixture.Mod}. It holds Bink videos such as 213_Bane_intro.bik, probably the game's cutscenes. PuterScanny marks the mod download Review.");
-        answer = await Ask(scan.Engine(right), "What is BmGame?");
-        Assert.Equal(AnswerSource.LocalAi, answer.Source);
-        Assert.Contains("probably the game's cutscenes", answer.Text);
     }
 
     [Fact]
@@ -386,6 +441,7 @@ public sealed class ChatTests(ChatScanFixture scan) : IClassFixture<ChatScanFixt
         public List<(string System, string User, string? Grammar)> Calls { get; } = [];
         public string Name => "Test model";
         public bool IsAvailable => true;
+        public PuterScanny.AI.AiCapacity Capacity { get; init; } = PuterScanny.AI.AiCapacity.Unlimited;
 
         public Task<string> GenerateAsync(string system, string user, int maxTokens, string? grammar, float temperature, CancellationToken ct)
         {
@@ -397,33 +453,242 @@ public sealed class ChatTests(ChatScanFixture scan) : IClassFixture<ChatScanFixt
     private const string PlanDelete =
         """{"lookups":[{"lookup":"list","folder":null,"name":null,"kind":"any","filter":"delete","category":null,"unused_days":null,"older_days":null,"min_mb":null,"sort":"size","count":10}]}""";
 
+    /// <summary>The answer as the app ends up showing it: the summary (when the AI adds one and it passes) above the facts.</summary>
+    private static async Task<string> Shown(ChatAnswer a) =>
+        a.Summary is not null && await a.Summary(null, CancellationToken.None) is { } summary ? summary + "\n\n" + a.Text : a.Text;
+
+    private const string PlanMods =
+        """{"lookups":[{"lookup":"list","folder":null,"name":null,"kind":"any","filter":"mods","category":null,"topic":null,"unused_days":null,"older_days":null,"min_mb":null,"sort":"size","count":10}]}""";
+
+    private static PuterScanny.AI.AiCapacity Tier(PuterScanny.AI.AiTier tier, bool summaries = false) =>
+        new(tier, summaries, tier == PuterScanny.AI.AiTier.CantRun ? "only 1 GB of memory is free right now, and the model needs about 3.6 GB" : "test",
+            0, 0, 0, true, 8, false, null);
+
     [Fact]
-    public async Task The_AI_picks_lookups_and_its_checked_answer_is_shown()
+    public async Task A_question_read_with_confidence_never_calls_the_AI()
+    {
+        var model = new FakeModel(PlanDelete);
+        var answer = await Ask(scan.Engine(model), "What can I safely delete?");
+        Assert.Equal(AnswerSource.Scan, answer.Source);
+        Assert.Empty(model.Calls);
+        Assert.Null(answer.Summary);
+    }
+
+    [Fact]
+    public async Task An_unsure_reading_goes_to_the_AI_with_the_apps_own_reading_as_a_hint()
+    {
+        var model = new FakeModel(PlanMods);
+        var answer = await Ask(scan.Engine(model), "Is it safe to remove the Skyrim mod files?");
+        Assert.Equal(AnswerSource.AiUnderstood, answer.Source);
+        Assert.Contains("Simple rules read this question as \"biggest mod downloads", model.Calls[0].User);
+        Assert.Contains("mod downloads", answer.Text); // the answer itself is the scan's
+    }
+
+    [Fact]
+    public async Task Without_the_AI_an_unsure_reading_says_how_the_question_was_read()
+    {
+        var answer = await Ask(scan.Engine(), "Is it safe to remove the Skyrim mod files?");
+        Assert.Equal(AnswerSource.ScanUnsure, answer.Source);
+        Assert.Contains("I read this as: biggest mod downloads in Downloads. \"skyrim\" didn't fit that reading", answer.Text);
+        Assert.Contains("set up", answer.Note);
+    }
+
+    [Fact]
+    public async Task When_this_PC_cant_run_the_AI_it_isnt_used_and_the_answer_says_why()
+    {
+        var model = new FakeModel(PlanMods) { Capacity = Tier(PuterScanny.AI.AiTier.CantRun) };
+        var unsure = await Ask(scan.Engine(model), "Is it safe to remove the Skyrim mod files?");
+        Assert.Equal(AnswerSource.ScanUnsure, unsure.Source);
+        Assert.Contains("wasn't used: only 1 GB of memory is free", unsure.Note);
+        var help = await Ask(scan.Engine(model), "got any neural nets lying around?");
+        Assert.Equal(AnswerSource.Help, help.Source);
+        Assert.Contains("wasn't used: only 1 GB of memory is free", help.Text);
+        Assert.Empty(model.Calls);
+    }
+
+    [Fact]
+    public async Task A_summary_sentence_about_the_results_instead_of_the_files_is_dropped()
+    {
+        var model = new FakeModel("BmGame holds the mod's Bink cutscene videos. The facts provided only show that it is a folder.");
+        var answer = await Ask(scan.Engine(model), "What is BmGame?");
+        string shown = await Shown(answer);
+        Assert.StartsWith("BmGame holds the mod's Bink cutscene videos.\n\n", shown);
+        Assert.DoesNotContain("facts provided", shown);
+    }
+
+    [Fact]
+    public async Task Something_asked_about_by_name_is_searched_for_by_the_names_its_files_are_likely_to_have()
+    {
+        // "Batman": nothing in the scan is named that, but the AI knows the names its files go by.
+        const string plan = """{"lookups":[{"lookup":"list","folder":null,"name":null,"terms":["batman","arkham","asylum","game"],"kind":"any","filter":"any","category":null,"topic":null,"unused_days":null,"older_days":null,"min_mb":null,"sort":"size","count":10}]}""";
+        var model = new FakeModel(plan, "These are probably Batman mod files, going by their names.");
+        var answer = await Ask(scan.Engine(model), "Is it safe to remove the Batman mod files?");
+        Assert.Equal(AnswerSource.AiUnderstood, answer.Source);
+        Assert.Equal([ChatScanFixture.Mod], answer.Items.Select(i => i.Name)); // the folder once, not the files inside it
+        Assert.Contains("name has \"asylum\"", answer.Items[0].Note); // what it was found by is shown
+        Assert.Contains("with \"batman\", \"arkham\" or \"asylum\" in the name", answer.Text); // "game" is too general to search for
+        Assert.Contains("Review", answer.Text);
+    }
+
+    [Fact]
+    public void Search_words_from_the_AI_are_cleaned_up()
+    {
+        var r = AiPlanner.Parse("""{"lookups":[{"lookup":"list","folder":null,"name":null,"terms":["Zelda","zelda","GAME","ab","link","hyrule","nintendo","majora","ocarina"],"kind":"any","filter":"any","category":null,"topic":null,"unused_days":null,"older_days":null,"min_mb":null,"sort":"size","count":10}]}""");
+        Assert.Equal(["zelda", "link", "hyrule", "nintendo", "majora", "ocarina"], r[0].Terms!);
+    }
+
+    [Fact]
+    public async Task When_the_AI_names_something_that_isnt_a_file_or_folder_its_names_are_searched()
+    {
+        const string plan = """{"lookups":[{"lookup":"item","folder":null,"name":"Batman","terms":["arkham","asylum"],"kind":"any","filter":"any","category":null,"topic":null,"unused_days":null,"older_days":null,"min_mb":null,"sort":"size","count":10}]}""";
+        var answer = await Ask(scan.Engine(new FakeModel(plan, "x")), "Is it safe to remove the Batman mod files?");
+        Assert.Equal([ChatScanFixture.Mod], answer.Items.Select(i => i.Name));
+        Assert.Contains("with \"arkham\" or \"asylum\" in the name", answer.Text);
+
+        const string exact = """{"lookups":[{"lookup":"item","folder":null,"name":"BmGame","terms":null,"kind":"any","filter":"any","category":null,"topic":null,"unused_days":null,"older_days":null,"min_mb":null,"sort":"size","count":10}]}""";
+        var described = await Ask(scan.Engine(new FakeModel(exact, "x")), "what's that bm folder?");
+        Assert.Equal("BmGame", described.Items[0].Name); // an exact name stays a lookup of that item
+    }
+
+    [Fact]
+    public async Task Without_the_AI_words_the_reading_cant_place_are_looked_for_in_names()
+    {
+        var answer = await Ask(scan.Engine(), "where are my Zelda games?");
+        Assert.Equal(AnswerSource.Scan, answer.Source);
+        Assert.StartsWith("Legend of Zelda, The - The Minish Cap (USA)", answer.Items[0].Name);
+        Assert.Contains("\"zelda\" in the name", answer.Text);
+        Assert.DoesNotContain("I read this as", answer.Text);
+    }
+
+    [Fact]
+    public async Task A_whole_title_is_also_searched_by_its_words_and_without_filters_when_nothing_matches()
+    {
+        // Full titles with punctuation, inside a filter that finds nothing: the title's own words still find the mod folder.
+        const string plan = """{"lookups":[{"lookup":"list","folder":null,"name":null,"terms":["batman: arkham asylum","asylum"],"kind":"file","filter":"mods","category":null,"topic":null,"unused_days":null,"older_days":null,"min_mb":null,"sort":"size","count":10}]}""";
+        Assert.Equal(["batman: arkham asylum", "asylum"], AiPlanner.Parse(plan)[0].Terms!);
+        var answer = await Ask(scan.Engine(new FakeModel(plan, "x")), "Is it safe to remove the Batman mod files?");
+        Assert.Equal([ChatScanFixture.Mod], answer.Items.Select(i => i.Name));
+        Assert.DoesNotContain("I found no", answer.Text); // the wider search's answer on its own
+
+        // "legend of zelda" finds "Legend of Zelda, The - …" whatever separates the words.
+        var q = new EntryQuery { Scope = Dl, Kind = EntryKind.File, Limit = 50, NameContainsAny = ["legend of zelda"] };
+        Assert.Single(scan.Db.QueryEntries(q));
+    }
+
+    [Fact]
+    public async Task A_summary_calling_something_safe_to_remove_needs_a_safe_label()
+    {
+        const string plan = """{"lookups":[{"lookup":"list","folder":null,"name":null,"terms":["asylum"],"kind":"any","filter":"any","category":null,"topic":null,"unused_days":null,"older_days":null,"min_mb":null,"sort":"size","count":10}]}""";
+        var model = new FakeModel(plan, "It is safe to remove the Asylum mod because it is marked Review. It's an unpacked mod download.");
+        string shown = await Shown(await Ask(scan.Engine(model), "Is it safe to remove the Asylum stuff?"));
+        Assert.DoesNotContain("safe to remove the Asylum", shown);
+
+        var recommended = new FakeModel(plan, "One Asylum folder is marked Review. It is recommended to delete this item based on that label.");
+        shown = await Shown(await Ask(scan.Engine(recommended), "Is it safe to remove the Asylum stuff?"));
+        Assert.DoesNotContain("recommended to delete", shown);
+    }
+
+    [Fact]
+    public void Short_search_words_only_match_whole_words()
+    {
+        var q = new EntryQuery { Scope = Dl, Kind = EntryKind.File, Limit = 50 };
+        Assert.DoesNotContain(scan.Db.QueryEntries(q with { NameContainsAny = ["art"] }), e => e.Name == "party.mp4"); // not inside "party"
+        Assert.Contains(scan.Db.QueryEntries(q with { NameContainsAny = ["cat"] }), e => e.Name == "cat.jpg");
+        Assert.Contains(scan.Db.QueryEntries(q with { NameContainsAny = ["party"] }), e => e.Name == "party.mp4");
+    }
+
+    [Fact]
+    public async Task On_a_slow_PC_the_AI_only_works_out_questions_and_adds_no_summaries()
+    {
+        var model = new FakeModel(PlanDelete, "Should never be asked for.") { Capacity = Tier(PuterScanny.AI.AiTier.Slow) };
+        var answer = await Ask(scan.Engine(model), "I'm running out of room, where do I start?");
+        Assert.Equal(AnswerSource.AiUnderstood, answer.Source);
+        Assert.Null(answer.Summary);
+        Assert.Single(model.Calls);
+        var described = await Ask(scan.Engine(model), "What is BmGame?");
+        Assert.Null(described.Summary);
+    }
+
+    [Fact]
+    public async Task A_description_shows_its_facts_first_and_the_AI_summary_goes_on_top_when_it_passes()
+    {
+        var model = new FakeModel("BmGame is part of an unpacked mod download. Its Bink videos are probably the game's cutscenes.");
+        var answer = await Ask(scan.Engine(model), "What is BmGame?");
+        Assert.Equal(AnswerSource.Scan, answer.Source);
+        Assert.Contains("Recommendation: Review", answer.Text);   // shown at once, without waiting for the AI
+        Assert.Empty(model.Calls);
+        string shown = await Shown(answer);
+        Assert.StartsWith("BmGame is part of an unpacked mod download.", shown);
+        Assert.Contains("Just drag the BmGame folder", shown);
+        Assert.Equal(AnswerChecker.DescribeSystem, model.Calls[0].System);
+
+        // The mod download is marked Review: a summary saying it's recommended to keep is never shown.
+        var wrong = new FakeModel("BmGame holds game videos. PuterScanny recommends keeping this folder.");
+        answer = await Ask(scan.Engine(wrong), "What is BmGame?");
+        Assert.Null(await answer.Summary!(null, CancellationToken.None));
+        Assert.Equal(2, wrong.Calls.Count);
+    }
+
+    [Fact]
+    public async Task The_AI_picks_lookups_the_answer_is_the_scans_and_a_checked_summary_can_go_on_top()
     {
         var deletable = scan.All().Where(e => !e.IsDirectory && e.Analysis?.Verdict is Verdict.RecommendDelete or Verdict.SafeToDelete).ToList();
         string total = ByteSize.Format(deletable.Sum(e => e.Size));
         string biggest = deletable.OrderByDescending(e => e.Size).First().Name;
-        var model = new FakeModel(PlanDelete, $"PuterScanny says {total} can be deleted here. The biggest is {biggest}.");
+        var model = new FakeModel(PlanDelete, $"{total} can be deleted here. The biggest is {biggest}.");
         var answer = await Ask(scan.Engine(model), "I'm running out of room, where do I start?");
 
-        Assert.Equal(AnswerSource.LocalAi, answer.Source);
-        Assert.Contains(total, answer.Text);
+        Assert.Equal(AnswerSource.AiUnderstood, answer.Source);
+        Assert.Contains($"{total} in Downloads can be deleted", answer.Text);
         Assert.NotEmpty(answer.Items);
-        // The planning step is held to the lookup grammar; the answer is written from the lookup's results.
-        Assert.NotNull(model.Calls[0].Grammar);
+        Assert.NotNull(model.Calls[0].Grammar);     // planning is held to the lookup grammar
+        string shown = await Shown(answer);
+        Assert.StartsWith($"{total} can be deleted here.", shown);
         Assert.Contains(biggest, model.Calls[1].User);
         Assert.Null(model.Calls[1].Grammar);
     }
 
     [Fact]
-    public async Task An_AI_answer_with_made_up_numbers_is_never_shown()
+    public async Task A_summary_with_made_up_numbers_is_never_shown()
     {
         var model = new FakeModel(PlanDelete, "You can free 42 GB by deleting setup.exe and 300 files.", "Still 42 GB, honestly.");
         var answer = await Ask(scan.Engine(model), "I'm running out of room, where do I start?");
+        string shown = await Shown(answer);
+        Assert.DoesNotContain("42 GB", shown);
+        Assert.Contains("in Downloads can be deleted", shown);
+    }
 
-        Assert.Equal(AnswerSource.LocalAiFallback, answer.Source);
-        Assert.DoesNotContain("42 GB", answer.Text);
-        Assert.Contains("in Downloads can be deleted", answer.Text);
+    [Fact]
+    public async Task When_every_AI_lookup_comes_back_empty_it_says_what_was_searched()
+    {
+        const string plan = """{"lookups":[{"lookup":"list","folder":null,"name":null,"kind":"file","filter":"any","category":"database","topic":null,"unused_days":null,"older_days":null,"min_mb":null,"sort":"size","count":10}]}""";
+        var model = new FakeModel(plan, "There are no machine learning models on your PC.");
+        var answer = await Ask(scan.Engine(model), "got any neural nets lying around?");
+        Assert.Equal("I found no databases in Downloads.", answer.Text);
+        Assert.Null(answer.Summary);   // the AI never gets to write "there are none"
+        Assert.Single(model.Calls);
+    }
+
+    [Theory]
+    [InlineData(3L << 30, 1L << 30, null, false, PuterScanny.AI.AiTier.CantRun, false)]   // not enough free memory
+    [InlineData(3L << 30, 8L << 30, 1.0, false, PuterScanny.AI.AiTier.CantRun, false)]    // too slow
+    [InlineData(3L << 30, 8L << 30, 4.0, false, PuterScanny.AI.AiTier.Slow, false)]
+    [InlineData(3L << 30, 8L << 30, 12.0, false, PuterScanny.AI.AiTier.Fast, true)]
+    [InlineData(3L << 30, 8L << 30, 12.0, true, PuterScanny.AI.AiTier.Fast, false)]       // on battery: no summaries
+    [InlineData(3L << 30, 8L << 30, null, false, PuterScanny.AI.AiTier.Fast, true)]       // not measured yet: a modern processor
+    public void How_much_the_AI_is_used_depends_on_this_PC(long model, long free, double? speed, bool battery, PuterScanny.AI.AiTier tier, bool summaries)
+    {
+        var c = PuterScanny.AI.PcPower.Assess(model, modelLoaded: false, speed, threads: 8, total: 16L << 30, free, battery, avx2: true);
+        Assert.Equal(tier, c.Tier);
+        Assert.Equal(summaries, c.Summaries);
+        Assert.False(string.IsNullOrWhiteSpace(c.Reason));
+    }
+
+    [Fact]
+    public void A_loaded_model_doesnt_need_the_memory_again()
+    {
+        var c = PuterScanny.AI.PcPower.Assess(3L << 30, modelLoaded: true, 12.0, 8, 16L << 30, 1L << 30, false, true);
+        Assert.Equal(PuterScanny.AI.AiTier.Fast, c.Tier);
     }
 
     [Fact]
@@ -452,7 +717,7 @@ public sealed class ChatTests(ChatScanFixture scan) : IClassFixture<ChatScanFixt
     [Fact]
     public void The_grammar_lists_every_lookup_and_filter_the_parser_reads()
     {
-        string grammar = AiPlanner.Grammar();
+        string grammar = AiPlanner.Grammar(ChatScanFixture.Kb);
         foreach (string word in new[] { "overview", "list", "item", "duplicates", "programs", "types", "delete", "review", "no_reason", "unidentified", "mods", "least_used" })
             Assert.Contains($"\\\"{word}\\\"", grammar);
         foreach (string category in AiPlanner.Categories)
@@ -501,9 +766,19 @@ public sealed class ChatTests(ChatScanFixture scan) : IClassFixture<ChatScanFixt
     [InlineData("You could free 9.2 GB in total.")]                        // a size that isn't in the results
     [InlineData("There are 40 files PuterScanny would remove.")]           // a count that isn't in the results
     [InlineData("Start with setup_old.exe, then OllamaSetup.exe.")]        // a file that isn't in the results
+    [InlineData("OllamaSetup.exe has been here since 2019.")]               // a year that isn't in the results
+    [InlineData("There are no photos in your Downloads.")]                  // "none" when nothing searched for photos
     public void Answers_with_invented_facts_fail(string answer)
     {
         Assert.False(AnswerChecker.Check(answer, "what can I delete", [Sample]).Ok);
+    }
+
+    [Fact]
+    public void Saying_none_were_found_is_fine_when_a_lookup_searched_and_found_nothing()
+    {
+        var empty = Facts("Lookup: files from a Mac in Downloads\nFound: 0 items, 0 bytes\n") with { Request = new LookupRequest { Kind = LookupKind.Topic, Topic = "mac" } };
+        var outcome = AnswerChecker.Check("I found no files from a Mac in your Downloads.", "any Mac files?", [empty]);
+        Assert.True(outcome.Ok, string.Join("; ", outcome.Problems));
     }
 
     [Fact]

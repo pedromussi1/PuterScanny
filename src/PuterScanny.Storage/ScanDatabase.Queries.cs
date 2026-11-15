@@ -275,10 +275,49 @@ public sealed partial class ScanDatabase
             }
             sb.Append($" AND e.is_dir = 0 AND COALESCE(a.category, 'other') IN ({string.Join(",", names)})");
         }
+        if (q.TypeLabels is { Count: > 0 } labels)
+        {
+            var names = new List<string>();
+            int i = 0;
+            foreach (string l in labels)
+            {
+                string p = "$type" + i++.ToString(CultureInfo.InvariantCulture);
+                cmd.Parameters.AddWithValue(p, l);
+                names.Add(p);
+            }
+            sb.Append($" AND e.is_dir = 0 AND a.type_label IN ({string.Join(",", names)})");
+        }
         if (!string.IsNullOrWhiteSpace(q.NameContains))
         {
             sb.Append(" AND e.name LIKE $name ESCAPE '\\'");
             cmd.Parameters.AddWithValue("$name", "%" + EscapeLike(q.NameContains.Trim()) + "%");
+        }
+        if (q.NameContainsAny is { Count: > 0 } anyNames)
+        {
+            var likes = new List<string>();
+            int k = 0;
+            foreach (string raw in anyNames)
+            {
+                string t = raw.Trim();
+                string p = "$any" + k++.ToString(CultureInfo.InvariantCulture);
+                if (t.Count(char.IsLetterOrDigit) <= 4 && t.All(c => char.IsAsciiLetterOrDigit(c) || c == ' '))
+                {
+                    // A short word ("red", "gta", "link") only as a whole word: not inside "shared" or "hyperlink".
+                    string w = t.ToLowerInvariant();
+                    cmd.Parameters.AddWithValue(p, w);
+                    cmd.Parameters.AddWithValue(p + "a", w + "[^a-z0-9]*");
+                    cmd.Parameters.AddWithValue(p + "b", "*[^a-z0-9]" + w);
+                    cmd.Parameters.AddWithValue(p + "c", "*[^a-z0-9]" + w + "[^a-z0-9]*");
+                    likes.Add($"(lower(e.name) = {p} OR lower(e.name) GLOB {p}a OR lower(e.name) GLOB {p}b OR lower(e.name) GLOB {p}c)");
+                }
+                else
+                {
+                    var words = System.Text.RegularExpressions.Regex.Split(t, @"[^\p{L}\p{N}]+").Where(w => w.Length > 0).Select(EscapeLike);
+                    cmd.Parameters.AddWithValue(p, "%" + string.Join("%", words) + "%");
+                    likes.Add($"e.name LIKE {p} ESCAPE '\\'");
+                }
+            }
+            sb.Append($" AND ({string.Join(" OR ", likes)})");
         }
         if (q.NotUsedSinceUtc is { } since)
         {

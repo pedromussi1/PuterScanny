@@ -33,6 +33,7 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
             LookupKind.Duplicates => Duplicates(req, scope),
             LookupKind.Programs => Programs(req, scope),
             LookupKind.Types => Types(req, scope),
+            LookupKind.Topic => Topic(req, scope),
             _ => List(req, scope),
         };
         return folderNote is null ? result : result with { Answer = folderNote + " " + result.Answer, FactsText = folderNote + "\n" + result.FactsText };
@@ -172,11 +173,13 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
             Unidentified = req.Filter == ListFilter.Unidentified,
             AnyFacts = FactsFor(req.Filter),
             Categories = req.Category is { } c ? [c] : null,
+            TypeLabels = req.TypeLabels,
             NameContains = req.Name,
+            NameContainsAny = req.Terms,
             NotUsedSinceUtc = req.UnusedDays is int u ? _now.AddDays(-u) : null,
             ModifiedBeforeUtc = req.OlderDays is int o ? _now.AddDays(-o) : null,
             MinBytes = req.MinBytes ?? 0,
-            TopmostOnly = verdicts is not null || req.Filter == ListFilter.Unidentified || FactsFor(req.Filter) != FactFlags.None,
+            TopmostOnly = verdicts is not null || req.Filter == ListFilter.Unidentified || FactsFor(req.Filter) != FactFlags.None || req.Terms is { Count: > 0 },
             Sort = req.Sort,
             Limit = req.Count,
         };
@@ -205,11 +208,11 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
         }
         var items = entries.Select(e => ToItem(e, scope, ListNote(e, req))).ToList();
         string what = Describe(req, scope);
-        bool filtered = req.Filter != ListFilter.Any || req.Category is not null || req.UnusedDays is not null || req.OlderDays is not null ||
-                        req.MinBytes is not null || req.Name is not null;
+        bool filtered = req.Filter != ListFilter.Any || req.Category is not null || req.TypeLabels is not null || req.UnusedDays is not null || req.OlderDays is not null ||
+                        req.MinBytes is not null || req.Name is not null || req.Terms is { Count: > 0 };
         // Findings about places (mod downloads, unidentified folders…) are counted per place; everything else per file,
         // the same way the Overview and Clean up totals are.
-        bool perPlace = req.Filter is ListFilter.Unidentified or ListFilter.Mods or ListFilter.Leftovers or ListFilter.EmptyFolders;
+        bool perPlace = req.Filter is ListFilter.Unidentified or ListFilter.Mods or ListFilter.Leftovers or ListFilter.EmptyFolders || req.Terms is { Count: > 0 };
         bool totals = (query.Kind != EntryKind.Folder || perPlace) && filtered;
         var (files, bytes) = !totals ? (0, 0) : perPlace ? db.SummarizeTopmost(query) : db.SummarizeFiles(query);
         string countWord = perPlace ? "item" : "file", countWords = perPlace ? "items" : "files";
@@ -242,6 +245,8 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
         var facts = new StringBuilder();
         facts.AppendLine($"Lookup: {what} ({scope})");
         if (totals) facts.AppendLine($"Matching in total: {ChatText.Count(files, countWord, countWords)}, {ChatText.Size(bytes)}");
+        if (req.Terms is { Count: > 0 })
+            facts.AppendLine("Found by searching names for words linked to the question: each item's name contains one of them, so these are probably, not certainly, what was asked about.");
         AppendItems(facts, items);
         if (items.Count == 0) facts.AppendLine("No items match.");
 
@@ -258,6 +263,7 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
             ListFilter.EmptyFolders => "empty folders",
             ListFilter.BrokenShortcuts => "broken shortcuts",
             ListFilter.PartialDownloads => "unfinished downloads",
+            _ when req.TypeName is { } typeName => typeName,
             _ when req.Category is { } cat => CategoryNoun(cat),
             _ => req.ItemKind switch { EntryKind.File => "files", EntryKind.Folder => "folders", _ => "items" },
         };
@@ -281,6 +287,12 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
             case ListFilter.NoReason: parts.Add("with no reason to remove"); break;
         }
         if (req.Name is { Length: > 0 } n) parts.Add($"with \"{n}\" in the name");
+        if (req.Terms is { Count: > 0 } terms)
+        {
+            var quoted = terms.Take(4).Select(t => $"\"{t}\"").ToList();
+            if (terms.Count > 4) quoted.Add($"{terms.Count - 4} similar {(terms.Count == 5 ? "word" : "words")}");
+            parts.Add($"with {(quoted.Count == 1 ? quoted[0] : string.Join(", ", quoted.Take(quoted.Count - 1)) + " or " + quoted[^1])} in the name");
+        }
         if (req.MinBytes is long min) parts.Add($"of at least {ChatText.Size(min)}");
         if (req.UnusedDays is int u) parts.Add($"not opened or changed in {ChatText.Period(u)}");
         if (req.OlderDays is int o) parts.Add($"not changed in {ChatText.Period(o)}");
@@ -300,6 +312,9 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
         var parts = new List<string>();
         if (!e.IsDirectory && a?.TypeLabel is { } t) parts.Add(t);
         if (e.IsDirectory) parts.Add(ChatText.Count(e.FileCount, "file", "files"));
+        // Which searched word it was found by, so an unrelated match shows as just that.
+        if (req.Terms?.FirstOrDefault(t => NameHas(e.Name, t)) is { } matched)
+            parts.Add($"name has \"{matched}\"");
         if (req.UnusedDays is not null || req.Sort == EntrySort.LeastRecentlyUsed)
         {
             var used = a?.LastUsedUtc ?? a?.ContainedLastUsedUtc;
@@ -317,7 +332,29 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
         return string.Join(" · ", parts);
     }
 
+    /// <summary>The name has the term's words in order, whatever separates them ("batman: arkham" in "Batman_Arkham.zip").</summary>
+    private static bool NameHas(string name, string term)
+    {
+        int at = 0;
+        foreach (string w in System.Text.RegularExpressions.Regex.Split(term, @"[^\p{L}\p{N}]+").Where(w => w.Length > 0))
+        {
+            int i = name.IndexOf(w, at, StringComparison.OrdinalIgnoreCase);
+            if (i < 0) return false;
+            at = i + w.Length;
+        }
+        return true;
+    }
+
     // ---------------------------------------------------------------- one item
+
+    /// <summary>True when the name is exactly a file's or folder's name (or path, or name without its extension).</summary>
+    public bool HasExactName(string name, string scopePath)
+    {
+        var (e, _) = FindItem(name, scopePath);
+        name = name.Trim().Trim('"', '\'', '?', '.');
+        return e is not null && (e.Path.Equals(name, StringComparison.OrdinalIgnoreCase) || e.Name.Equals(name, StringComparison.OrdinalIgnoreCase) ||
+                                 Path.GetFileNameWithoutExtension(e.Name).Equals(name, StringComparison.OrdinalIgnoreCase));
+    }
 
     /// <summary>Finds the item a question names: exact names first, inside the current folder first.</summary>
     public (FileSystemEntry? Entry, IReadOnlyList<FileSystemEntry> Others) FindItem(string name, string scopePath)
@@ -487,7 +524,7 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
         var own = a is not null && e.Depth > 0 ? RecommendationExplainer.Explain(db, kb, e) : null;
         bool inheritsContainer = containerRec is not null && p.PartOf is not null &&
                                  containerRec.Verdict is Verdict.Review or Verdict.SafeToDelete or Verdict.RecommendDelete &&
-                                 (own is null || own.Verdict is Verdict.Keep or Verdict.KeepPersonal);
+                                 (own is null || own.Verdict is Verdict.Keep or Verdict.KeepPersonal || a!.Facts.HasFlag(FactFlags.InsideModDownload));
         var rec = inheritsContainer ? containerRec : own;
         if (rec is not null)
         {
@@ -515,7 +552,9 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
             paras.Add(overview.Answer);
             lines.Add(overview.FactsText.Trim());
         }
-        if (e.IsDirectory && e.Depth > 0 && a is not null && (a.ReclaimBytes > 0 || a.ReviewBytes > 0))
+        // What inside can go, unless it only repeats the recommendation (all of it under review, like the folder itself).
+        bool insideRepeats = rec?.Verdict == Verdict.Review && a is not null && a.ReclaimBytes == 0 && a.ReviewBytes >= e.TotalSize * 0.99;
+        if (e.IsDirectory && e.Depth > 0 && a is not null && (a.ReclaimBytes > 0 || a.ReviewBytes > 0) && !insideRepeats)
         {
             var inside = new List<string>();
             if (a.ReclaimBytes > 0) inside.Add($"{ChatText.Size(a.ReclaimBytes)} can be deleted");
@@ -569,11 +608,15 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
             lines.Add(more);
         }
         if (e.Depth > 0 || others.Count > 0) paras.Add(s.ToString());
-        // "Can I delete it?": the recommendation first, then what it is.
+        // "Can I delete it?": the recommendation first, led by the item's name so it's clear what it's about; then what it is.
         if (!req.Explain && recommendationAt > 0)
         {
             string first = paras[recommendationAt];
+            if (first.StartsWith("Recommendation: ", StringComparison.Ordinal))
+                first = $"{e.Name}: {first["Recommendation: ".Length..]}";
             paras.RemoveAt(recommendationAt);
+            if (paras[0].StartsWith($"{e.Name} is ", StringComparison.Ordinal))
+                paras[0] = "It's " + paras[0][$"{e.Name} is ".Length..];
             paras.Insert(0, first);
         }
 
@@ -770,6 +813,73 @@ public sealed class ScanLookup(ScanDatabase db, KnowledgeBase kb, DateTime? nowU
             FactsText = $"Lookup: kinds of files in {scope}\n{string.Join("\n", rows)}\n",
             Description = $"kinds of files in {name}",
         };
+    }
+
+    // ---------------------------------------------------------------- topics
+
+    /// <summary>Folders inside these are other people's packages, not the user's projects.</summary>
+    private static readonly string[] NotProjects = [@"\node_modules\", @"\site-packages\", @"\.venv\", @"\venv\", @"\vendor\", @"\PackageCache\", @"\.git\", @"\bower_components\"];
+
+    /// <summary>Everything about one topic ("files from a Mac", "code projects"), by the known details.</summary>
+    private LookupResult Topic(LookupRequest req, string scope)
+    {
+        string name = ChatText.FolderName(scope);
+        if (kb.Details.GetTopic(req.Topic) is not { } topic)
+            return Empty(req, scope, $"\"{req.Topic}\"", "That isn't something this scan can look up.");
+
+        var found = new List<FileSystemEntry>();
+        string prefix = scope.TrimEnd('\\') + "\\";
+        if (topic.Markers.Count > 0)
+        {
+            // A folder is a project when it holds one of the marker files (.git, package.json, a .sln…).
+            var folders = new Dictionary<long, FileSystemEntry>();
+            foreach (string marker in topic.Markers)
+            {
+                bool suffix = marker.StartsWith('*');
+                string text = suffix ? marker[1..] : marker;
+                foreach (var m in db.FindByName(text, scope, EntryKind.Any, 500))
+                {
+                    if (suffix ? !m.Name.EndsWith(text, StringComparison.OrdinalIgnoreCase) : !m.Name.Equals(text, StringComparison.OrdinalIgnoreCase)) continue;
+                    if (NotProjects.Any(n => m.Path.Contains(n, StringComparison.OrdinalIgnoreCase))) continue;
+                    if (m.ParentId is long pid && !folders.ContainsKey(pid) && db.GetEntry(pid) is { Depth: > 0 } parent) folders[pid] = parent;
+                }
+            }
+            found.AddRange(folders.Values);
+        }
+        else
+        {
+            using var read = db.OpenReadConnection();
+            foreach (var e in ScanDatabase.ReadAllEntries(read))
+                if (e.Path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) && kb.Details.IsInTopic(topic, e.Name, e.IsDirectory, e.Size))
+                    found.Add(e);
+        }
+
+        // Each place once: nothing inside a folder that is already listed.
+        var topmost = new List<FileSystemEntry>();
+        foreach (var e in found.OrderBy(e => e.Path.Length))
+            if (!topmost.Any(t => t.IsDirectory && e.Path.StartsWith(t.Path.TrimEnd('\\') + "\\", StringComparison.OrdinalIgnoreCase)))
+                topmost.Add(e);
+        long bytes = topmost.Sum(e => e.TotalSize);
+        var items = topmost.OrderByDescending(e => e.TotalSize).Take(req.Count).Select(e => ToItem(e, scope)).ToList();
+        string what = $"{topic.Name} in {name}";
+
+        string answer;
+        if (items.Count == 0)
+        {
+            answer = $"I looked for {topic.Name} in {name} and found none.";
+        }
+        else
+        {
+            string top = ChatText.Join(items.Take(3).Select(i => i.VerdictText.Length > 0 ? $"{i.Name} ({i.SizeText}, {i.VerdictText})" : $"{i.Name} ({i.SizeText})").ToList());
+            answer = $"{Sentence(topic.Name)} in {name}: {ChatText.Count(topmost.Count, "item", "items")}, {ChatText.Size(bytes)} in all. " +
+                     (items.Count == 1 ? $"It's {top}." : $"The biggest: {top}.");
+            if (topmost.Count > 1 && items.Count == topmost.Count && items.Select(i => i.VerdictText).Distinct().Count() == 1 && items[0].VerdictText.Length > 0)
+                answer += $" All of them are marked {items[0].VerdictText}.";
+        }
+        var facts = new StringBuilder($"Lookup: {what}\nFound: {ChatText.Count(topmost.Count, "item", "items")}, {ChatText.Size(bytes)}\n");
+        AppendItems(facts, items);
+        if (items.Count == 0) facts.AppendLine($"None found: this lookup searched specifically for {topic.Name}.");
+        return new LookupResult { Request = req, ScopePath = scope, Answer = answer, Items = items, FactsText = facts.ToString(), Description = what };
     }
 
     // ---------------------------------------------------------------- helpers

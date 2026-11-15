@@ -55,6 +55,9 @@ public sealed partial class AiController : ObservableObject, IDisposable
     public event EventHandler? ExplanationsChanged;
 
     [ObservableProperty] public partial string StatusText { get; set; } = "";
+
+    /// <summary>What this PC allows right now ("Fast enough for summaries…"), with its memory and processor.</summary>
+    [ObservableProperty] public partial string CapacityText { get; set; } = "";
     [ObservableProperty] public partial bool IsDownloading { get; set; }
     [ObservableProperty] public partial string DownloadText { get; set; } = "";
     [ObservableProperty] public partial double DownloadPercent { get; set; }
@@ -131,14 +134,15 @@ public sealed partial class AiController : ObservableObject, IDisposable
 
         StatusText = Service.Status switch
         {
-            AiStatus.NotSetUp when !Service.Settings.Enabled => "Off. Turn it on to get plain-English explanations for items PuterScanny can't identify.",
-            AiStatus.NotSetUp => "On, but no model is ready yet. Download one below (one time, free, no account).",
+            AiStatus.NotSetUp when !Service.Settings.Enabled => "Off. The app answers from the scan alone and never uses the AI.",
+            AiStatus.NotSetUp => "Automatic, but no model is downloaded yet. Download one below (one time, free, no account).",
             AiStatus.Ready => $"Ready: {resolved?.Name}. It loads into memory the first time it's needed.",
             AiStatus.Loading => $"Loading {resolved?.Name} into memory…",
             AiStatus.Loaded => $"Ready: {resolved?.Name} is loaded.",
             AiStatus.Failed => Service.Problem ?? "The model couldn't be loaded.",
             _ => "",
         };
+        CapacityText = CapacityDescription();
         try { CacheText = $"{Display.Count(Service.CachedCount, "explanation", "explanations")} saved on this PC."; }
         catch (Exception ex) when (ex is IOException or Microsoft.Data.Sqlite.SqliteException) { CacheText = ""; }
 
@@ -146,6 +150,24 @@ public sealed partial class AiController : ObservableObject, IDisposable
         OnPropertyChanged(nameof(ModelName));
         OnPropertyChanged(nameof(HasResults));
         ExplainBiggestCommand.NotifyCanExecuteChanged();
+    }
+
+    private string CapacityDescription()
+    {
+        var c = Service.Capacity();
+        if (c.Tier == AiTier.Off) return "";
+        static string Gb(long b) => Display.Size(b);
+        string pc = $"This PC: {Gb(c.TotalMemory)} of memory ({Gb(c.FreeMemory)} free), {Environment.ProcessorCount} processor threads" +
+                    (c.Avx2 ? "" : ", an older processor (no AVX2)") + (c.OnBattery ? ", on battery" : "") +
+                    (c.TokensPerSecond is double t ? $", about {t:0.#} words a second measured" : "") + ".";
+        string use = c.Tier switch
+        {
+            AiTier.Fast when c.Summaries => "Used to understand questions the app can't read on its own, and to add short summaries to answers.",
+            AiTier.Fast => "Used to understand questions the app can't read on its own. Summaries are skipped for now.",
+            AiTier.Slow => "Used only to understand questions the app can't read on its own (no summaries).",
+            _ => "Not used for now.",
+        };
+        return $"{pc} {use} Why: {c.Reason}.";
     }
 
     // ---------------------------------------------------------------- models

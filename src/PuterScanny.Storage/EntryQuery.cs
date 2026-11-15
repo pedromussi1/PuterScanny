@@ -47,8 +47,14 @@ public sealed record EntryQuery
     /// <summary>Only files of these kinds (knowledge-base category ids, such as "video" or "installer").</summary>
     public IReadOnlyCollection<string>? Categories { get; init; }
 
+    /// <summary>Only files with exactly one of these type labels (such as "Game Boy Advance ROM").</summary>
+    public IReadOnlyCollection<string>? TypeLabels { get; init; }
+
     /// <summary>Only items whose name contains this text (any case).</summary>
     public string? NameContains { get; init; }
+
+    /// <summary>Only items whose name contains at least one of these (any case).</summary>
+    public IReadOnlyCollection<string>? NameContainsAny { get; init; }
 
     /// <summary>Only items neither opened (as far as Windows' records show) nor changed since this time.</summary>
     public DateTime? NotUsedSinceUtc { get; init; }
